@@ -12,7 +12,7 @@ data class LoginResponse (
     @Json(name = "user")
     val user: User,
     @Json(name = "sessionLocation")
-    val sessionlocation: Sessionlocation,
+    val sessionlocation: Sessionlocation?,
     @Json(name = "currentProvider")
     val currentprovider: Currentprovider,
 )

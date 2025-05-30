@@ -1,5 +1,6 @@
 package com.lyecdevelopers.auth.presentation.login
 
+import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lyecdevelopers.auth.domain.model.Result
@@ -40,33 +41,54 @@ class LoginViewModel @Inject constructor(
 
     private fun login() {
         val currentState = _uiState.value
+        val username = currentState.username.trim()
+        val password = currentState.password
 
-        if (currentState.username.isBlank() || currentState.password.isBlank()) {
-            viewModelScope.launch {
-                _uiEvent.emit(LoginUIEvent.ShowError("Username or password can't be empty"))
-            }
+        // Basic empty check
+        if (username.isBlank() || password.isBlank()) {
+            emitError("Username or password can't be empty")
             return
         }
 
-        viewModelScope.launch {
-            loginUseCase(currentState.username, currentState.password).collect { result ->
+        // Password strength checks
+        if (password.length < 6) {
+            emitError("Password must be at least 6 characters")
+            return
+        }
 
+        if (password.lowercase() in listOf("123456", "password", "admin")) {
+            emitError("Please choose a stronger password")
+            return
+        }
+
+        // Launch login process
+        viewModelScope.launch {
+            loginUseCase(username, password).collect { result ->
                 when (result) {
-                    is Result.Error -> {
-                        _uiState.update { it.copy(isLoading = false) }
-                        _uiEvent.emit(LoginUIEvent.ShowError(result.message))
-                    }
                     is Result.Loading -> {
                         _uiState.update { it.copy(isLoading = true) }
                     }
+
                     is Result.Success -> {
                         _uiState.update {
                             it.copy(isLoading = false, isLoginSuccessful = true)
                         }
                         _uiEvent.emit(LoginUIEvent.ShowSuccess("Login successful"))
                     }
+
+                    is Result.Error -> {
+                        _uiState.update { it.copy(isLoading = false) }
+                        _uiEvent.emit(LoginUIEvent.ShowError(result.message))
+                    }
                 }
             }
         }
     }
+
+    private fun emitError(message: String) {
+        viewModelScope.launch {
+            _uiEvent.emit(LoginUIEvent.ShowError(message))
+        }
+    }
+
 }
