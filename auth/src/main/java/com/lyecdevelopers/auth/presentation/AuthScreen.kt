@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -20,6 +21,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.lyecdevelopers.auth.R
 import com.lyecdevelopers.auth.presentation.login.LoginScreen
+import com.lyecdevelopers.core.ui.components.CircularImage
+import com.lyecdevelopers.core.ui.components.HeadlineText
 import com.lyecdevelopers.core.ui.theme.UgandaEMRMobileTheme
 
 @Composable
@@ -42,32 +45,28 @@ fun AuthScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(24.dp)
+                    verticalArrangement = Arrangement.spacedBy(32.dp)
                 ) {
-                    // UgandaEMR logo
-//                    Image(
-//                        painter = painterResource(id = ),
-//                        contentDescription = "UgandaEMR Logo",
-//                        modifier = Modifier
-//                            .size(100.dp)
-//                            .clip(CircleShape),
-//                        contentScale = ContentScale.Crop
-//                    )
+                    // --- Logo ---
+                    CircularImage(
+                        imageResId = com.lyecdevelopers.core.R.drawable.ic_launcher_foreground,
+                        contentDescription = "UgandaEMR Logo",
+                        modifier = Modifier.size(150.dp)
+                    )
 
-                    // Title
-                    Text(
-                        text = "Welcome to UgandaEMR",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.primary,
+                    // --- Title ---
+                    HeadlineText(
+                        text = "Welcome to EMRMobile",
                         textAlign = TextAlign.Center
                     )
 
-                    // Login form
+                    // --- Login Form ---
                     LoginScreen(onLoginSuccess = onLoginSuccess)
                 }
             }
         }
     }
 }
+
 
 

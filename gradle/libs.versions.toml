@@ -7,13 +7,11 @@ coreKtx = "1.16.0"
 
 # Compose
 composeBom = "2025.05.01"
-materialIconsExtended = "1.12.0"
 activityCompose = "1.10.1"
 
 # AndroidX
 appcompat = "1.7.0"
 lifecycleRuntimeKtx = "2.9.0"
-navigationCompose = "2.9.0"
 hiltNavigationCompose = "1.2.0"
 
 # Hilt DI
@@ -39,7 +37,6 @@ espressoCore = "3.6.1"
 [libraries]
 # Core
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 
 # Activity & Lifecycle
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
@@ -54,11 +51,6 @@ androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
-androidx-material = { group = "androidx.compose.material", name = "material" }
-androidx-foundation = { group = "androidx.compose.foundation", name = "foundation" }
-androidx-runtime = { group = "androidx.compose.runtime", name = "runtime" }
-androidx-animation = { group = "androidx.compose.animation", name = "animation" }
-material3-icons-extended = { group = "androidx.compose.material3", name = "material3-icons-extended", version.ref = "materialIconsExtended" }
 
 # Navigation
 hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
