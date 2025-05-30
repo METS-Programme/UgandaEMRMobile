@@ -1,7 +1,7 @@
 package com.lyecdevelopers.core.di
 
 import com.lyecdevelopers.core.BuildConfig
-import com.lyecdevelopers.core.data.remote.API
+import com.lyecdevelopers.core.data.remote.AuthApi
 import com.lyecdevelopers.core.data.remote.interceptor.AuthInterceptor
 import com.lyecdevelopers.core.model.Config
 import com.lyecdevelopers.core.data.remote.interceptor.provideLoggingInterceptor
@@ -58,6 +58,6 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideFormApiService(retrofit: Retrofit): API =
-        retrofit.create(API::class.java)
+    fun provideFormApiService(retrofit: Retrofit): AuthApi =
+        retrofit.create(AuthApi::class.java)
 }

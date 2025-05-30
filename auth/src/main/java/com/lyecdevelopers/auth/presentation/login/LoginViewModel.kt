@@ -2,6 +2,7 @@ package com.lyecdevelopers.auth.presentation.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lyecdevelopers.auth.domain.model.Result
 import com.lyecdevelopers.auth.domain.usecase.LoginUseCase
 import com.lyecdevelopers.auth.presentation.event.LoginEvent
 import com.lyecdevelopers.auth.presentation.event.LoginUIEvent
@@ -49,23 +50,23 @@ class LoginViewModel @Inject constructor(
 
         viewModelScope.launch {
             loginUseCase(currentState.username, currentState.password).collect { result ->
+
                 when (result) {
-//                    is Result.Loading -> {
-//                        _uiState.update { it.copy(isLoading = true) }
-//                    }
-//                    is Result.Success -> {
-//                        _uiState.update {
-//                            it.copy(isLoading = false, isLoginSuccessful = true)
-//                        }
-//                        _uiEvent.emit(LoginUIEvent.ShowSuccess("Login successful"))
-//                    }
-//                    is Result.Error -> {
-//                        _uiState.update { it.copy(isLoading = false) }
-//                        _uiEvent.emit(LoginUIEvent.ShowError(result.message))
-//                    }
+                    is Result.Error -> {
+                        _uiState.update { it.copy(isLoading = false) }
+                        _uiEvent.emit(LoginUIEvent.ShowError(result.message))
+                    }
+                    is Result.Loading -> {
+                        _uiState.update { it.copy(isLoading = true) }
+                    }
+                    is Result.Success -> {
+                        _uiState.update {
+                            it.copy(isLoading = false, isLoginSuccessful = true)
+                        }
+                        _uiEvent.emit(LoginUIEvent.ShowSuccess("Login successful"))
+                    }
                 }
             }
         }
     }
 }
-
