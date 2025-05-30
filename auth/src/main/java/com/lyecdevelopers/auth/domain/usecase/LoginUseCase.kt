@@ -1,4 +1,14 @@
 package com.lyecdevelopers.auth.domain.usecase
 
-class LoginUseCase {
+import com.lyecdevelopers.auth.domain.repository.AuthRepository
+import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
+
+class LoginUseCase @Inject constructor(
+    private val repository: AuthRepository
+) {
+     operator fun invoke(username: String, password: String): Flow<Result<Boolean>> {
+        return repository.login(username, password)
+    }
 }
+

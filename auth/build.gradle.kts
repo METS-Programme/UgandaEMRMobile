@@ -50,32 +50,37 @@ android {
 dependencies {
     implementation (project(":core"))
     // Compose UI essentials
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
+    implementation(libs.androidx.ui.graphics)
+    implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.hilt.navigation.compose)
 
-    // Hilt
+// Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
-    // Retrofit + OkHttp
+// Retrofit + OkHttp
     implementation(libs.retrofit)
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
 
-    // Room
+// Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
 
-    // Moshi
+// Moshi
     implementation(libs.moshi)
     implementation(libs.moshi.kotlin)
     ksp(libs.moshi.kotlin.codegen)
     implementation(libs.moshi.converter)
 
-    // Optional: for previewing Composables
-    implementation(libs.androidx.ui.tooling.preview)
+// Optional: for previewing Composables
     debugImplementation(libs.androidx.ui.tooling)
+
 }
