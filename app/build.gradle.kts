@@ -57,6 +57,8 @@ dependencies {
     implementation(project(":settings"))
     implementation(project(":worklist"))
     implementation(project(":auth"))
+    implementation(project(":core-navigation"))
+    implementation(project(":main"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -67,6 +69,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.hilt.navigation.compose)
+
 
     // Hilt
     implementation(libs.hilt.android)

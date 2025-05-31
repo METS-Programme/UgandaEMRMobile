@@ -8,11 +8,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.lyecdevelopers.auth.presentation.AuthScreen
-import com.lyecdevelopers.core.navigation.Destinations
-import com.lyecdevelopers.settings.presentation.SettingsScreen
-import com.lyecdevelopers.sync.presentation.SyncScreen
 import com.lyecdevelopers.core.ui.theme.UgandaEMRMobileTheme
-import com.lyecdevelopers.worklist.presentation.worklist.WorklistScreen
+import com.lyecdevelopers.core_navigation.navigation.Destinations
+import com.lyecdevelopers.main.MainScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -27,26 +25,18 @@ class MainActivity : ComponentActivity() {
                 NavHost(navController = navController, startDestination = Destinations.AUTH) {
                     composable(Destinations.AUTH) {
                         AuthScreen(onLoginSuccess = {
-                            navController.navigate(Destinations.WORKLIST) {
+                            navController.navigate(Destinations.MAIN) {
                                 popUpTo(Destinations.AUTH) { inclusive = true }
                             }
                         })
                     }
-                    composable(Destinations.WORKLIST) {
-                        WorklistScreen(
-                            onSyncClick = { navController.navigate(Destinations.SYNC) },
-                            onSettingsClick = { navController.navigate(Destinations.SETTINGS) }
-                        )
-                    }
-                    composable(Destinations.SYNC) {
-                        SyncScreen(onBack = { navController.popBackStack() })
-                    }
-                    composable(Destinations.SETTINGS) {
-                        SettingsScreen(onBack = { navController.popBackStack() })
+                    composable(Destinations.MAIN) {
+                        MainScreen()
                     }
                 }
+
+
             }
-        }
     }
-}
+}}
 

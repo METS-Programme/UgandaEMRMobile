@@ -60,8 +60,10 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.hilt.navigation.compose)
 
+
 // Hilt
     implementation(libs.hilt.android)
+    implementation(project(":core-navigation"))
     ksp(libs.hilt.compiler)
 
 // Retrofit + OkHttp

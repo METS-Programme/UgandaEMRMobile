@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.lyecdevelopers.worklist"
+    namespace = "com.lyecdevelopers.main"
     compileSdk = 35
 
     defaultConfig {
@@ -41,22 +41,29 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
+
     hilt {
         enableAggregatingTask = false
     }
 }
 
 dependencies {
-    implementation (project(":core"))
 
+    implementation (project(":core"))
+    implementation(project(":sync"))
+    implementation(project(":worklist"))
+    implementation(project(":settings"))
     // Compose UI essentials
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
+    implementation(libs.androidx.ui.graphics)
+    implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.hilt.navigation.compose)
-
-
 
     // Hilt
     implementation(libs.hilt.android)
