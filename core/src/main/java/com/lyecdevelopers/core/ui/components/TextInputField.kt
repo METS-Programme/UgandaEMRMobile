@@ -1,11 +1,13 @@
 package com.lyecdevelopers.core.ui.components
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -41,37 +43,46 @@ fun TextInputField(
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
 
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(label) },
-        isError = error != null,
-        leadingIcon = leadingIcon?.let {
-            { Icon(imageVector = it, contentDescription = null) }
-        },
-        trailingIcon = if (isPassword) {
-            {
-//                val icon = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
-//                IconButton(onClick = { passwordVisible = !passwordVisible }) {
-//                    Icon(imageVector = icon, contentDescription = null)
-//                }
-            }
-        } else null,
-        visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
-        singleLine = singleLine,
-        keyboardOptions = keyboardOptions,
-        keyboardActions = keyboardActions,
-        modifier = modifier
-            .focusRequester(focusRequester)
-            .onFocusChanged { onFocusChanged?.invoke(it) },
-    )
-
-    if (error != null) {
-        Text(
-            text = error,
-            color = MaterialTheme.colorScheme.error,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+    Column(modifier = modifier) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            label = { Text(label) },
+            isError = error != null,
+            leadingIcon = leadingIcon?.let {
+                { Icon(imageVector = it, contentDescription = "$label icon") }
+            },
+            trailingIcon = if (isPassword) {
+                {
+//                    val icon = if (passwordVisible) Icons.Filled.e else Icons.Default.VisibilityOff
+//                    val description = if (passwordVisible) "Hide password" else "Show password"
+//                    IconButton(
+//                        onClick = { passwordVisible = !passwordVisible },
+//                        modifier = Modifier.semantics { role = androidx.compose.ui.semantics.Role.Button }
+//                    ) {
+//                        Icon(imageVector = icon, contentDescription = description)
+//                    }
+                }
+            } else null,
+            visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
+            singleLine = singleLine,
+            keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions,
+            modifier = Modifier
+                .focusRequester(focusRequester)
+                .onFocusChanged { onFocusChanged?.invoke(it) }
+                .fillMaxWidth()
         )
+
+        if (error != null) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = error,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(start = 16.dp)
+            )
+        }
     }
 }
+

@@ -1,6 +1,5 @@
 package com.lyecdevelopers.auth.presentation.login
 
-import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lyecdevelopers.auth.domain.model.Result
@@ -39,6 +38,7 @@ class LoginViewModel @Inject constructor(
                 _uiState.update { it.copy(username = event.username, password = event.password) }
             }
             is LoginEvent.Submit -> {
+                _uiState.update { it.copy(hasSubmitted = true) }
                 login()
             }
         }

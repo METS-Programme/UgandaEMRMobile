@@ -9,13 +9,16 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun SectionTitle(
     text: String,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.primary,
-    style: TextStyle = MaterialTheme.typography.headlineMedium,
+    fontSize: TextUnit = 28.sp,
+    style: TextStyle = MaterialTheme.typography.titleLarge,
     textAlign: TextAlign? = null,
     fontWeight: FontWeight? = null,
     textDecoration: TextDecoration? = null
@@ -27,6 +30,7 @@ fun SectionTitle(
                 TextStyle(
                     color = color,
                     textAlign = it,
+                    fontSize = fontSize,
                     fontWeight = fontWeight,
                     textDecoration = textDecoration
                 )
