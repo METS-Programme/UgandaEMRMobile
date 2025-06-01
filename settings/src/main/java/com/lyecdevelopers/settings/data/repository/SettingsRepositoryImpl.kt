@@ -1,4 +1,3 @@
 package com.lyecdevelopers.settings.data.repository
 
-class SettingsRepositoryImpl {
-}
+class SettingsRepositoryImpl

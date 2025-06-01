@@ -12,6 +12,12 @@ interface PreferenceManager {
     suspend fun saveUserRole(role: String)
     fun getUserRole(): Flow<String?>
 
+    suspend fun saveUsername(username: String)
+    fun getUsername(): Flow<String?>
+
+    suspend fun savePassword(password: String)
+    fun getPassword(): Flow<String?>
+
     suspend fun setRememberMe(enabled: Boolean)
     fun isRememberMeEnabled(): Flow<Boolean>
 
@@ -19,4 +25,5 @@ interface PreferenceManager {
     fun isDarkModeEnabled(): Flow<Boolean>
 
     suspend fun clear()
+
 }

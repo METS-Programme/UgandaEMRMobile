@@ -1,4 +1,3 @@
 package com.lyecdevelopers.worklist.data.repository
 
-class RegisterPatientRepositoryImpl {
-}
+class RegisterPatientRepositoryImpl

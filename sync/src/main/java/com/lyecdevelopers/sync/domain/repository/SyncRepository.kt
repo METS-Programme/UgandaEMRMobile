@@ -1,4 +1,3 @@
 package com.lyecdevelopers.sync.domain.repository
 
-class SyncRepository {
-}
+class SyncRepository

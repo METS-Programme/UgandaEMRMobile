@@ -1,4 +1,3 @@
 package com.lyecdevelopers.settings.presentation
 
-class SettingsViewModel {
-}
+class SettingsViewModel

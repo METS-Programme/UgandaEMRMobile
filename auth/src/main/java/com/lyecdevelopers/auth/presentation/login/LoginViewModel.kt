@@ -43,7 +43,9 @@ class LoginViewModel @Inject constructor(
                 _uiState.update { it.copy(hasSubmitted = true) }
                 login()
             }
-            is LoginEvent.logout -> TODO()
+            is LoginEvent.Logout -> {
+                logout()
+            }
         }
     }
 
@@ -82,7 +84,7 @@ class LoginViewModel @Inject constructor(
                             _uiState.update {
                                 it.copy(isLoading = false, isLoginSuccessful = true)
                             }
-                            saveLogin()
+                            saveLogin(username, password)
                             _uiEvent.emit(LoginUIEvent.ShowSuccess("Login successful"))
                         }
 
@@ -98,9 +100,12 @@ class LoginViewModel @Inject constructor(
     }
 
 
-    fun logout() {
+    private fun logout() {
         viewModelScope.launch(schedulerProvider.io) {
-            logoutUseCase(username = "", password = "").collect { result ->
+            logoutUseCase(
+                username = preferenceManager.getUsername()
+                    .toString(), password = preferenceManager.getPassword().toString()
+            ).collect { result ->
                 withContext(schedulerProvider.main) {
                     when (result) {
                         is Result.Loading -> {
@@ -131,8 +136,10 @@ class LoginViewModel @Inject constructor(
     }
 
 
-    private fun saveLogin() {
+    private fun saveLogin(username: String, password: String) {
         viewModelScope.launch(schedulerProvider.io) {
+            preferenceManager.saveUsername(username)
+            preferenceManager.savePassword(password)
             preferenceManager.setIsLoggedIn(true)
         }
     }

@@ -1,4 +1,3 @@
 package com.lyecdevelopers.worklist.presentation.worklist
 
-class WorklistViewModel {
-}
+class WorklistViewModel

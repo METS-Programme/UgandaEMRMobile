@@ -1,4 +1,3 @@
 package com.lyecdevelopers.sync.di
 
-class SyncModule {
-}
+class SyncModule

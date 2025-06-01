@@ -1,4 +1,3 @@
 package com.lyecdevelopers.settings.di
 
-class SettingsModule {
-}
+class SettingsModule

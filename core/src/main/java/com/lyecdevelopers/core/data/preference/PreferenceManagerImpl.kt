@@ -1,7 +1,9 @@
 package com.lyecdevelopers.core.data.preference
 
 import android.content.Context
-import androidx.datastore.preferences.core.*
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -18,6 +20,8 @@ class PreferenceManagerImpl(
         private val REMEMBER_ME = booleanPreferencesKey("remember_me")
         private val DARK_MODE = booleanPreferencesKey("dark_mode")
         private val IS_LOGGED_IN = booleanPreferencesKey("is_logged_in")
+        private val USERNAME = stringPreferencesKey("username")
+        private val PASSWORD = stringPreferencesKey("password")
     }
 
     override suspend fun saveAuthToken(token: String) {
@@ -51,6 +55,24 @@ class PreferenceManagerImpl(
     override fun getUserRole(): Flow<String?> {
         return context.dataStore.data.map { it[USER_ROLE] }
     }
+
+    override suspend fun saveUsername(username: String) {
+        context.dataStore.edit { prefs ->
+            prefs[USERNAME] = username
+        }
+    }
+
+    override fun getUsername(): Flow<String?> =
+        context.dataStore.data.map { it[USERNAME] }
+
+    override suspend fun savePassword(password: String) {
+        context.dataStore.edit { prefs ->
+            prefs[PASSWORD] = password
+        }
+    }
+
+    override fun getPassword(): Flow<String?> =
+        context.dataStore.data.map { it[PASSWORD] }
 
     override suspend fun setRememberMe(enabled: Boolean) {
         context.dataStore.edit { prefs ->

@@ -22,6 +22,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.lyecdevelopers.auth.presentation.event.LoginEvent
 import com.lyecdevelopers.auth.presentation.event.LoginUIEvent
 import com.lyecdevelopers.auth.presentation.login.LoginViewModel
 import com.lyecdevelopers.core.model.BottomNavItem
@@ -91,7 +92,7 @@ fun MainScreen(
                                     text = { Text("Logout") },
                                     onClick = {
                                         menuExpanded = false
-                                        viewModel.logout()
+                                        viewModel.onEvent(LoginEvent.Logout)
                                     }
                                 )
                             }

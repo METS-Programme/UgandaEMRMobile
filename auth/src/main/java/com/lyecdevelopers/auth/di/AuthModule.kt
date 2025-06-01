@@ -3,7 +3,6 @@ package com.lyecdevelopers.auth.di
 import com.lyecdevelopers.auth.data.repository.AuthRepositoryImpl
 import com.lyecdevelopers.auth.domain.repository.AuthRepository
 import com.lyecdevelopers.core.common.scheduler.SchedulerProvider
-import com.lyecdevelopers.core.data.preference.PreferenceManager
 import com.lyecdevelopers.core.data.remote.AuthApi
 import dagger.Module
 import dagger.Provides

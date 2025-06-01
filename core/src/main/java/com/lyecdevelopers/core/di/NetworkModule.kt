@@ -3,8 +3,8 @@ package com.lyecdevelopers.core.di
 import com.lyecdevelopers.core.BuildConfig
 import com.lyecdevelopers.core.data.remote.AuthApi
 import com.lyecdevelopers.core.data.remote.interceptor.AuthInterceptor
-import com.lyecdevelopers.core.model.Config
 import com.lyecdevelopers.core.data.remote.interceptor.provideLoggingInterceptor
+import com.lyecdevelopers.core.model.Config
 import com.squareup.moshi.Moshi
 import dagger.Module
 import dagger.Provides
@@ -22,27 +22,26 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideConfig(): Config {
-        return Config(
-            baseUrl = BuildConfig.API_BASE_URL,
-            apiKey = BuildConfig.API_CLIENT_ID,
-            username = BuildConfig.API_SERVER_USERNAME,
-            password = BuildConfig.API_SERVER_PASSWORD
-        )
-    }
+    fun provideConfig(): Config = Config(
+        baseUrl = BuildConfig.API_BASE_URL,
+        apiKey = BuildConfig.API_CLIENT_ID,
+        username = BuildConfig.API_SERVER_USERNAME,
+        password = BuildConfig.API_SERVER_PASSWORD
+    )
 
-
+    @Provides
+    @Singleton
+    fun provideAuthInterceptor(config: Config): AuthInterceptor =
+        AuthInterceptor(config)
 
     @Provides
     @Singleton
     fun provideOkHttpClient(
         authInterceptor: AuthInterceptor
-    ): OkHttpClient {
-        return OkHttpClient.Builder()
-            .addInterceptor(authInterceptor)
-            .addInterceptor(provideLoggingInterceptor())
-            .build()
-    }
+    ): OkHttpClient = OkHttpClient.Builder()
+        .addInterceptor(authInterceptor)
+        .addInterceptor(provideLoggingInterceptor())
+        .build()
 
     @Provides
     @Singleton
@@ -58,6 +57,6 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideFormApiService(retrofit: Retrofit): AuthApi =
+    fun provideAuthApiService(retrofit: Retrofit): AuthApi =
         retrofit.create(AuthApi::class.java)
 }
