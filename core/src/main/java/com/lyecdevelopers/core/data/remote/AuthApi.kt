@@ -15,7 +15,7 @@ interface AuthApi {
     ): Response<LoginResponse>
 
     @DELETE("session")
-    suspend fun logout(): Response<LogoutResponse>
+    suspend fun logoutWithAuthHeader(@Header("Authorization") authHeader: String): Response<LogoutResponse>
 }
 
 

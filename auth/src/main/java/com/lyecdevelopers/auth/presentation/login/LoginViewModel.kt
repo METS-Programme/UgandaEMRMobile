@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lyecdevelopers.auth.domain.model.Result
 import com.lyecdevelopers.auth.domain.usecase.LoginUseCase
+import com.lyecdevelopers.auth.domain.usecase.LogoutUseCase
 import com.lyecdevelopers.auth.presentation.event.LoginEvent
 import com.lyecdevelopers.auth.presentation.event.LoginUIEvent
 import com.lyecdevelopers.auth.presentation.state.LoginUIState
@@ -22,6 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
+    private val logoutUseCase: LogoutUseCase,
     private val schedulerProvider: SchedulerProvider,
     private val preferenceManager: PreferenceManager
 ) : ViewModel() {
@@ -41,6 +43,7 @@ class LoginViewModel @Inject constructor(
                 _uiState.update { it.copy(hasSubmitted = true) }
                 login()
             }
+            is LoginEvent.logout -> TODO()
         }
     }
 
@@ -93,6 +96,33 @@ class LoginViewModel @Inject constructor(
             }
         }
     }
+
+
+    fun logout() {
+        viewModelScope.launch(schedulerProvider.io) {
+            logoutUseCase(username = "", password = "").collect { result ->
+                withContext(schedulerProvider.main) {
+                    when (result) {
+                        is Result.Loading -> {
+                            _uiState.update { it.copy(isLoading = true) }
+                        }
+
+                        is Result.Success -> {
+                            preferenceManager.clear()
+                            _uiState.update { it.copy(isLoading = false) }
+                            _uiEvent.emit(LoginUIEvent.LoggedOut)
+                        }
+
+                        is Result.Error -> {
+                            _uiState.update { it.copy(isLoading = false) }
+                            _uiEvent.emit(LoginUIEvent.ShowError(result.message))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 
     private fun emitError(message: String) {
         viewModelScope.launch(schedulerProvider.main) {

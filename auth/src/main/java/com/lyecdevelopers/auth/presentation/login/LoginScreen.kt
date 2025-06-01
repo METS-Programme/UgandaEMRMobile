@@ -62,6 +62,8 @@ fun LoginScreen(
                     Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
                     onLoginSuccess()
                 }
+
+                LoginUIEvent.LoggedOut -> TODO()
             }
         }
     }

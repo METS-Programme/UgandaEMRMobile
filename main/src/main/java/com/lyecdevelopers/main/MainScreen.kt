@@ -2,12 +2,7 @@ package com.lyecdevelopers.main
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -15,26 +10,31 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.lyecdevelopers.auth.presentation.event.LoginUIEvent
+import com.lyecdevelopers.auth.presentation.login.LoginViewModel
 import com.lyecdevelopers.core.model.BottomNavItem
 import com.lyecdevelopers.core.ui.components.BottomNavigationBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen() {
-    val navController = rememberNavController()
+fun MainScreen(
+    viewModel: LoginViewModel = hiltViewModel(),
+    navController: NavHostController = rememberNavController()
+) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
-
 
     val topBarTitle = when (currentRoute) {
         BottomNavItem.Worklist.route -> BottomNavItem.Worklist.label
@@ -43,8 +43,17 @@ fun MainScreen() {
         else -> ""
     }
 
-    // State to control menu expanded/collapsed
     var menuExpanded by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { event ->
+            if (event is LoginUIEvent.LoggedOut) {
+                navController.navigate("auth") {
+                    popUpTo(0) // Clear backstack
+                }
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -82,7 +91,7 @@ fun MainScreen() {
                                     text = { Text("Logout") },
                                     onClick = {
                                         menuExpanded = false
-//                                        viewModel.onLogoutClicked()
+                                        viewModel.logout()
                                     }
                                 )
                             }
@@ -110,8 +119,8 @@ fun MainScreen() {
             modifier = Modifier.padding(paddingValues)
         )
     }
-
 }
+
 
 
 

@@ -54,6 +54,8 @@ dependencies {
     implementation(project(":sync"))
     implementation(project(":worklist"))
     implementation(project(":settings"))
+    implementation(project(":auth"))
+
     // Compose UI essentials
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
