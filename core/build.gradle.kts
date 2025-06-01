@@ -85,6 +85,7 @@ dependencies {
 
     // Hilt
     implementation(libs.hilt.android)
+    implementation(libs.androidx.datastore.preferences.core.android)
     ksp(libs.hilt.compiler)
 
     // Retrofit + OkHttp
@@ -105,6 +106,9 @@ dependencies {
 
     // preferences
     implementation(libs.androidx.datastore.preferences)
+
+    // security
+    implementation(libs.androidx.security.crypto)
 
 
     // Optional: for previewing Composables

@@ -26,6 +26,9 @@ moshi = "1.15.1"
 # Preferences DataStore
 datastorePreferences = "1.0.0"
 
+# security
+securityCrypto = "1.1.0-alpha06"
+
 
 # Room DB
 room = "2.7.1"
@@ -39,6 +42,7 @@ junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 appcompatVersion = "1.7.0"
 material = "1.12.0"
+datastorePreferencesCoreAndroid = "1.1.7"
 
 [libraries]
 # Core
@@ -87,6 +91,9 @@ coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coi
 # Preferences Store
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastorePreferences" }
 
+# security
+androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
+
 
 # Test
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -94,6 +101,7 @@ androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "j
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompatVersion" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+androidx-datastore-preferences-core-android = { group = "androidx.datastore", name = "datastore-preferences-core-android", version.ref = "datastorePreferencesCoreAndroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

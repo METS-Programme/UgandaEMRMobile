@@ -2,6 +2,7 @@ package com.lyecdevelopers.core.data.preference
 
 import kotlinx.coroutines.flow.Flow
 
+
 interface PreferenceManager {
     suspend fun saveAuthToken(token: String)
     fun getAuthToken(): Flow<String?>
@@ -27,3 +28,4 @@ interface PreferenceManager {
     suspend fun clear()
 
 }
+
