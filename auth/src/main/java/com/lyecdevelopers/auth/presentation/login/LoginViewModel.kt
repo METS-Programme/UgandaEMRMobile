@@ -8,6 +8,8 @@ import com.lyecdevelopers.auth.domain.usecase.LoginUseCase
 import com.lyecdevelopers.auth.presentation.event.LoginEvent
 import com.lyecdevelopers.auth.presentation.event.LoginUIEvent
 import com.lyecdevelopers.auth.presentation.state.LoginUIState
+import com.lyecdevelopers.core.common.scheduler.SchedulerProvider
+import com.lyecdevelopers.core.data.preference.PreferenceManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,11 +17,14 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val loginUseCase: LoginUseCase
+    private val loginUseCase: LoginUseCase,
+    private val schedulerProvider: SchedulerProvider,
+    private val preferenceManager: PreferenceManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUIState())
@@ -62,33 +67,45 @@ class LoginViewModel @Inject constructor(
         }
 
         // Launch login process
-        viewModelScope.launch {
+        viewModelScope.launch(schedulerProvider.io) {
             loginUseCase(username, password).collect { result ->
-                when (result) {
-                    is Result.Loading -> {
-                        _uiState.update { it.copy(isLoading = true) }
-                    }
-
-                    is Result.Success -> {
-                        _uiState.update {
-                            it.copy(isLoading = false, isLoginSuccessful = true)
+                withContext(schedulerProvider.main) {
+                    when (result) {
+                        is Result.Loading -> {
+                            _uiState.update { it.copy(isLoading = true) }
                         }
-                        _uiEvent.emit(LoginUIEvent.ShowSuccess("Login successful"))
-                    }
 
-                    is Result.Error -> {
-                        _uiState.update { it.copy(isLoading = false) }
-                        _uiEvent.emit(LoginUIEvent.ShowError(result.message))
+                        is Result.Success -> {
+                            _uiState.update {
+                                it.copy(isLoading = false, isLoginSuccessful = true)
+                            }
+                            saveLogin()
+                            _uiEvent.emit(LoginUIEvent.ShowSuccess("Login successful"))
+                        }
+
+                        is Result.Error -> {
+                            _uiState.update { it.copy(isLoading = false) }
+                            _uiEvent.emit(LoginUIEvent.ShowError(result.message))
+                        }
                     }
                 }
+
             }
         }
     }
 
     private fun emitError(message: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(schedulerProvider.main) {
             _uiEvent.emit(LoginUIEvent.ShowError(message))
         }
     }
+
+
+    private fun saveLogin() {
+        viewModelScope.launch(schedulerProvider.io) {
+            preferenceManager.setIsLoggedIn(true)
+        }
+    }
+
 
 }

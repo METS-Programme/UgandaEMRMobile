@@ -103,6 +103,10 @@ dependencies {
     ksp(libs.moshi.kotlin.codegen)
     implementation(libs.moshi.converter)
 
+    // preferences
+    implementation(libs.androidx.datastore.preferences)
+
+
     // Optional: for previewing Composables
     implementation(libs.androidx.ui.tooling.preview)
     debugImplementation(libs.androidx.ui.tooling)

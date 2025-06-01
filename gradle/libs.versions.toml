@@ -23,6 +23,10 @@ retrofit = "2.11.0"
 okhttp = "4.12.0"
 moshi = "1.15.1"
 
+# Preferences DataStore
+datastorePreferences = "1.0.0"
+
+
 # Room DB
 room = "2.7.1"
 
@@ -79,6 +83,10 @@ room-compiler = { group = "androidx.room", name = "room-compiler", version.ref =
 
 # Image Loading
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+
+# Preferences Store
+androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastorePreferences" }
+
 
 # Test
 junit = { group = "junit", name = "junit", version.ref = "junit" }
