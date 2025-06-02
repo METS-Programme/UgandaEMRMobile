@@ -63,7 +63,9 @@ fun LoginScreen(
                     onLoginSuccess()
                 }
 
-                LoginUIEvent.LoggedOut -> TODO()
+                LoginUIEvent.LoggedOut -> {
+                    viewModel.onEvent(LoginEvent.Logout)
+                }
             }
         }
     }

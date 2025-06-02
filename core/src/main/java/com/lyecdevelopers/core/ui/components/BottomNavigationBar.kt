@@ -29,8 +29,7 @@ fun BottomNavigationBar(navController: NavHostController) {
                 onClick = {
                     if (!isSelected) {
                         navController.navigate(item.route) {
-                            // Avoid multiple copies of the same destination
-                            popUpTo(navController.graph.startDestinationId) {
+                            popUpTo(BottomNavItem.Worklist.route) {
                                 saveState = true
                             }
                             launchSingleTop = true
@@ -42,4 +41,5 @@ fun BottomNavigationBar(navController: NavHostController) {
         }
     }
 }
+
 

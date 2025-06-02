@@ -21,18 +21,18 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import com.lyecdevelopers.auth.presentation.event.LoginEvent
 import com.lyecdevelopers.auth.presentation.event.LoginUIEvent
 import com.lyecdevelopers.auth.presentation.login.LoginViewModel
 import com.lyecdevelopers.core.model.BottomNavItem
 import com.lyecdevelopers.core.ui.components.BottomNavigationBar
+import com.lyecdevelopers.core_navigation.navigation.Destinations
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     viewModel: LoginViewModel = hiltViewModel(),
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController
 ) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
@@ -46,11 +46,12 @@ fun MainScreen(
 
     var menuExpanded by remember { mutableStateOf(false) }
 
+
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
             if (event is LoginUIEvent.LoggedOut) {
-                navController.navigate("auth") {
-                    popUpTo(0) // Clear backstack
+                navController.navigate(Destinations.AUTH) {
+                    popUpTo(Destinations.MAIN) { inclusive = true }
                 }
             }
         }
@@ -59,12 +60,11 @@ fun MainScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = topBarTitle) },
+                title = { Text(topBarTitle) },
                 actions = {
                     IconButton(onClick = { menuExpanded = true }) {
                         Icon(Icons.Default.MoreVert, contentDescription = "Menu")
                     }
-
                     DropdownMenu(
                         expanded = menuExpanded,
                         onDismissRequest = { menuExpanded = false }
@@ -86,7 +86,6 @@ fun MainScreen(
                                     }
                                 )
                             }
-
                             BottomNavItem.Settings.route -> {
                                 DropdownMenuItem(
                                     text = { Text("Logout") },
@@ -97,15 +96,6 @@ fun MainScreen(
                                 )
                             }
 
-                            BottomNavItem.Sync.route -> {
-                                DropdownMenuItem(
-                                    text = { Text("Back") },
-                                    onClick = {
-                                        menuExpanded = false
-                                        navController.popBackStack()
-                                    }
-                                )
-                            }
                         }
                     }
                 }
@@ -121,6 +111,7 @@ fun MainScreen(
         )
     }
 }
+
 
 
 

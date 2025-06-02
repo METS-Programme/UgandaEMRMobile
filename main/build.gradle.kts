@@ -69,6 +69,7 @@ dependencies {
 
     // Hilt
     implementation(libs.hilt.android)
+    implementation(project(":core-navigation"))
     ksp(libs.hilt.compiler)
 
     // Retrofit + OkHttp

@@ -30,10 +30,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             UgandaEMRMobileTheme {
                 val navController = rememberNavController()
-
-                // Collect the login state as State
+                val navBarNavController = rememberNavController()
                 val isLoggedIn by preferenceManager.isLoggedIn().collectAsState(initial = false)
-
                 val startDestination = if (isLoggedIn) Destinations.MAIN else Destinations.AUTH
 
                 NavHost(navController = navController, startDestination = startDestination) {
@@ -45,10 +43,12 @@ class MainActivity : ComponentActivity() {
                         })
                     }
                     composable(Destinations.MAIN) {
-                        MainScreen()
+                        MainScreen(navController = navBarNavController)
                     }
                 }
             }
+
+
         }
     }
 }
