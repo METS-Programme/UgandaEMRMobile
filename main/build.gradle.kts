@@ -50,11 +50,13 @@ android {
 
 dependencies {
 
-    implementation (project(":core"))
+    implementation(project(":core"))
     implementation(project(":sync"))
     implementation(project(":worklist"))
     implementation(project(":settings"))
     implementation(project(":auth"))
+    implementation(project(":core-navigation"))
+    implementation(project(":form"))
 
     // Compose UI essentials
     implementation(libs.androidx.core.ktx)
@@ -69,7 +71,6 @@ dependencies {
 
     // Hilt
     implementation(libs.hilt.android)
-    implementation(project(":core-navigation"))
     ksp(libs.hilt.compiler)
 
     // Retrofit + OkHttp

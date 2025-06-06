@@ -4,11 +4,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import com.lyecdevelopers.core.model.BottomNavItem
-import com.lyecdevelopers.settings.presentation.SettingsScreen
-import com.lyecdevelopers.sync.presentation.SyncScreen
-import com.lyecdevelopers.worklist.presentation.worklist.WorklistScreen
+import com.lyecdevelopers.settings.presentation.navigation.settingsGraph
+import com.lyecdevelopers.sync.presentation.navigation.syncGraph
+import com.lyecdevelopers.worklist.presentation.navigation.worklistGraph
+
 
 @Composable
 fun MainNavGraph(navController: NavHostController, modifier: Modifier = Modifier) {
@@ -17,20 +17,10 @@ fun MainNavGraph(navController: NavHostController, modifier: Modifier = Modifier
         startDestination = BottomNavItem.Worklist.route,
         modifier = modifier
     ) {
-        composable(BottomNavItem.Worklist.route) {
-            WorklistScreen(
-                onSyncClick = {
-                    navController.navigate(BottomNavItem.Sync.route)
-                },
-                onSettingsClick = {
-                    navController.navigate(BottomNavItem.Settings.route)
-                }
-            )
-        }
-
-        composable(BottomNavItem.Sync.route) { SyncScreen(onBack = { navController.popBackStack() }) }
-        composable(BottomNavItem.Settings.route) {
-            SettingsScreen(onBack = { navController.popBackStack() })
-        }
+        worklistGraph(navController)
+        syncGraph(navController)
+        settingsGraph(navController)
     }
 }
+
+

@@ -48,6 +48,7 @@ android {
 
 dependencies {
     implementation (project(":core"))
+    implementation(project(":form"))
 
     // Compose UI essentials
     implementation(libs.androidx.activity.compose)

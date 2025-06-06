@@ -1,5 +1,4 @@
 package com.lyecdevelopers.core.data.remote
-
 import com.lyecdevelopers.core.model.auth.LoginResponse
 import com.lyecdevelopers.core.model.auth.LogoutResponse
 import retrofit2.Response

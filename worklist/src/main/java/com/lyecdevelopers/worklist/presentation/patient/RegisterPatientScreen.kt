@@ -1,3 +1,11 @@
 package com.lyecdevelopers.worklist.presentation.patient
 
-class RegisterPatientScreen
+import androidx.compose.runtime.Composable
+import androidx.hilt.navigation.compose.hiltViewModel
+
+
+@Composable
+fun RegisterPatientScreen(
+    registerPatientViewModel: RegisterPatientViewModel = hiltViewModel(),
+) {
+}

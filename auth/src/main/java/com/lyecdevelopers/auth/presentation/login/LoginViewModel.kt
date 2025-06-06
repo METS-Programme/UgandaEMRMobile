@@ -2,7 +2,6 @@ package com.lyecdevelopers.auth.presentation.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.lyecdevelopers.auth.domain.model.Result
 import com.lyecdevelopers.auth.domain.usecase.LoginUseCase
 import com.lyecdevelopers.auth.domain.usecase.LogoutUseCase
 import com.lyecdevelopers.auth.presentation.event.LoginEvent
@@ -10,6 +9,7 @@ import com.lyecdevelopers.auth.presentation.event.LoginUIEvent
 import com.lyecdevelopers.auth.presentation.state.LoginUIState
 import com.lyecdevelopers.core.common.scheduler.SchedulerProvider
 import com.lyecdevelopers.core.data.preference.PreferenceManager
+import com.lyecdevelopers.core.model.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow

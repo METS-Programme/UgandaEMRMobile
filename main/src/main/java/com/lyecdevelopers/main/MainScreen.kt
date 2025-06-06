@@ -86,6 +86,16 @@ fun MainScreen(
                                     }
                                 )
                             }
+
+                            BottomNavItem.Sync.route -> {
+                                DropdownMenuItem(
+                                    text = { Text("Not synced") },
+                                    onClick = {
+                                        menuExpanded = false
+                                        navController.navigate(BottomNavItem.Settings.route)
+                                    }
+                                )
+                            }
                             BottomNavItem.Settings.route -> {
                                 DropdownMenuItem(
                                     text = { Text("Logout") },
