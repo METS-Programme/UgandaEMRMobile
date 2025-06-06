@@ -40,10 +40,17 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
     }
+
+    packaging { resources.excludes.addAll(listOf("META-INF/ASL-2.0.txt", "META-INF/LGPL-3.0.txt")) }
+
     kotlinOptions {
         jvmTarget = "11"
     }
+
+    kotlin { jvmToolchain(11) }
+
 
     hilt {
         enableAggregatingTask = false
@@ -57,6 +64,8 @@ dependencies {
     implementation(project(":settings"))
     implementation(project(":worklist"))
     implementation(project(":auth"))
+    implementation(project(":core-navigation"))
+    implementation(project(":main"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -66,7 +75,13 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.androidx.navigation.compose)
+    implementation(libs.hilt.navigation.compose)
+
+
+    // fhir
+    implementation(libs.android.fhir.engine)
+    implementation(libs.android.fhir.sdc)
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     // Hilt
     implementation(libs.hilt.android)

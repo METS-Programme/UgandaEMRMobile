@@ -2,6 +2,8 @@ package com.lyecdevelopers.core.di
 
 import com.lyecdevelopers.core.model.Form
 import com.lyecdevelopers.core.model.Patient
+import com.lyecdevelopers.core.model.auth.LoginResponse
+import com.lyecdevelopers.core.model.auth.LogoutResponse
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -33,4 +35,15 @@ object MoshiModule {
     @Singleton
     fun providePatientAdapter(moshi: Moshi): JsonAdapter<Patient> =
         moshi.adapter(Patient::class.java)
+
+    @Provides
+    @Singleton
+    fun provideLoginResponseAdapter(moshi: Moshi): JsonAdapter<LoginResponse> =
+        moshi.adapter(LoginResponse::class.java)
+
+
+    @Provides
+    @Singleton
+    fun provideLogoutResponseAdapter(moshi: Moshi): JsonAdapter<LogoutResponse> =
+        moshi.adapter(LogoutResponse::class.java)
 }

@@ -1,4 +1,3 @@
 package com.lyecdevelopers.worklist.domain.usecase
 
-class RegisterPatientUseCase {
-}
+class RegisterPatientUseCase

@@ -1,4 +1,3 @@
 package com.lyecdevelopers.core.utils
 
-class DateUtils {
-}
+class DateUtils

@@ -1,4 +1,3 @@
 package com.lyecdevelopers.worklist.di
 
-class WorklistModule {
-}
+class WorklistModule

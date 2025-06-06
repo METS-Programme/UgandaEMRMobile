@@ -1,4 +1,3 @@
 package com.lyecdevelopers.sync.data.repository
 
-class SyncRepositoryImpl {
-}
+class SyncRepositoryImpl

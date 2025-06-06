@@ -13,12 +13,14 @@
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/auth" />
             <option value="$PROJECT_DIR$/core" />
+            <option value="$PROJECT_DIR$/core-navigation" />
+            <option value="$PROJECT_DIR$/form" />
+            <option value="$PROJECT_DIR$/main" />
             <option value="$PROJECT_DIR$/settings" />
             <option value="$PROJECT_DIR$/sync" />
             <option value="$PROJECT_DIR$/worklist" />
           </set>
         </option>
-        <option name="resolveExternalAnnotations" value="false" />
       </GradleProjectSettings>
     </option>
   </component>

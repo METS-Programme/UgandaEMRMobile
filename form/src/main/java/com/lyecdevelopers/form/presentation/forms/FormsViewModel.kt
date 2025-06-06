@@ -1,0 +1,87 @@
+package com.lyecdevelopers.form.presentation.forms
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.lyecdevelopers.core.common.scheduler.SchedulerProvider
+import com.lyecdevelopers.core.model.Form
+import com.lyecdevelopers.core.model.Result
+import com.lyecdevelopers.form.domain.usecase.FormsUseCase
+import com.lyecdevelopers.form.presentation.event.FormsEvent
+import com.lyecdevelopers.form.presentation.state.FormsUiState
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
+
+
+@HiltViewModel
+class FormsViewModel @Inject constructor(
+    private val formsUseCase: FormsUseCase,
+    private val schedulerProvider: SchedulerProvider,
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(FormsUiState())
+    val uiState: StateFlow<FormsUiState> = _uiState.asStateFlow()
+
+    fun onEvent(event: FormsEvent) {
+        when (event) {
+            is FormsEvent.LoadForms -> loadForms()
+            is FormsEvent.SelectForm -> {
+                _uiState.update { it.copy(selectedForm = event.form) }
+            }
+
+            is FormsEvent.SearchQueryChanged -> {
+                val query = event.query.trim()
+                val filtered = if (query.isEmpty()) {
+                    _uiState.value.allForms
+                } else {
+                    _uiState.value.allForms.filter {
+                        it.name?.contains(
+                            query,
+                            ignoreCase = true
+                        ) == true || it.description?.contains(query, ignoreCase = true) == true
+                    }
+                }
+                _uiState.update {
+                    it.copy(searchQuery = query, filteredForms = filtered)
+                }
+            }
+        }
+    }
+
+    private fun loadForms() {
+        viewModelScope.launch(schedulerProvider.io) {
+            formsUseCase().collect { result ->
+                withContext(schedulerProvider.main) {
+                    when (result) {
+                        is Result.Loading -> {
+                            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+                        }
+
+                        is Result.Success<*> -> {
+                            val forms = result.data as? List<Form> ?: emptyList()
+                            _uiState.update {
+                                it.copy(
+                                    isLoading = false,
+                                    allForms = forms,
+                                    filteredForms = forms,
+                                    errorMessage = null
+                                )
+                            }
+                        }
+
+                        is Result.Error -> {
+                            _uiState.update {
+                                it.copy(isLoading = false, errorMessage = result.message)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
