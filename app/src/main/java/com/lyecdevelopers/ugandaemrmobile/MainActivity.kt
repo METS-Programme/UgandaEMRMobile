@@ -1,9 +1,9 @@
 package com.lyecdevelopers.ugandaemrmobile
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.navigation.compose.NavHost
@@ -18,7 +18,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var preferenceManager: PreferenceManager
@@ -43,7 +43,10 @@ class MainActivity : ComponentActivity() {
                         })
                     }
                     composable(Destinations.MAIN) {
-                        MainScreen(navController = navBarNavController)
+                        MainScreen(
+                            fragmentManager = supportFragmentManager,
+                            navController = navBarNavController
+                        )
                     }
                 }
             }

@@ -66,6 +66,7 @@ dependencies {
     implementation(project(":auth"))
     implementation(project(":core-navigation"))
     implementation(project(":main"))
+    implementation(project(":form"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -76,11 +77,14 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.hilt.navigation.compose)
+    implementation(libs.material.icons.extended)
+
 
 
     // fhir
     implementation(libs.android.fhir.engine)
     implementation(libs.android.fhir.sdc)
+    implementation(libs.appcompat)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     // Hilt
@@ -102,6 +106,9 @@ dependencies {
     implementation(libs.moshi.kotlin)
     ksp(libs.moshi.kotlin.codegen)
     implementation(libs.moshi.converter)
+
+    // logging
+    implementation(libs.timber)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

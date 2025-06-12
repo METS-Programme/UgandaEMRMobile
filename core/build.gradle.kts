@@ -23,6 +23,7 @@ android {
 
     buildFeatures {
         buildConfig = true
+        compose = true
     }
 
     defaultConfig {
@@ -49,9 +50,6 @@ android {
         }
     }
 
-    buildFeatures {
-        compose = true
-    }
 
     composeOptions {
         kotlinCompilerExtensionVersion = "2.0.20"
@@ -59,6 +57,8 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
+
     }
     kotlinOptions {
         jvmTarget = "11"
@@ -80,6 +80,14 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.hilt.navigation.compose)
+    implementation(libs.material.icons.extended)
+
+
+    // fhir
+    implementation(libs.android.fhir.engine)
+    implementation(libs.android.fhir.sdc)
+    implementation(libs.androidx.constraintlayout)
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 
 
 
@@ -109,6 +117,9 @@ dependencies {
 
     // security
     implementation(libs.androidx.security.crypto)
+
+    // logging
+    implementation(libs.timber)
 
 
     // Optional: for previewing Composables

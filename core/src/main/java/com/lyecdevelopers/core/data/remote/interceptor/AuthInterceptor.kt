@@ -8,13 +8,15 @@ import javax.inject.Inject
 
 
 class AuthInterceptor @Inject constructor(
-    private val config: Config
+    private val config: Config,
 ) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val original = chain.request()
 
         // Basic Authentication header
-        val basicAuth = Credentials.basic(config.username, config.password)
+        val basicAuth = Credentials.basic(
+            config.username, config.password
+        )
 
         val request = original.newBuilder()
             .header("Authorization", basicAuth)

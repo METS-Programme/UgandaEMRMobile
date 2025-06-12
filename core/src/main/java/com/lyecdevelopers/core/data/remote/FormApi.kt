@@ -1,11 +1,31 @@
 package com.lyecdevelopers.core.data.remote
 
-import com.lyecdevelopers.core.model.Form
+import com.lyecdevelopers.core.model.FormsListResponse
+import com.lyecdevelopers.core.model.o3.o3Form
 import retrofit2.Response
 import retrofit2.http.GET
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 
 interface FormApi {
-    @GET("form?v=full")
-    suspend fun getForms(): Response<List<Form>>
+    @GET("form")
+    suspend fun getForms(
+        @Query("v") view: String = "full",
+    ): Response<FormsListResponse>
+
+    @GET("o3/forms/{formId}")
+    suspend fun loadFormByUuid(
+        @Path("formId") formId: String,
+        @Query("v") view: String = "full",
+    ): Response<o3Form>
+
+    @GET("form")
+    suspend fun filterForms(
+        @Query("q") query: String,
+        @Query("v") view: String = "full",
+    ): Response<FormsListResponse>
+
+    @GET("o3/forms/{formId}")
+    suspend fun getFormByUuid(@Path("formId") formId: String): Response<o3Form>
 }

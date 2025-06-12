@@ -2,8 +2,8 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -12,8 +12,8 @@ android {
 
     buildFeatures {
         buildConfig = true
+        viewBinding = true
     }
-
 
     defaultConfig {
         minSdk = 28
@@ -71,13 +71,22 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.hilt.navigation.compose)
+    implementation(libs.material.icons.extended)
+
 
 
     // fhir
     implementation(libs.android.fhir.engine)
     implementation(libs.android.fhir.sdc)
+    implementation(libs.androidx.constraintlayout)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
+
+    //fragments
+    implementation(libs.androidx.fragment.ktx)
+    implementation(libs.material)
+    implementation(libs.navigation.fragment.ktx)
+    implementation(libs.navigation.ui.ktx)
 
     // Hilt
     implementation(libs.hilt.android)
@@ -98,6 +107,9 @@ dependencies {
     implementation(libs.moshi.kotlin)
     ksp(libs.moshi.kotlin.codegen)
     implementation(libs.moshi.converter)
+
+    // logging
+    implementation(libs.timber)
 
     // Optional: for previewing Composables
     implementation(libs.androidx.ui.tooling.preview)

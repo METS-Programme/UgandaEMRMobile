@@ -2,7 +2,6 @@ package com.lyecdevelopers.form.presentation.forms
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,7 +16,6 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -29,17 +27,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.lyecdevelopers.core.model.Form
+import com.lyecdevelopers.core.model.o3.o3Form
+import com.lyecdevelopers.core.ui.components.LoadingView
 import com.lyecdevelopers.form.presentation.event.FormsEvent
 
 
 @Composable
 fun FormsScreen(
     patientId: String?,
-    formsViewModel: FormsViewModel = hiltViewModel(),
-    onFormClick: (Form) -> Unit = {},
+    onFormClick: (o3Form) -> Unit = {},
 ) {
-
+    val formsViewModel: FormsViewModel = hiltViewModel()
     val state by formsViewModel.uiState.collectAsState()
 
     val isLoading = state.isLoading
@@ -69,11 +67,7 @@ fun FormsScreen(
 
         when {
             isLoading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
+                LoadingView()
             }
 
             forms.isEmpty() -> {

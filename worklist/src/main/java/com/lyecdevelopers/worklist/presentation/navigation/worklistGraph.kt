@@ -1,6 +1,7 @@
 package com.lyecdevelopers.worklist.presentation.navigation
 
 import androidx.compose.material3.Text
+import androidx.fragment.app.FragmentManager
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
@@ -9,12 +10,13 @@ import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.lyecdevelopers.core.model.BottomNavItem
 import com.lyecdevelopers.form.presentation.forms.FormsScreen
-import com.lyecdevelopers.form.presentation.questionaire.QuestionnaireScreen
+import com.lyecdevelopers.form.presentation.questionnaire.QuestionnaireScreen
+import com.lyecdevelopers.form.presentation.registration.RegisterPatientScreen
 import com.lyecdevelopers.worklist.domain.model.PatientDetails
 import com.lyecdevelopers.worklist.presentation.patient.PatientDetailsScreen
 import com.lyecdevelopers.worklist.presentation.worklist.WorklistScreen
 
-fun NavGraphBuilder.worklistGraph(navController: NavController) {
+fun NavGraphBuilder.worklistGraph(fragmentManager: FragmentManager, navController: NavController) {
     navigation(
         route = BottomNavItem.Worklist.route, startDestination = "worklist_main"
     ) {
@@ -22,7 +24,9 @@ fun NavGraphBuilder.worklistGraph(navController: NavController) {
 
             WorklistScreen(patients = emptyList(), onPatientClick = { patient ->
                 navController.navigate("patient_details/${patient.id}")
-            }, onStartVisit = { /* TODO */ })
+            }, onStartVisit = { /* TODO */ }, onRegisterPatient = {
+                navController.navigate("register_patient")
+            })
         }
 
         composable("patient_details/{patientId}") { backStackEntry ->
@@ -40,9 +44,11 @@ fun NavGraphBuilder.worklistGraph(navController: NavController) {
             val patientId = backStackEntry.arguments?.getString("patientId") ?: return@composable
 
             FormsScreen(
-                patientId = patientId, onFormClick = { form ->
+                onFormClick = { form ->
                     navController.navigate("patient_details/$patientId/forms/${form.uuid}")
-                })
+                },
+                patientId = patientId,
+            )
         }
 
         composable(
@@ -55,10 +61,18 @@ fun NavGraphBuilder.worklistGraph(navController: NavController) {
             val formId = backStackEntry.arguments?.getString("formId")
 
             if (patientId != null && formId != null) {
-                QuestionnaireScreen(formId = formId, patientId = patientId)
+                QuestionnaireScreen(
+                    fragmentManager = fragmentManager,
+                    formId = formId,
+                )
             } else {
                 Text("Missing patient or form ID")
             }
+        }
+
+        // 👇 New route for patient registration
+        composable("register_patient") {
+            RegisterPatientScreen(fragmentManager = fragmentManager)
         }
     }
 

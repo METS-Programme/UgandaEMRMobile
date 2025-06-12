@@ -48,6 +48,7 @@ android {
 
 dependencies {
     implementation (project(":core"))
+    implementation(project(":form"))
 
     // Compose UI essentials
     implementation(libs.androidx.activity.compose)
@@ -55,6 +56,8 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.material3)
     implementation(libs.hilt.navigation.compose)
+    implementation(libs.material.icons.extended)
+
 
 
 
@@ -77,6 +80,9 @@ dependencies {
     implementation(libs.moshi.kotlin)
     ksp(libs.moshi.kotlin.codegen)
     implementation(libs.moshi.converter)
+
+    // logging
+    implementation(libs.timber)
 
     // Optional: for previewing Composables
     implementation(libs.androidx.ui.tooling.preview)

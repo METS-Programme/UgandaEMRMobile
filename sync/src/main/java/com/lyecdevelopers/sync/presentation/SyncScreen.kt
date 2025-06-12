@@ -14,19 +14,25 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -35,7 +41,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.lyecdevelopers.core.model.o3.o3Form
 import com.lyecdevelopers.core.ui.components.PatientFilterSection
+import com.lyecdevelopers.sync.presentation.forms.DownloadFormsScreen
+import com.lyecdevelopers.sync.presentation.forms.event.DownloadFormsUiEvent
+import kotlinx.coroutines.flow.collectLatest
 import java.time.LocalDate
 
 
@@ -53,17 +63,50 @@ fun SyncScreen(
     onToggleAutoSync: (Boolean) -> Unit = {},
     onBack: () -> Unit = {},
     onSyncNow: () -> Unit = {},
-    onDownloadForms: () -> Unit = {},
     onDownloadPatients: (String, LocalDate) -> Unit = { _, _ -> },
     availableGroups: List<String> = emptyList(),
+    onFormsSelected: (List<o3Form>) -> Unit = {},
 ) {
-
     val viewModel: SyncViewModel = hiltViewModel()
+
+    val snackbarHostState = remember { SnackbarHostState() }
+
     var selectedGroup by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedDateString by rememberSaveable { mutableStateOf<String?>(null) }
     val selectedDate = selectedDateString?.let { LocalDate.parse(it) }
 
-    Scaffold { padding ->
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var isSheetVisible by rememberSaveable { mutableStateOf(false) }
+
+    // 👇 Listen for UI events
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collectLatest { event ->
+            when (event) {
+                is DownloadFormsUiEvent.ShowSnackbar -> {
+                    snackbarHostState.showSnackbar(event.message)
+                }
+
+                is DownloadFormsUiEvent.FormsDownloaded -> {
+                    onFormsSelected(event.selectedForms)
+                    isSheetVisible = false
+                }
+            }
+        }
+    }
+
+    if (isSheetVisible) {
+        ModalBottomSheet(
+            onDismissRequest = { isSheetVisible = false }, sheetState = sheetState
+        ) {
+            DownloadFormsScreen(
+                viewModel = viewModel, onDownloadSelected = {
+                    isSheetVisible = false
+                })
+        }
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
         LazyColumn(
             contentPadding = padding,
             modifier = Modifier
@@ -90,7 +133,7 @@ fun SyncScreen(
                             Button(
                                 onClick = onSyncNow, modifier = Modifier.fillMaxWidth()
                             ) {
-                                Icon(Icons.Default.Refresh, contentDescription = null)
+                                Icon(Icons.Filled.Sync, contentDescription = null)
                                 Spacer(Modifier.width(8.dp))
                                 Text("Sync Now")
                             }
@@ -98,7 +141,6 @@ fun SyncScreen(
                     }
                 }
             }
-
 
             item {
                 SyncSection(title = "Data Summary") {
@@ -126,7 +168,6 @@ fun SyncScreen(
                     }
                 }
             }
-
 
             item {
                 SyncSection(title = "Auto Sync") {
@@ -156,7 +197,6 @@ fun SyncScreen(
                 }
             }
 
-
             item {
                 SyncSection(title = "Manual Download") {
                     Surface(
@@ -166,9 +206,10 @@ fun SyncScreen(
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Button(
-                                onClick = onDownloadForms, modifier = Modifier.fillMaxWidth()
+                                onClick = { isSheetVisible = true },
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
+                                Icon(Icons.Default.Download, contentDescription = null)
                                 Spacer(Modifier.width(8.dp))
                                 Text("Download Forms")
                             }
@@ -193,7 +234,6 @@ fun SyncScreen(
                     }
                 }
             }
-
         }
     }
 }

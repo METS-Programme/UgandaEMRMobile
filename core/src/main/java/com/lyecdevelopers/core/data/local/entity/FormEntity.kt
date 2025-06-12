@@ -2,16 +2,45 @@ package com.lyecdevelopers.core.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
+import com.lyecdevelopers.core.data.local.db.FormConverters
+import com.lyecdevelopers.core.model.o3.Pages
+import com.lyecdevelopers.core.model.o3.o3Form
 
 @Entity(tableName = "forms")
+@TypeConverters(FormConverters::class)
 data class FormEntity(
     @PrimaryKey val uuid: String,
-    val display: String,
+    val name: String?,
+    val version: String?,
     val description: String?,
-    val creator: String?,
-    val dateChanged: String?,
+    val encounterTypeUuid: String?,
+    val encounterTypeDisplay: String?,
+    val encounter: String?,
+    val processor: String?,
     val published: Boolean,
-    val createdAt: Long = System.currentTimeMillis() // Unix timestamp in milliseconds
-)
+    val retired: Boolean,
+    val pages: List<Pages>?, // Use actual type instead of raw JSON
+) {
+    companion object {
+        fun from(form: o3Form): FormEntity {
+            return FormEntity(
+                uuid = form.uuid.toString(),
+                name = form.name,
+                version = form.version,
+                description = form.description,
+                encounterTypeUuid = form.encountertype?.uuid,
+                encounterTypeDisplay = form.encountertype?.display,
+                encounter = form.encounter,
+                processor = form.processor,
+                published = form.published == true,
+                retired = form.retired == true,
+                pages = form.pages
+            )
+        }
+    }
+
+}
+
 
 

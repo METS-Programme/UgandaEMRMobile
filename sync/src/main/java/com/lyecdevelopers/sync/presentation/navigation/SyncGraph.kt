@@ -8,6 +8,8 @@ import com.lyecdevelopers.sync.presentation.SyncScreen
 
 fun NavGraphBuilder.syncGraph(navController: NavController) {
     composable(BottomNavItem.Sync.route) {
-        SyncScreen(onBack = { navController.popBackStack() })
+        SyncScreen(
+            onBack = { navController.popBackStack() }
+        )
     }
 }
