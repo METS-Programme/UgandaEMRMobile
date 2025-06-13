@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -27,9 +28,11 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,12 +44,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.lyecdevelopers.core.model.cohort.Indicator
+import com.lyecdevelopers.core.model.cohort.IndicatorRepository
 import com.lyecdevelopers.core.model.o3.o3Form
-import com.lyecdevelopers.core.ui.components.PatientFilterSection
 import com.lyecdevelopers.sync.presentation.forms.DownloadFormsScreen
 import com.lyecdevelopers.sync.presentation.forms.event.DownloadFormsUiEvent
+import com.lyecdevelopers.sync.presentation.patients.PatientFilterSectionContent
 import kotlinx.coroutines.flow.collectLatest
-import java.time.LocalDate
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,20 +67,31 @@ fun SyncScreen(
     onToggleAutoSync: (Boolean) -> Unit = {},
     onBack: () -> Unit = {},
     onSyncNow: () -> Unit = {},
-    onDownloadPatients: (String, LocalDate) -> Unit = { _, _ -> },
-    availableGroups: List<String> = emptyList(),
     onFormsSelected: (List<o3Form>) -> Unit = {},
 ) {
     val viewModel: SyncViewModel = hiltViewModel()
 
     val snackbarHostState = remember { SnackbarHostState() }
 
-    var selectedGroup by rememberSaveable { mutableStateOf<String?>(null) }
-    var selectedDateString by rememberSaveable { mutableStateOf<String?>(null) }
-    val selectedDate = selectedDateString?.let { LocalDate.parse(it) }
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var isSheetVisible by rememberSaveable { mutableStateOf(false) }
+
+    var showPatientFilterDialog by rememberSaveable { mutableStateOf(false) }
+
+
+    val selectedCohort by viewModel.selectedCohort.collectAsState()
+    val selectedDate by viewModel.selectedDate.collectAsState()
+    val selectedIndicator by viewModel.selectedIndicator.collectAsState()
+    val cohortOptions by viewModel.cohorts.collectAsState()
+    val indicatorOptions: List<Indicator> = IndicatorRepository.reportIndicators
+
+    // parameters
+    val availableParameters by viewModel.availableParameters.collectAsState()
+    val selectedParameters by viewModel.selectedParameters.collectAsState()
+    val highlightedAvailable by viewModel.highlightedAvailable.collectAsState()
+    val highlightedSelected by viewModel.highlightedSelected.collectAsState()
+
 
     // 👇 Listen for UI events
     LaunchedEffect(Unit) {
@@ -205,6 +220,9 @@ fun SyncScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
+                            Spacer(Modifier.height(16.dp))
+                            Text("Download Forms", style = MaterialTheme.typography.titleMedium)
+                            Spacer(Modifier.height(8.dp))
                             Button(
                                 onClick = { isSheetVisible = true },
                                 modifier = Modifier.fillMaxWidth()
@@ -218,23 +236,59 @@ fun SyncScreen(
                             Text("Download Patients", style = MaterialTheme.typography.titleMedium)
                             Spacer(Modifier.height(8.dp))
 
-                            PatientFilterSection(
-                                selectedGroup = selectedGroup,
-                                onGroupSelected = { selectedGroup = it },
-                                groupOptions = availableGroups,
-                                selectedDate = selectedDate,
-                                onDateSelected = { date -> selectedDateString = date.toString() },
-                                onFilter = {
-                                    val group = selectedGroup
-                                    if (group != null && selectedDate != null) {
-                                        onDownloadPatients(group, selectedDate)
-                                    }
-                                })
+                            // Button to open Patient Filter Dialog
+                            Button(
+                                onClick = { showPatientFilterDialog = true },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(Icons.Default.Download, contentDescription = null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Download Patients")
+                            }
+
+
                         }
                     }
                 }
             }
         }
+    }
+
+    // Patient Filter Dialog implementation
+    if (showPatientFilterDialog) {
+        AlertDialog(onDismissRequest = { showPatientFilterDialog = false }, confirmButton = {
+            TextButton(
+                onClick = {
+                    viewModel.onApplyFilters()
+                    showPatientFilterDialog = false
+                }) {
+                Text("Apply")
+            }
+        }, dismissButton = {
+            TextButton(onClick = { showPatientFilterDialog = false }) {
+                Text("Cancel")
+            }
+        }, text = {
+            PatientFilterSectionContent(
+                cohortOptions = cohortOptions,
+                selectedCohort = selectedCohort,
+                onSelectedCohortChanged = viewModel::onSelectedCohortChanged,
+                indicatorOptions = indicatorOptions,
+                selectedIndicator = selectedIndicator,
+                onIndicatorSelected = viewModel::onIndicatorSelected,
+                selectedDate = selectedDate,
+                onDateSelected = viewModel::onDateSelected,
+                availableParameters = availableParameters,
+                selectedParameters = selectedParameters,
+                highlightedAvailable = highlightedAvailable,
+                highlightedSelected = highlightedSelected,
+                onHighlightAvailableToggle = viewModel.toggleHighlightAvailable,
+                onHighlightSelectedToggle = viewModel.toggleHighlightSelected,
+                onMoveRight = viewModel.moveRight,
+                onMoveLeft = viewModel.moveLeft,
+                onFilter = {} // filter triggered by Apply button above
+            )
+        })
     }
 }
 
@@ -258,3 +312,4 @@ fun SyncSection(
         content()
     }
 }
+

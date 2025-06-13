@@ -1,7 +1,10 @@
 package com.lyecdevelopers.core.data.remote
 
 import com.lyecdevelopers.core.model.FormsListResponse
+import com.lyecdevelopers.core.model.cohort.CohortListResponse
+import com.lyecdevelopers.core.model.encounter.EncounterTypeListResponse
 import com.lyecdevelopers.core.model.o3.o3Form
+import com.lyecdevelopers.core.model.order.OrderTypeListResponse
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -9,6 +12,7 @@ import retrofit2.http.Query
 
 
 interface FormApi {
+    // form
     @GET("form")
     suspend fun getForms(
         @Query("v") view: String = "full",
@@ -28,4 +32,17 @@ interface FormApi {
 
     @GET("o3/forms/{formId}")
     suspend fun getFormByUuid(@Path("formId") formId: String): Response<o3Form>
+
+    // cohort
+    @GET("cohort")
+    suspend fun getCohorts(@Query("v") view: String = "full"): Response<CohortListResponse>
+
+    // orders
+    @GET("ordertype")
+    suspend fun getOrderTypes(): Response<OrderTypeListResponse>
+
+    // encounters
+    @GET("encountertype")
+    suspend fun getEncounterTypes(): Response<EncounterTypeListResponse>
+
 }
