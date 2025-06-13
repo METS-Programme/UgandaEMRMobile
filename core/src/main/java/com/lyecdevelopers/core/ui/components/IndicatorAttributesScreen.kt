@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
@@ -34,11 +36,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.lyecdevelopers.core.model.cohort.Indicator
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IndicatorAttributesScreen(
+    selectedIndicator: Indicator?,
     availableParameters: List<String>,
     selectedParameters: List<String>,
     highlightedAvailable: List<String>,
@@ -58,10 +62,11 @@ fun IndicatorAttributesScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Person Attributes",
-                        color = colors.onSurface,
+                        text = selectedIndicator?.label ?: "Choose Indicator",
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.SemiBold
                     )
+
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.surface),
                 actions = {

@@ -1,6 +1,8 @@
 package com.lyecdevelopers.core.data.remote
 
 import com.lyecdevelopers.core.model.FormsListResponse
+import com.lyecdevelopers.core.model.IdentifierListResponse
+import com.lyecdevelopers.core.model.PersonAttributeTypeListResponse
 import com.lyecdevelopers.core.model.cohort.CohortListResponse
 import com.lyecdevelopers.core.model.encounter.EncounterTypeListResponse
 import com.lyecdevelopers.core.model.o3.o3Form
@@ -44,5 +46,18 @@ interface FormApi {
     // encounters
     @GET("encountertype")
     suspend fun getEncounterTypes(): Response<EncounterTypeListResponse>
+
+    // patientIdentifiers
+    @GET("patientidentifiertype")
+    suspend fun getPatientIdentifiers(): Response<IdentifierListResponse>
+
+    // personattributetype
+    @GET("personattributetype")
+    suspend fun getPersonAttributeTypes(): Response<PersonAttributeTypeListResponse>
+
+    // conditions
+    @GET("ugandaemrreports/concepts/conditions")
+    suspend fun getConditions(): Response<Any>
+
 
 }

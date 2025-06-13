@@ -1,6 +1,8 @@
 package com.lyecdevelopers.sync.domain.repository
 
 import com.lyecdevelopers.core.model.Form
+import com.lyecdevelopers.core.model.Identifier
+import com.lyecdevelopers.core.model.PersonAttributeType
 import com.lyecdevelopers.core.model.Result
 import com.lyecdevelopers.core.model.cohort.Cohort
 import com.lyecdevelopers.core.model.encounter.EncounterType
@@ -31,4 +33,16 @@ interface SyncRepository {
 
     // encounters
     fun loadEncounterTypes(): Flow<Result<List<EncounterType>>>
+
+    // patientIdentifiers
+    fun loadPatientIndentifiers(): Flow<Result<List<Identifier>>>
+
+
+    // personattributetype
+    fun loadPersonAttributeTypes(): Flow<Result<List<PersonAttributeType>>>
+
+
+    // conditions
+    fun loadConditions(): Flow<Result<List<Any>>>
+
 }

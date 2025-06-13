@@ -1,6 +1,8 @@
 package com.lyecdevelopers.sync.domain.usecase
 
 import com.lyecdevelopers.core.model.Form
+import com.lyecdevelopers.core.model.Identifier
+import com.lyecdevelopers.core.model.PersonAttributeType
 import com.lyecdevelopers.core.model.Result
 import com.lyecdevelopers.core.model.cohort.Cohort
 import com.lyecdevelopers.core.model.encounter.EncounterType
@@ -45,5 +47,14 @@ class SyncUseCase @Inject constructor(
     fun getEncounterTypes(): Flow<Result<List<EncounterType>>> {
         return repository.loadEncounterTypes()
     }
+
+    fun getIdentifers(): Flow<Result<List<Identifier>>> {
+        return repository.loadPatientIndentifiers()
+    }
+
+    fun getPersonAttributeTypes(): Flow<Result<List<PersonAttributeType>>> {
+        return repository.loadPersonAttributeTypes()
+    }
+
 
 }

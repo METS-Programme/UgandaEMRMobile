@@ -152,6 +152,7 @@ fun PatientFilterSectionContent(
 
         // You can uncomment and adjust if you want to show this inside dialog
         IndicatorAttributesScreen(
+            selectedIndicator = selectedIndicator,
             availableParameters = availableParameters,
             selectedParameters = selectedParameters,
             highlightedAvailable = highlightedAvailable,
