@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.lyecdevelopers.core.model.cohort.Attribute
 import com.lyecdevelopers.core.model.cohort.Indicator
 
 
@@ -43,12 +44,12 @@ import com.lyecdevelopers.core.model.cohort.Indicator
 @Composable
 fun IndicatorAttributesScreen(
     selectedIndicator: Indicator?,
-    availableParameters: List<String>,
-    selectedParameters: List<String>,
-    highlightedAvailable: List<String>,
-    highlightedSelected: List<String>,
-    toggleHighlightAvailable: (String) -> Unit,
-    toggleHighlightSelected: (String) -> Unit,
+    availableParameters: List<Attribute>,
+    selectedParameters: List<Attribute>,
+    highlightedAvailable: List<Attribute>,
+    highlightedSelected: List<Attribute>,
+    toggleHighlightAvailable: (Attribute) -> Unit,
+    toggleHighlightSelected: (Attribute) -> Unit,
     moveRight: () -> Unit,
     moveLeft: () -> Unit,
 ) {
@@ -113,9 +114,10 @@ fun IndicatorAttributesScreen(
                                 parameters = availableParameters,
                                 highlighted = highlightedAvailable,
                                 onItemClick = toggleHighlightAvailable,
-                                labelSelector = { it.replaceFirstChar { c -> c.uppercase() } },
+                                labelSelector = { attribute -> attribute.label.replaceFirstChar { it.uppercase() } },
                                 modifier = Modifier.weight(1f)
                             )
+
 
                             // Middle: Transfer buttons
                             Column(
@@ -147,7 +149,7 @@ fun IndicatorAttributesScreen(
                                 parameters = selectedParameters,
                                 highlighted = highlightedSelected,
                                 onItemClick = toggleHighlightSelected,
-                                labelSelector = { it.replaceFirstChar { c -> c.uppercase() } },
+                                labelSelector = { attribute -> attribute.label.replaceFirstChar { it.uppercase() } },
                                 modifier = Modifier.weight(1f)
                             )
                         }

@@ -20,15 +20,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.lyecdevelopers.core.model.cohort.Attribute
 
 
 @Composable
 fun ParameterList(
     title: String,
-    parameters: List<String>,
-    highlighted: List<String>,
-    onItemClick: (String) -> Unit,
-    labelSelector: (String) -> String = { it },
+    parameters: List<Attribute>,
+    highlighted: List<Attribute>,
+    onItemClick: (Attribute) -> Unit,
+    labelSelector: (Attribute) -> String = { it.label },
     modifier: Modifier = Modifier,
 ) {
     val colors = MaterialTheme.colorScheme

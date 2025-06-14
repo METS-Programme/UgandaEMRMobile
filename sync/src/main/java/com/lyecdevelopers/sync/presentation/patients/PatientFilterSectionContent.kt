@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.lyecdevelopers.core.model.cohort.Attribute
 import com.lyecdevelopers.core.model.cohort.Cohort
 import com.lyecdevelopers.core.model.cohort.Indicator
 import com.lyecdevelopers.core.ui.components.IndicatorAttributesScreen
@@ -47,12 +48,12 @@ fun PatientFilterSectionContent(
     onIndicatorSelected: (Indicator) -> Unit,
     selectedDate: LocalDate?,
     onDateSelected: (LocalDate) -> Unit,
-    availableParameters: List<String>,
-    selectedParameters: List<String>,
-    highlightedAvailable: List<String>,
-    highlightedSelected: List<String>,
-    onHighlightAvailableToggle: (String) -> Unit,
-    onHighlightSelectedToggle: (String) -> Unit,
+    availableParameters: List<Attribute>,
+    selectedParameters: List<Attribute>,
+    highlightedAvailable: List<Attribute>,
+    highlightedSelected: List<Attribute>,
+    onHighlightAvailableToggle: (Attribute) -> Unit,
+    onHighlightSelectedToggle: (Attribute) -> Unit,
     onMoveRight: () -> Unit,
     onMoveLeft: () -> Unit,
     onFilter: () -> Unit,
