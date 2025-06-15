@@ -78,7 +78,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.hilt.navigation.compose)
     implementation(libs.material.icons.extended)
-
+    implementation(libs.splashscreen)
 
 
     // fhir
