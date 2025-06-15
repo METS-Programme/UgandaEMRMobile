@@ -5,6 +5,7 @@ import com.lyecdevelopers.core.model.Identifier
 import com.lyecdevelopers.core.model.PersonAttributeType
 import com.lyecdevelopers.core.model.Result
 import com.lyecdevelopers.core.model.cohort.Cohort
+import com.lyecdevelopers.core.model.cohort.DataDefinition
 import com.lyecdevelopers.core.model.encounter.EncounterType
 import com.lyecdevelopers.core.model.o3.o3Form
 import com.lyecdevelopers.core.model.order.OrderType
@@ -48,12 +49,19 @@ class SyncUseCase @Inject constructor(
         return repository.loadEncounterTypes()
     }
 
-    fun getIdentifers(): Flow<Result<List<Identifier>>> {
+    // Patient Identifiers
+    fun getIdentifiers(): Flow<Result<List<Identifier>>> {
         return repository.loadPatientIndentifiers()
     }
 
+    // Person Attributes types
     fun getPersonAttributeTypes(): Flow<Result<List<PersonAttributeType>>> {
         return repository.loadPersonAttributeTypes()
+    }
+
+    // data definition
+    fun createDataDefinition(payload: DataDefinition): Flow<Result<Any>> {
+        return repository.createDataDefinition(payload)
     }
 
 

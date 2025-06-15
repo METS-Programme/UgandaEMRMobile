@@ -5,6 +5,7 @@ import com.lyecdevelopers.core.model.Identifier
 import com.lyecdevelopers.core.model.PersonAttributeType
 import com.lyecdevelopers.core.model.Result
 import com.lyecdevelopers.core.model.cohort.Cohort
+import com.lyecdevelopers.core.model.cohort.DataDefinition
 import com.lyecdevelopers.core.model.encounter.EncounterType
 import com.lyecdevelopers.core.model.o3.o3Form
 import com.lyecdevelopers.core.model.order.OrderType
@@ -37,12 +38,13 @@ interface SyncRepository {
     // patientIdentifiers
     fun loadPatientIndentifiers(): Flow<Result<List<Identifier>>>
 
-
     // personattributetype
     fun loadPersonAttributeTypes(): Flow<Result<List<PersonAttributeType>>>
 
-
     // conditions
     fun loadConditions(): Flow<Result<List<Any>>>
+
+    // data definition
+    fun createDataDefinition(payload: DataDefinition): Flow<Result<Any>>
 
 }

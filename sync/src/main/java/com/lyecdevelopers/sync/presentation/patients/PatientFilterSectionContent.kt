@@ -10,8 +10,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
-import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -21,7 +21,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
-import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,8 +46,8 @@ fun PatientFilterSectionContent(
     indicatorOptions: List<Indicator>,
     selectedIndicator: Indicator?,
     onIndicatorSelected: (Indicator) -> Unit,
-    selectedDate: LocalDate?,
-    onDateSelected: (LocalDate) -> Unit,
+    selectedDateRange: Pair<LocalDate, LocalDate>?, // updated
+    onDateRangeSelected: (LocalDate, LocalDate) -> Unit, // updated
     availableParameters: List<Attribute>,
     selectedParameters: List<Attribute>,
     highlightedAvailable: List<Attribute>,
@@ -62,14 +62,16 @@ fun PatientFilterSectionContent(
     var expandedIndicator by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
 
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = selectedDate?.atStartOfDay(ZoneId.systemDefault())?.toInstant()
-            ?.toEpochMilli()
+    val dateRangePickerState = rememberDateRangePickerState(
+        initialSelectedStartDateMillis = selectedDateRange?.first?.atStartOfDay(ZoneId.systemDefault())
+            ?.toInstant()?.toEpochMilli(),
+        initialSelectedEndDateMillis = selectedDateRange?.second?.atStartOfDay(ZoneId.systemDefault())
+            ?.toInstant()?.toEpochMilli()
     )
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(16.dp)) {
-        // -- All your dropdowns, buttons, and content here --
-        // Cohort Dropdown
+
+        // --- Cohort Dropdown ---
         ExposedDropdownMenuBox(
             expanded = expandedCohort, onExpandedChange = { expandedCohort = !expandedCohort }) {
             TextField(
@@ -95,7 +97,7 @@ fun PatientFilterSectionContent(
             }
         }
 
-        // Indicator Dropdown
+        // --- Indicator Dropdown ---
         ExposedDropdownMenuBox(
             expanded = expandedIndicator,
             onExpandedChange = { expandedIndicator = !expandedIndicator }) {
@@ -120,24 +122,31 @@ fun PatientFilterSectionContent(
             }
         }
 
-        // Date Picker Button
+        // --- Date Range Picker ---
         OutlinedButton(
             onClick = { showDatePicker = true }, modifier = Modifier.fillMaxWidth()
         ) {
             Icon(Icons.Default.DateRange, contentDescription = null)
             Spacer(Modifier.width(8.dp))
-            Text(selectedDate?.toString() ?: "Select Date")
+            Text(selectedDateRange?.let { "${it.first} - ${it.second}" } ?: "Select Date Range")
         }
 
         if (showDatePicker) {
             DatePickerDialog(onDismissRequest = { showDatePicker = false }, confirmButton = {
                 TextButton(onClick = {
-                    val millis = datePickerState.selectedDateMillis
-                    if (millis != null) {
-                        val date = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault())
+                    val startMillis = dateRangePickerState.selectedStartDateMillis
+                    val endMillis = dateRangePickerState.selectedEndDateMillis
+
+                    if (startMillis != null && endMillis != null) {
+                        val startDate =
+                            Instant.ofEpochMilli(startMillis).atZone(ZoneId.systemDefault())
+                                .toLocalDate()
+                        val endDate = Instant.ofEpochMilli(endMillis).atZone(ZoneId.systemDefault())
                             .toLocalDate()
-                        onDateSelected(date)
+
+                        onDateRangeSelected(startDate, endDate)
                     }
+
                     showDatePicker = false
                 }) {
                     Text("OK")
@@ -147,11 +156,11 @@ fun PatientFilterSectionContent(
                     Text("Cancel")
                 }
             }) {
-                DatePicker(state = datePickerState)
+                DateRangePicker(state = dateRangePickerState)
             }
         }
 
-        // You can uncomment and adjust if you want to show this inside dialog
+        // --- Parameter Transfer Box (Custom Logic) ---
         IndicatorAttributesScreen(
             selectedIndicator = selectedIndicator,
             availableParameters = availableParameters,
@@ -164,7 +173,7 @@ fun PatientFilterSectionContent(
             moveLeft = onMoveLeft,
         )
 
-        // Apply Button
+        // --- Apply Button ---
         Button(
             onClick = onFilter, modifier = Modifier.fillMaxWidth()
         ) {

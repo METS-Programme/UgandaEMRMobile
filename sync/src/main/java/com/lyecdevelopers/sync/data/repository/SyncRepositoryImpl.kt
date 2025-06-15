@@ -7,6 +7,7 @@ import com.lyecdevelopers.core.model.Identifier
 import com.lyecdevelopers.core.model.PersonAttributeType
 import com.lyecdevelopers.core.model.Result
 import com.lyecdevelopers.core.model.cohort.Cohort
+import com.lyecdevelopers.core.model.cohort.DataDefinition
 import com.lyecdevelopers.core.model.encounter.EncounterType
 import com.lyecdevelopers.core.model.o3.o3Form
 import com.lyecdevelopers.core.model.order.OrderType
@@ -192,9 +193,9 @@ class SyncRepositoryImpl @Inject constructor(
     override fun loadPatientIndentifiers(): Flow<Result<List<Identifier>>> = flow {
         emit(Result.Loading)
         try {
-            var response = formApi.getPatientIdentifiers()
+            val response = formApi.getPatientIdentifiers()
             if (response.isSuccessful) {
-                var identifiers = response.body()?.results
+                val identifiers = response.body()?.results
                 if (identifiers != null) {
                     emit(Result.Success(identifiers))
                 } else {
@@ -217,9 +218,9 @@ class SyncRepositoryImpl @Inject constructor(
     override fun loadPersonAttributeTypes(): Flow<Result<List<PersonAttributeType>>> = flow {
         emit(Result.Loading)
         try {
-            var response = formApi.getPersonAttributeTypes()
+            val response = formApi.getPersonAttributeTypes()
             if (response.isSuccessful) {
-                var personAttributeTypes = response.body()?.results
+                val personAttributeTypes = response.body()?.results
                 if (personAttributeTypes != null) {
                     emit(Result.Success(personAttributeTypes))
                 } else {
@@ -242,5 +243,33 @@ class SyncRepositoryImpl @Inject constructor(
         TODO("Not yet implemented")
     }
 
-
+    override fun createDataDefinition(payload: DataDefinition): Flow<Result<Any>> = flow {
+        emit(Result.Loading)
+        try {
+            val response = formApi.generateDataDefinition(payload)
+            if (response.isSuccessful) {
+                val definitions = response.body()
+                if (definitions != null) {
+                    emit(Result.Success(definitions))
+                } else {
+                    emit(Result.Error(message = "No data definitions created "))
+                    AppLogger.d(message = "No data definitions created")
+                }
+            } else {
+                emit(Result.Error("Error ${response.code()}: ${response.message()}"))
+                AppLogger.d(
+                    "Error Code" + response.code(), "Error Message" + response.message()
+                )
+            }
+        } catch (e: Exception) {
+            emit(Result.Error(e.message ?: "Failed to create  data definition"))
+            AppLogger.e(e.message ?: "Failed to create  data definition")
+        }
+    }.flowOn(Dispatchers.IO)
 }
+
+
+
+
+
+

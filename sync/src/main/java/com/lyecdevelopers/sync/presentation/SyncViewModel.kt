@@ -11,9 +11,18 @@ import com.lyecdevelopers.core.data.preference.PreferenceManager
 import com.lyecdevelopers.core.model.Form
 import com.lyecdevelopers.core.model.Result
 import com.lyecdevelopers.core.model.cohort.Attribute
+import com.lyecdevelopers.core.model.cohort.CQIReportingCohort
 import com.lyecdevelopers.core.model.cohort.Cohort
+import com.lyecdevelopers.core.model.cohort.CohortResponse
+import com.lyecdevelopers.core.model.cohort.DataDefinition
 import com.lyecdevelopers.core.model.cohort.Indicator
 import com.lyecdevelopers.core.model.cohort.IndicatorRepository
+import com.lyecdevelopers.core.model.cohort.Parameters
+import com.lyecdevelopers.core.model.cohort.RenderType
+import com.lyecdevelopers.core.model.cohort.ReportCategory
+import com.lyecdevelopers.core.model.cohort.ReportCategoryWrapper
+import com.lyecdevelopers.core.model.cohort.ReportRequest
+import com.lyecdevelopers.core.model.cohort.ReportType
 import com.lyecdevelopers.core.model.encounter.EncounterType
 import com.lyecdevelopers.core.model.o3.o3Form
 import com.lyecdevelopers.core.model.order.OrderType
@@ -29,6 +38,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 
@@ -67,8 +77,8 @@ class SyncViewModel @Inject constructor(
     private val _selectedCohort = MutableStateFlow<Cohort?>(null)
     val selectedCohort: StateFlow<Cohort?> = _selectedCohort
 
-    private val _selectedDate = MutableStateFlow<LocalDate?>(null)
-    val selectedDate: StateFlow<LocalDate?> = _selectedDate
+    private val _selectedDateRange = MutableStateFlow<Pair<LocalDate, LocalDate>?>(null)
+    val selectedDateRange: StateFlow<Pair<LocalDate, LocalDate>?> = _selectedDateRange
 
     private val _selectedIndicator = MutableStateFlow<Indicator?>(null)
     val selectedIndicator: StateFlow<Indicator?> = _selectedIndicator
@@ -256,20 +266,62 @@ class SyncViewModel @Inject constructor(
 
     fun onIndicatorSelected(indicator: Indicator) {
         _selectedIndicator.value = indicator
-        _availableParameters.value = indicator.attributes // or indicator.parameters
+        _availableParameters.value = indicator.attributes
         _selectedParameters.value = emptyList()
         _highlightedAvailable.value = emptyList()
         _highlightedSelected.value = emptyList()
     }
 
 
-    fun onDateSelected(date: LocalDate) {
-        _selectedDate.value = date
+    fun onDateRangeSelected(range: Pair<LocalDate, LocalDate>) {
+        _selectedDateRange.value = range
     }
 
     fun onApplyFilters() {
-        // Add filter logic when needed
+        viewModelScope.launch(schedulerProvider.io) {
+            val validationError = validateFilters()
+            if (validationError != null) {
+                withContext(schedulerProvider.main) {
+                    _uiEvent.emit(DownloadFormsUiEvent.ShowSnackbar(validationError))
+                }
+                return@launch
+            }
+
+            // Safe to unwrap here because validateFilters() ensures no nulls
+            val indicator = _selectedIndicator.value!!
+            val cohort = _selectedCohort.value!!
+            val dateRange = selectedDateRange.value!!
+            val (dateStart, dateEnd) = dateRange
+
+            val reportRequest = buildReportRequest(cohort, dateStart, dateEnd)
+            val dataDefinitionPayload = buildDataDefinitionPayload(reportRequest, indicator)
+
+            syncUseCase.createDataDefinition(dataDefinitionPayload).collect { result ->
+                withContext(schedulerProvider.main) {
+                    when (result) {
+                        is Result.Loading -> _isLoading.value = true
+
+                        is Result.Success -> {
+                            _isLoading.value = false
+                            _uiEvent.emit(
+                                DownloadFormsUiEvent.ShowSnackbar("Data definition created successfully")
+                            )
+                        }
+
+                        is Result.Error -> {
+                            _isLoading.value = false
+                            _uiEvent.emit(
+                                DownloadFormsUiEvent.ShowSnackbar("Error: ${result.message}")
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
+
+
+
 
     // Dual ListBox Logic for Indicator Parameters
     val toggleHighlightAvailable: (Attribute) -> Unit = { item ->
@@ -297,6 +349,60 @@ class SyncViewModel @Inject constructor(
         _availableParameters.value += items
         _highlightedSelected.value = emptyList()
     }
+
+    private fun buildReportRequest(
+        cohort: Cohort,
+        start: LocalDate,
+        end: LocalDate,
+    ): ReportRequest {
+        val formatter = DateTimeFormatter.ISO_DATE
+        return ReportRequest(
+            uuid = cohort.uuid,
+            startDate = start.format(formatter),
+            endDate = end.format(formatter),
+            type = "cohort",
+            reportCategory = ReportCategoryWrapper(
+                category = ReportCategory.FACILITY, renderType = RenderType.JSON
+            ),
+            reportIndicators = selectedParameters.value,
+            reportType = ReportType.DYNAMIC,
+            reportingCohort = CQIReportingCohort.PATIENTS_WITH_ENCOUNTERS
+        )
+    }
+
+    private fun buildDataDefinitionPayload(
+        reportRequest: ReportRequest,
+        indicator: Indicator,
+    ): DataDefinition {
+        return DataDefinition(
+            cohort = CohortResponse(
+                type = reportRequest.type,
+                clazz = "",
+                uuid = reportRequest.uuid,
+                name = "",
+                description = "",
+                parameters = listOf(
+                    Parameters(
+                        startdate = reportRequest.startDate, enddate = reportRequest.endDate
+                    )
+                )
+            ), columns = indicator.attributes.joinToString(",") { it.label })
+    }
+
+    private fun validateFilters(): String? {
+        val indicator = _selectedIndicator.value
+        val cohort = _selectedCohort.value
+        val dateRange = selectedDateRange.value
+
+        return when {
+            indicator == null -> "Please select an indicator"
+            cohort == null -> "Please select a cohort"
+            dateRange == null -> "Please select a valid date range"
+
+            else -> null
+        }
+    }
+
 }
 
 

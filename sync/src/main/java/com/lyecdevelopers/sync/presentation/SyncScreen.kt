@@ -72,28 +72,24 @@ fun SyncScreen(
     val viewModel: SyncViewModel = hiltViewModel()
 
     val snackbarHostState = remember { SnackbarHostState() }
-
-
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var isSheetVisible by rememberSaveable { mutableStateOf(false) }
-
     var showPatientFilterDialog by rememberSaveable { mutableStateOf(false) }
 
-
+    // Collect all state from ViewModel
     val selectedCohort by viewModel.selectedCohort.collectAsState()
-    val selectedDate by viewModel.selectedDate.collectAsState()
     val selectedIndicator by viewModel.selectedIndicator.collectAsState()
+    val selectedDateRange by viewModel.selectedDateRange.collectAsState()
+
     val cohortOptions by viewModel.cohorts.collectAsState()
     val indicatorOptions: List<Indicator> = IndicatorRepository.reportIndicators
 
-    // parameters
     val availableParameters by viewModel.availableParameters.collectAsState()
     val selectedParameters by viewModel.selectedParameters.collectAsState()
     val highlightedAvailable by viewModel.highlightedAvailable.collectAsState()
     val highlightedSelected by viewModel.highlightedSelected.collectAsState()
 
-
-    // 👇 Listen for UI events
+    // UI Event listener
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collectLatest { event ->
             when (event) {
@@ -114,9 +110,7 @@ fun SyncScreen(
             onDismissRequest = { isSheetVisible = false }, sheetState = sheetState
         ) {
             DownloadFormsScreen(
-                viewModel = viewModel, onDownloadSelected = {
-                    isSheetVisible = false
-                })
+                viewModel = viewModel, onDownloadSelected = { isSheetVisible = false })
         }
     }
 
@@ -220,7 +214,6 @@ fun SyncScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Spacer(Modifier.height(16.dp))
                             Text("Download Forms", style = MaterialTheme.typography.titleMedium)
                             Spacer(Modifier.height(8.dp))
                             Button(
@@ -235,8 +228,6 @@ fun SyncScreen(
                             Spacer(Modifier.height(16.dp))
                             Text("Download Patients", style = MaterialTheme.typography.titleMedium)
                             Spacer(Modifier.height(8.dp))
-
-                            // Button to open Patient Filter Dialog
                             Button(
                                 onClick = { showPatientFilterDialog = true },
                                 modifier = Modifier.fillMaxWidth()
@@ -245,8 +236,6 @@ fun SyncScreen(
                                 Spacer(Modifier.width(8.dp))
                                 Text("Download Patients")
                             }
-
-
                         }
                     }
                 }
@@ -254,7 +243,7 @@ fun SyncScreen(
         }
     }
 
-    // Patient Filter Dialog implementation
+    // Patient Filter Dialog
     if (showPatientFilterDialog) {
         AlertDialog(onDismissRequest = { showPatientFilterDialog = false }, confirmButton = {
             TextButton(
@@ -276,18 +265,23 @@ fun SyncScreen(
                 indicatorOptions = indicatorOptions,
                 selectedIndicator = selectedIndicator,
                 onIndicatorSelected = viewModel::onIndicatorSelected,
-                selectedDate = selectedDate,
-                onDateSelected = viewModel::onDateSelected,
+                selectedDateRange = selectedDateRange,
+                onDateRangeSelected = { startDate, endDate ->
+                    viewModel.onDateRangeSelected(Pair(startDate, endDate))
+                },
                 availableParameters = availableParameters,
                 selectedParameters = selectedParameters,
                 highlightedAvailable = highlightedAvailable,
                 highlightedSelected = highlightedSelected,
-                onHighlightAvailableToggle = viewModel.toggleHighlightAvailable,
-                onHighlightSelectedToggle = viewModel.toggleHighlightSelected,
+                onHighlightAvailableToggle = { viewModel.toggleHighlightAvailable(it) },
+                onHighlightSelectedToggle = { viewModel.toggleHighlightSelected(it) },
                 onMoveRight = viewModel.moveRight,
                 onMoveLeft = viewModel.moveLeft,
-                onFilter = {} // filter triggered by Apply button above
-            )
+                onFilter = {
+                    viewModel.onApplyFilters()
+                    showPatientFilterDialog = false
+                })
+
         })
     }
 }
