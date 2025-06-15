@@ -1,5 +1,6 @@
 package com.lyecdevelopers.settings.presentation
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -22,23 +23,55 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.lyecdevelopers.core.ui.components.SettingsItem
+import com.lyecdevelopers.core_navigation.navigation.Destinations
+import com.lyecdevelopers.settings.presentation.event.SettingsUiEvent
 
 @Composable
-fun SettingsScreen(onBack: () -> Unit) {
+fun SettingsScreen(
+    navController: NavController,
+    viewModel: SettingsViewModel = hiltViewModel(),
+) {
 
-    val viewModel: SettingsViewModel = hiltViewModel()
     var showServerDialog by remember { mutableStateOf(false) }
     var serverUrl by remember { mutableStateOf("https://api.ugandaemr.org") }
     var syncInterval by remember { mutableIntStateOf(15) }
+
+    val context = LocalContext.current
+
+    // Collect UI events like logout and error
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is SettingsUiEvent.LogoutSuccess -> {
+                    navController.navigate(Destinations.AUTH) {
+                        popUpTo(Destinations.MAIN) { inclusive = true }
+                    }
+                }
+
+                is SettingsUiEvent.ShowError -> {
+                    Toast.makeText(context, event.message, Toast.LENGTH_LONG).show()
+                }
+
+                SettingsUiEvent.Loading -> {
+                    // Optional: Show loading state
+                }
+
+                SettingsUiEvent.Idle -> Unit
+            }
+        }
+    }
 
     Scaffold { padding ->
         LazyColumn(
@@ -59,11 +92,9 @@ fun SettingsScreen(onBack: () -> Unit) {
             item {
                 SettingsSection(title = "Preferences") {
                     SettingsItem(
-                        title = "Language",
-                        subtitle = "English",
-                        onClick = { /* open language dialog */ })
+                        title = "Language", subtitle = "English", onClick = { /* TODO */ })
                     SettingsItem(
-                        title = "Dark Mode", subtitle = "On", onClick = { /* toggle dark mode */ })
+                        title = "Dark Mode", subtitle = "On", onClick = { /* TODO */ })
                 }
             }
 
@@ -82,7 +113,7 @@ fun SettingsScreen(onBack: () -> Unit) {
 
             item {
                 Button(
-                    onClick = onBack,
+                    onClick = { viewModel.logout() },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -106,6 +137,7 @@ fun SettingsScreen(onBack: () -> Unit) {
             })
     }
 }
+
 
 @Composable
 fun SettingsSection(
@@ -143,15 +175,19 @@ fun SettingsServerConfigurationDialog(
     var expanded by remember { mutableStateOf(false) }
 
     AlertDialog(
-        onDismissRequest = onDismiss, confirmButton = {
+        onDismissRequest = onDismiss,
+        confirmButton = {
             TextButton(onClick = { onSave(url, selectedInterval) }) {
                 Text("Save")
             }
-        }, dismissButton = {
+        },
+        dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text("Cancel")
         }
-        }, title = { Text("Server Settings") }, text = {
+        },
+        title = { Text("Server Settings") },
+        text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 OutlinedTextField(
                     value = url,
@@ -184,7 +220,8 @@ fun SettingsServerConfigurationDialog(
                     }
                 }
             }
-        }, shape = RoundedCornerShape(12.dp)
+        },
+        shape = RoundedCornerShape(12.dp),
     )
 }
 

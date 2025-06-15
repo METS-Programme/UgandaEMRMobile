@@ -17,6 +17,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -81,7 +82,9 @@ fun PatientFilterSectionContent(
                 label = { Text("Cohort") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedCohort) },
                 modifier = Modifier
-                    .menuAnchor(type, enabled)
+                    .menuAnchor(
+                        type = MenuAnchorType.SecondaryEditable, enabled = true
+                    )
                     .fillMaxWidth()
             )
             ExposedDropdownMenu(
@@ -108,7 +111,9 @@ fun PatientFilterSectionContent(
                 label = { Text("Indicator") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedIndicator) },
                 modifier = Modifier
-                    .menuAnchor(type, enabled)
+                    .menuAnchor(
+                        type = MenuAnchorType.SecondaryEditable, enabled = true
+                    )
                     .fillMaxWidth()
             )
             ExposedDropdownMenu(

@@ -49,6 +49,7 @@ android {
 
 dependencies {
     implementation (project(":core"))
+    implementation(project(":core-navigation"))
 
     // Compose UI essentials
     implementation(libs.androidx.activity.compose)
@@ -57,8 +58,6 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.hilt.navigation.compose)
     implementation(libs.material.icons.extended)
-
-
 
 
     // Hilt

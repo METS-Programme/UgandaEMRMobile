@@ -8,6 +8,6 @@ import com.lyecdevelopers.settings.presentation.SettingsScreen
 
 fun NavGraphBuilder.settingsGraph(navController: NavController) {
     composable(BottomNavItem.Settings.route) {
-        SettingsScreen(onBack = { navController.popBackStack() })
+        SettingsScreen(navController = navController)
     }
 }

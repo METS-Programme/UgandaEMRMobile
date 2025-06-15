@@ -74,6 +74,7 @@ fun NavGraphBuilder.worklistGraph(fragmentManager: FragmentManager, navControlle
         composable("register_patient") {
             RegisterPatientScreen(fragmentManager = fragmentManager)
         }
+
     }
 
 }

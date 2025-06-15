@@ -65,9 +65,11 @@ class MainActivity : AppCompatActivity() {
 
                     NavHost(navController = navController, startDestination = Destinations.AUTH) {
                         composable(Destinations.AUTH) {
-                            AuthScreen(
-                                // No explicit navigation here, login changes isLoggedIn state
-                                onLoginSuccess = { /* No-op */ })
+                            AuthScreen(onLoginSuccess = {
+                                navController.navigate(Destinations.MAIN) {
+                                    popUpTo(Destinations.AUTH) { inclusive = true }
+                                }
+                            })
                         }
                         composable(Destinations.MAIN) {
                             MainScreen(
