@@ -278,6 +278,9 @@ class SyncRepositoryImpl @Inject constructor(
     override fun createDataDefinition(payload: DataDefinition): Flow<Result<Any>> = flow {
         emit(Result.Loading)
         try {
+
+            AppLogger.d("payload--->" + payload)
+
             val response = formApi.generateDataDefinition(payload)
             if (response.isSuccessful) {
                 val definitions = response.body()

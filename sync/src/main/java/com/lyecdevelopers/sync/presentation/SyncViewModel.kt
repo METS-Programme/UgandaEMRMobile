@@ -23,6 +23,7 @@ import com.lyecdevelopers.core.model.cohort.ReportCategory
 import com.lyecdevelopers.core.model.cohort.ReportCategoryWrapper
 import com.lyecdevelopers.core.model.cohort.ReportRequest
 import com.lyecdevelopers.core.model.cohort.ReportType
+import com.lyecdevelopers.core.model.cohort.formatReportArray
 import com.lyecdevelopers.core.model.encounter.EncounterType
 import com.lyecdevelopers.core.model.o3.o3Form
 import com.lyecdevelopers.core.model.order.OrderType
@@ -395,7 +396,9 @@ class SyncViewModel @Inject constructor(
                         startdate = reportRequest.startDate, enddate = reportRequest.endDate
                     )
                 )
-            ), columns = indicator.attributes.joinToString(",") { it.label })
+            ),
+            columns = formatReportArray(indicator.attributes)
+        )
     }
 
     private fun validateFilters(): String? {

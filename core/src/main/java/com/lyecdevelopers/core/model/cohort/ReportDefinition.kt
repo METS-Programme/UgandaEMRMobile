@@ -4,7 +4,7 @@ import com.squareup.moshi.Json
 
 data class DataDefinition(
     @Json(name = "cohort") val cohort: CohortResponse,
-    @Json(name = "columns") val columns: String?,
+    @Json(name = "columns") val columns: List<ReportParamItem>,
 )
 
 data class CohortResponse(

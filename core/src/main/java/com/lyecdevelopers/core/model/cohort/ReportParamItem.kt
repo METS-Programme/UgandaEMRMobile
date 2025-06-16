@@ -5,6 +5,6 @@ data class ReportParamItem(
     val label: String,
     val type: String,
     val expression: String,
-    val modifier: String? = null,
+    val modifier: Int? = null,
     val extras: List<Map<String, Any>> = emptyList(),
 )

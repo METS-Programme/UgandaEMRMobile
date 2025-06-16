@@ -1,6 +1,6 @@
 package com.lyecdevelopers.core.model.cohort
 
-fun formatReportArray(selectedItems: List<Indicator>?): List<ReportParamItem> {
+fun formatReportArray(selectedItems: List<Attribute>?): List<ReportParamItem> {
     val arrayToReturn = mutableListOf<ReportParamItem>()
 
     selectedItems?.forEach { item ->
@@ -9,7 +9,7 @@ fun formatReportArray(selectedItems: List<Indicator>?): List<ReportParamItem> {
                 label = item.label,
                 type = item.type,
                 expression = item.id,
-                modifier = "",
+                modifier = 1,
                 extras = emptyList()
             )
         )
