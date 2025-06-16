@@ -58,9 +58,11 @@ fun SettingsScreen(
         viewModel.uiEvent.collect { event ->
             when (event) {
                 is SettingsUiEvent.LogoutSuccess -> {
-                    navController.navigate(Destinations.AUTH) {
+                    navController.navigate(Destinations.SPLASH) {
                         popUpTo(Destinations.MAIN) { inclusive = true }
+                        launchSingleTop = true
                     }
+
                 }
 
                 is SettingsUiEvent.ShowError -> {

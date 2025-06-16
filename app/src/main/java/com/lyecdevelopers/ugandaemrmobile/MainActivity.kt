@@ -64,6 +64,16 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     NavHost(navController = navController, startDestination = Destinations.AUTH) {
+
+                        composable(Destinations.SPLASH) {
+                            SplashScreen(
+                                isLoggedIn = isLoggedIn,
+                                onSplashFinished = {
+                                    showSplash = false
+                                },
+                            )
+                        }
+
                         composable(Destinations.AUTH) {
                             AuthScreen(onLoginSuccess = {
                                 navController.navigate(Destinations.MAIN) {
