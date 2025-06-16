@@ -12,7 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
                 val navController = rememberNavController()
                 val navBarNavController = rememberNavController()
                 val isLoggedIn by preferenceManager.isLoggedIn().collectAsState(initial = false)
-                val sharedViewModel: SharedViewModel = viewModel()
+                val sharedViewModel: SharedViewModel = hiltViewModel()
 
                 var showSplash by remember { mutableStateOf(true) }
 

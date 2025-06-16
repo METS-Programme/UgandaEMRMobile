@@ -72,8 +72,6 @@ fun SettingsScreen(
                 SettingsUiEvent.Loading -> {
                     // Optional: Show loading state
                 }
-
-                SettingsUiEvent.Idle -> Unit
             }
         }
     }

@@ -11,7 +11,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -21,11 +20,9 @@ import androidx.fragment.app.FragmentManager
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.lyecdevelopers.auth.presentation.event.LoginUIEvent
 import com.lyecdevelopers.auth.presentation.login.LoginViewModel
 import com.lyecdevelopers.core.model.BottomNavItem
 import com.lyecdevelopers.core.ui.components.BottomNavigationBar
-import com.lyecdevelopers.core_navigation.navigation.Destinations
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,15 +43,6 @@ fun MainScreen(
 
     var menuExpanded by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        viewModel.uiEvent.collect { event ->
-            if (event is LoginUIEvent.LoggedOut) {
-                navController.navigate(Destinations.AUTH) {
-                    popUpTo(Destinations.MAIN) { inclusive = true }
-                }
-            }
-        }
-    }
 
     Scaffold(
         topBar = {
