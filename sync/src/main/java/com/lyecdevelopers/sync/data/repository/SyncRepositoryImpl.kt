@@ -16,8 +16,11 @@ import com.lyecdevelopers.form.domain.mapper.toEntity
 import com.lyecdevelopers.sync.domain.repository.SyncRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import java.io.IOException
+import java.sql.SQLException
 import javax.inject.Inject
 
 
@@ -104,6 +107,35 @@ class SyncRepositoryImpl @Inject constructor(
             AppLogger.e(e.message ?: "Failed to save forms locally")
 
         }
+    }.flowOn(Dispatchers.IO)
+
+
+    override fun getFormCount(): Flow<Result<Int>> = flow {
+        try {
+            val count = formDao.getFormCount()
+            emit(Result.Success(count))
+        } catch (e: IOException) {
+            val errorMsg =
+                "Network error while fetching form count: ${e.localizedMessage ?: "Unknown network error"}"
+            AppLogger.e("FormCountIOException", errorMsg, e)
+            emit(Result.Error(errorMsg))
+        } catch (e: SQLException) {
+            val errorMsg =
+                "Database error while fetching form count: ${e.localizedMessage ?: "Unknown DB error"}"
+            AppLogger.e("FormCountSQLException", errorMsg, e)
+            emit(Result.Error(errorMsg))
+        } catch (e: Exception) {
+            val errorMsg =
+                "Unexpected error while fetching form count: ${e.localizedMessage ?: "Unknown error"}"
+            AppLogger.e("FormCountUnknownException", errorMsg, e)
+            emit(Result.Error(errorMsg))
+            throw e // rethrow to allow .catch to process if needed
+        }
+    }.catch { e ->
+        val errorMsg =
+            "Unhandled exception in getFormCount(): ${e.localizedMessage ?: "Unknown error"}"
+        AppLogger.e("FormCountFlowCatch", errorMsg, e)
+        emit(Result.Error(errorMsg))
     }.flowOn(Dispatchers.IO)
 
     override fun loadPatientsByCohort(): Flow<Result<List<Any>>> {

@@ -28,15 +28,22 @@ class SettingsViewModel @Inject constructor(
     private val _logoutSuccess = MutableStateFlow(false)
     val logoutSuccess: StateFlow<Boolean> = _logoutSuccess.asStateFlow()
 
+    // user details
+    private val _userName = MutableStateFlow<String>("")
+    val username: StateFlow<String> = _userName.asStateFlow()
+
+    // general
     private val _uiEvent = MutableSharedFlow<SettingsUiEvent>()
     val uiEvent: SharedFlow<SettingsUiEvent> = _uiEvent
 
+    init {
+        accountDetails()
+    }
+
     fun logout() {
         viewModelScope.launch(schedulerProvider.io) {
-
             val username = preferenceManager.getUsername().firstOrNull() ?: ""
             val password = preferenceManager.getPassword().firstOrNull() ?: ""
-
             settingsUseCase.logout(
                 username, password
             ).collect { result ->
@@ -61,6 +68,13 @@ class SettingsViewModel @Inject constructor(
                     }
                 }
             }
+        }
+    }
+
+
+    private fun accountDetails() {
+        viewModelScope.launch(schedulerProvider.io) {
+            _userName.value = preferenceManager.getUsername().firstOrNull() ?: ""
         }
     }
 

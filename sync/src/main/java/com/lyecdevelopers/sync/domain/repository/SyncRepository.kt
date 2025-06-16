@@ -19,8 +19,11 @@ interface SyncRepository {
     fun loadFormByUuid(uuid: String): Flow<Result<o3Form>>
     fun filterForms(query: String): Flow<Result<List<Form>>>
 
+
     // local db
     fun saveFormsLocally(forms: List<o3Form>): Flow<Result<List<o3Form>>>
+    fun getFormCount(): Flow<Result<Int>>
+
 
     // cohorts
     fun loadPatientsByCohort(): Flow<Result<List<Any>>>

@@ -26,6 +26,7 @@ import com.lyecdevelopers.core.model.cohort.ReportType
 import com.lyecdevelopers.core.model.encounter.EncounterType
 import com.lyecdevelopers.core.model.o3.o3Form
 import com.lyecdevelopers.core.model.order.OrderType
+import com.lyecdevelopers.core.utils.AppLogger
 import com.lyecdevelopers.sync.domain.usecase.SyncUseCase
 import com.lyecdevelopers.sync.presentation.forms.event.DownloadFormsUiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,6 +36,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -69,6 +71,11 @@ class SyncViewModel @Inject constructor(
 
     private val _searchQuery = mutableStateOf("")
     val searchQuery: State<String> get() = _searchQuery
+
+
+    // form
+    private val _formCount = MutableStateFlow<Int>(0)
+    val formCount: StateFlow<Int> = _formCount.asStateFlow()
 
     // Cohorts
     private val _cohorts = MutableStateFlow<List<Cohort>>(emptyList())
@@ -110,6 +117,8 @@ class SyncViewModel @Inject constructor(
         loadEncounterTypes()
         restoreSelectedForms()
         loadReportIndicators()
+        formCount()
+
     }
 
     private fun loadReportIndicators() {
@@ -400,6 +409,29 @@ class SyncViewModel @Inject constructor(
             dateRange == null -> "Please select a valid date range"
 
             else -> null
+        }
+    }
+
+    private fun formCount() {
+        viewModelScope.launch(schedulerProvider.io) {
+            syncUseCase.getFormCount().collect { result ->
+                withContext(schedulerProvider.main) {
+                    when (result) {
+                        is Result.Success -> {
+                            val count = result.data
+                            AppLogger.d("Total forms in DB: $count")
+                            _formCount.value = count
+                        }
+
+                        is Result.Error -> {
+                            AppLogger.e("Form count failed: ${result.message}")
+                        }
+
+                        Result.Loading -> TODO()
+                    }
+                }
+
+            }
         }
     }
 

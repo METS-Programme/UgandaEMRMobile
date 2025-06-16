@@ -60,7 +60,6 @@ fun SyncScreen(
     lastSyncStatus: String = "Never Synced",
     lastSyncBy: String = "N/A",
     lastSyncError: String? = null,
-    formsSynced: Int = 0,
     patientsSynced: Int = 0,
     autoSyncEnabled: Boolean = false,
     autoSyncInterval: String = "15 minutes",
@@ -88,6 +87,9 @@ fun SyncScreen(
     val selectedParameters by viewModel.selectedParameters.collectAsState()
     val highlightedAvailable by viewModel.highlightedAvailable.collectAsState()
     val highlightedSelected by viewModel.highlightedSelected.collectAsState()
+
+    // forms
+    val formCount by viewModel.formCount.collectAsState()
 
     // UI Event listener
     LaunchedEffect(Unit) {
@@ -164,7 +166,7 @@ fun SyncScreen(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text("Forms Synced:")
-                                Text("$formsSynced")
+                                Text("$formCount")
                             }
                             Row(
                                 horizontalArrangement = Arrangement.SpaceBetween,

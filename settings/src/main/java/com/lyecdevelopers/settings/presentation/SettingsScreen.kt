@@ -24,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -47,8 +48,10 @@ fun SettingsScreen(
     var showServerDialog by remember { mutableStateOf(false) }
     var serverUrl by remember { mutableStateOf("https://api.ugandaemr.org") }
     var syncInterval by remember { mutableIntStateOf(15) }
-
     val context = LocalContext.current
+
+    // get values
+    val username by viewModel.username.collectAsState()
 
     // Collect UI events like logout and error
     LaunchedEffect(Unit) {
@@ -83,7 +86,7 @@ fun SettingsScreen(
         ) {
             item {
                 SettingsSection(title = "Account") {
-                    SettingsItem(title = "Username", subtitle = "user123", onClick = {})
+                    SettingsItem(title = "Username", subtitle = username, onClick = {})
                     SettingsItem(
                         title = "Facility", subtitle = "Kampala Health Center", onClick = {})
                 }

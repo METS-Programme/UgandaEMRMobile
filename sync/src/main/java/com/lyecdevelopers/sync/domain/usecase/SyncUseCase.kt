@@ -33,6 +33,9 @@ class SyncUseCase @Inject constructor(
     fun saveFormsLocally(forms: List<o3Form>): Flow<Result<List<o3Form>>> {
         return repository.saveFormsLocally(forms)
     }
+    fun getFormCount(): Flow<Result<Int>> {
+        return repository.getFormCount()
+    }
 
     // cohorts
     fun getCohorts(): Flow<Result<List<Cohort>>> {

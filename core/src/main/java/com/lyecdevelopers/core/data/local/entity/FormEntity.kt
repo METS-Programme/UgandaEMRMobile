@@ -3,12 +3,12 @@ package com.lyecdevelopers.core.data.local.entity
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
-import com.lyecdevelopers.core.data.local.db.FormConverters
+import com.lyecdevelopers.core.data.local.db.FormTypeConverters
 import com.lyecdevelopers.core.model.o3.Pages
 import com.lyecdevelopers.core.model.o3.o3Form
 
 @Entity(tableName = "forms")
-@TypeConverters(FormConverters::class)
+@TypeConverters(FormTypeConverters::class)
 data class FormEntity(
     @PrimaryKey val uuid: String,
     val name: String?,

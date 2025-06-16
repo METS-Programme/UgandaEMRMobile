@@ -26,5 +26,8 @@ interface FormDao {
 
     @Query("DELETE FROM forms WHERE uuid = :uuid")
     suspend fun deleteFormById(uuid: String)
+
+    @Query("SELECT COUNT(*) FROM forms")
+    suspend fun getFormCount(): Int
 }
 

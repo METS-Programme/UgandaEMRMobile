@@ -13,7 +13,7 @@ import com.lyecdevelopers.core.data.local.entity.PatientEntity
     version = 1,
     exportSchema = false
 )
-@TypeConverters(FormConverters::class)
+@TypeConverters(FormTypeConverters::class, DateTimeTypeConverters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun formDao(): FormDao
     abstract fun patientDao(): PatientDao
