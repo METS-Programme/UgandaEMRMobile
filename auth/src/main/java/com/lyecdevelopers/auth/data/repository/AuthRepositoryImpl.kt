@@ -15,7 +15,6 @@ class AuthRepositoryImpl @Inject constructor(
     private val authApi: AuthApi,
     private val schedulerProvider: SchedulerProvider
 ) : AuthRepository {
-
     override fun login(username: String, password: String): Flow<Result<Boolean>> = flow {
         emit(Result.Loading)
 
@@ -34,29 +33,6 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }.catch { e ->
         emit(Result.Error("Login failed: ${e.localizedMessage ?: "Unknown error"}"))
-    }.flowOn(schedulerProvider.io)
-
-    override fun logout(username: String, password: String): Flow<Result<Boolean>> = flow {
-
-        emit(Result.Loading)
-
-        val credentials = Credentials.basic(username, password)
-        val response = authApi.logoutWithAuthHeader(credentials)
-
-        if (response.isSuccessful) {
-            val body = response.body()
-            if (body != null && body.authenticated) {
-                emit(Result.Success(true))
-            } else {
-                emit(Result.Error("Invalid credentials"))
-            }
-        } else {
-            emit(Result.Error("Logout failed with code: ${response.code()}"))
-        }
-
-    }.catch { e ->
-        emit(Result.Error("logout failed: ${e.localizedMessage ?: "Unknown error"}"))
-
     }.flowOn(schedulerProvider.io)
 }
 
