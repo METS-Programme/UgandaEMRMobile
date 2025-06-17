@@ -10,6 +10,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ListAlt
+import androidx.compose.material.icons.automirrored.filled.ScheduleSend
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -56,19 +59,19 @@ fun WorklistSummary(
                 SummaryItem(
                     label = "Today",
                     value = "$total patients",
-                    icon = Icons.AutoMirrored.Filled.List,
+                    icon = Icons.AutoMirrored.Filled.ListAlt, // More meaningful icon
                     iconTint = MaterialTheme.colorScheme.primary
                 )
+
                 SummaryItem(
                     label = "Pending",
-                    value = "$pending",
-                    icon = Icons.AutoMirrored.Filled.List,
+                    value = "$pending pending",
+                    icon = Icons.AutoMirrored.Filled.ScheduleSend,
                     iconTint = MaterialTheme.colorScheme.secondary
                 )
+
                 SummaryItem(
-                    label = "In Progress",
-                    value = "$inProgress",
-                    icon = Icons.AutoMirrored.Filled.List,
+                    label = "In Progress", value = "$inProgress active", icon = Icons.Filled.Sync,
                     iconTint = MaterialTheme.colorScheme.tertiary
                 )
             }

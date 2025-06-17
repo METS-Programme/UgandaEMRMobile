@@ -3,7 +3,6 @@ package com.lyecdevelopers.auth.presentation.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lyecdevelopers.auth.domain.usecase.LoginUseCase
-import com.lyecdevelopers.auth.domain.usecase.LogoutUseCase
 import com.lyecdevelopers.auth.presentation.event.LoginEvent
 import com.lyecdevelopers.auth.presentation.event.LoginUIEvent
 import com.lyecdevelopers.auth.presentation.state.LoginUIState
@@ -23,7 +22,6 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
-    private val logoutUseCase: LogoutUseCase,
     private val schedulerProvider: SchedulerProvider,
     private val preferenceManager: PreferenceManager
 ) : ViewModel() {
@@ -39,13 +37,12 @@ class LoginViewModel @Inject constructor(
             is LoginEvent.Login -> {
                 _uiState.update { it.copy(username = event.username, password = event.password) }
             }
+
             is LoginEvent.Submit -> {
                 _uiState.update { it.copy(hasSubmitted = true) }
                 login()
             }
-            is LoginEvent.Logout -> {
-                logout()
-            }
+
         }
     }
 
@@ -54,21 +51,22 @@ class LoginViewModel @Inject constructor(
         val username = currentState.username.trim()
         val password = currentState.password
 
-        // Basic empty check
-        if (username.isBlank() || password.isBlank()) {
-            emitError("Username or password can't be empty")
-            return
-        }
+        // Basic validations
+        when {
+            username.isBlank() || password.isBlank() -> {
+                emitErrorDialog("Login", "Username or password can't be empty")
+                return
+            }
 
-        // Password strength checks
-        if (password.length < 6) {
-            emitError("Password must be at least 6 characters")
-            return
-        }
+            password.length < 6 -> {
+                emitErrorDialog("Login", "Password must be at least 6 characters")
+                return
+            }
 
-        if (password.lowercase() in listOf("123456", "password", "admin")) {
-            emitError("Please choose a stronger password")
-            return
+            password.lowercase() in listOf("123456", "password", "admin") -> {
+                emitErrorDialog("Login", "Please choose a stronger password")
+                return
+            }
         }
 
         // Launch login process
@@ -90,37 +88,7 @@ class LoginViewModel @Inject constructor(
 
                         is Result.Error -> {
                             _uiState.update { it.copy(isLoading = false) }
-                            _uiEvent.emit(LoginUIEvent.ShowError(result.message))
-                        }
-                    }
-                }
-
-            }
-        }
-    }
-
-
-    private fun logout() {
-        viewModelScope.launch(schedulerProvider.io) {
-            logoutUseCase(
-                username = preferenceManager.getUsername()
-                    .toString(), password = preferenceManager.getPassword().toString()
-            ).collect { result ->
-                withContext(schedulerProvider.main) {
-                    when (result) {
-                        is Result.Loading -> {
-                            _uiState.update { it.copy(isLoading = true) }
-                        }
-
-                        is Result.Success -> {
-                            preferenceManager.clear()
-                            _uiState.update { it.copy(isLoading = false) }
-                            _uiEvent.emit(LoginUIEvent.LoggedOut)
-                        }
-
-                        is Result.Error -> {
-                            _uiState.update { it.copy(isLoading = false) }
-                            _uiEvent.emit(LoginUIEvent.ShowError(result.message))
+                            emitErrorDialog("Login Failed", result.message)
                         }
                     }
                 }
@@ -129,12 +97,15 @@ class LoginViewModel @Inject constructor(
     }
 
 
-    private fun emitError(message: String) {
+    private fun emitErrorDialog(title: String, message: String) {
         viewModelScope.launch(schedulerProvider.main) {
-            _uiEvent.emit(LoginUIEvent.ShowError(message))
+            _uiEvent.emit(
+                LoginUIEvent.ShowGlobalDialog(
+                    title = title, message = message
+                )
+            )
         }
     }
-
 
     private fun saveLogin(username: String, password: String) {
         viewModelScope.launch(schedulerProvider.io) {
@@ -143,6 +114,4 @@ class LoginViewModel @Inject constructor(
             preferenceManager.setIsLoggedIn(true)
         }
     }
-
-
 }

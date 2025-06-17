@@ -1,5 +1,6 @@
 package com.lyecdevelopers.core.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,7 +22,9 @@ fun SettingsItem(title: String, subtitle: String, onClick: () -> Unit) {
     Surface(
         shape = RoundedCornerShape(8.dp),
         tonalElevation = 2.dp,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() } // Attach click handler here
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = title, fontWeight = FontWeight.Medium)
@@ -30,6 +33,7 @@ fun SettingsItem(title: String, subtitle: String, onClick: () -> Unit) {
         }
     }
 }
+
 
 
 

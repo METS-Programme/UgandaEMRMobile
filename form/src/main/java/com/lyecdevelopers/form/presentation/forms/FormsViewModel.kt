@@ -3,8 +3,8 @@ package com.lyecdevelopers.form.presentation.forms
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lyecdevelopers.core.common.scheduler.SchedulerProvider
-import com.lyecdevelopers.core.model.Form
 import com.lyecdevelopers.core.model.Result
+import com.lyecdevelopers.core.model.o3.o3Form
 import com.lyecdevelopers.form.domain.usecase.FormsUseCase
 import com.lyecdevelopers.form.presentation.event.FormsEvent
 import com.lyecdevelopers.form.presentation.state.FormsUiState
@@ -29,21 +29,18 @@ class FormsViewModel @Inject constructor(
 
     fun onEvent(event: FormsEvent) {
         when (event) {
-            is FormsEvent.LoadForms -> loadForms()
+            is FormsEvent.LoadForms -> loadLocalForms()
             is FormsEvent.SelectForm -> {
                 _uiState.update { it.copy(selectedForm = event.form) }
             }
-
             is FormsEvent.SearchQueryChanged -> {
                 val query = event.query.trim()
                 val filtered = if (query.isEmpty()) {
                     _uiState.value.allForms
                 } else {
                     _uiState.value.allForms.filter {
-                        it.name?.contains(
-                            query,
-                            ignoreCase = true
-                        ) == true || it.description?.contains(query, ignoreCase = true) == true
+                        it.name?.contains(query, ignoreCase = true) == true ||
+                                it.description?.contains(query, ignoreCase = true) == true
                     }
                 }
                 _uiState.update {
@@ -53,9 +50,9 @@ class FormsViewModel @Inject constructor(
         }
     }
 
-    private fun loadForms() {
+    private fun loadLocalForms() {
         viewModelScope.launch(schedulerProvider.io) {
-            formsUseCase().collect { result ->
+            formsUseCase.getAllLocalForms().collect { result ->
                 withContext(schedulerProvider.main) {
                     when (result) {
                         is Result.Loading -> {
@@ -63,12 +60,12 @@ class FormsViewModel @Inject constructor(
                         }
 
                         is Result.Success<*> -> {
-                            val forms = result.data as? List<Form> ?: emptyList()
+                            val localForms = result.data as? List<o3Form> ?: emptyList()
                             _uiState.update {
                                 it.copy(
                                     isLoading = false,
-                                    allForms = forms,
-                                    filteredForms = forms,
+                                    allForms = localForms,
+                                    filteredForms = localForms,
                                     errorMessage = null
                                 )
                             }
@@ -76,7 +73,10 @@ class FormsViewModel @Inject constructor(
 
                         is Result.Error -> {
                             _uiState.update {
-                                it.copy(isLoading = false, errorMessage = result.message)
+                                it.copy(
+                                    isLoading = false,
+                                    errorMessage = result.message
+                                )
                             }
                         }
                     }
@@ -84,4 +84,6 @@ class FormsViewModel @Inject constructor(
             }
         }
     }
+
 }
+

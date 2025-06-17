@@ -1,14 +1,14 @@
 package com.lyecdevelopers.form.presentation.state
 
-import com.lyecdevelopers.core.model.Form
+import com.lyecdevelopers.core.model.o3.o3Form
 
 
 data class FormsUiState(
     val isLoading: Boolean = false,
-    val allForms: List<Form> = emptyList(),
-    val filteredForms: List<Form> = emptyList(),
-    val selectedForm: Form? = null,
+    val allForms: List<o3Form> = emptyList(),
+    val filteredForms: List<o3Form> = emptyList(),
+    val selectedForm: o3Form? = null,
     val searchQuery: String = "",
-    val errorMessage: String? = null,        // Add error display support
+    val errorMessage: String? = null,
     val isEmpty: Boolean = false,
 )

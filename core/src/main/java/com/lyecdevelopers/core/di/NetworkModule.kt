@@ -32,8 +32,9 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideAuthInterceptor(config: Config): AuthInterceptor =
-        AuthInterceptor(config)
+    fun provideAuthInterceptor(
+        config: Config,
+    ): AuthInterceptor = AuthInterceptor(config)
 
     @Provides
     @Singleton

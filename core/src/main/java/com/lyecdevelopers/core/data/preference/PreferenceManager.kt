@@ -1,9 +1,12 @@
 package com.lyecdevelopers.core.data.preference
 
+import android.content.Context
 import kotlinx.coroutines.flow.Flow
 
 
 interface PreferenceManager {
+
+    // auth
     suspend fun saveAuthToken(token: String)
     fun getAuthToken(): Flow<String?>
 
@@ -19,11 +22,20 @@ interface PreferenceManager {
     suspend fun savePassword(password: String)
     fun getPassword(): Flow<String?>
 
+    // remember
     suspend fun setRememberMe(enabled: Boolean)
     fun isRememberMeEnabled(): Flow<Boolean>
 
+    // dark theme
     suspend fun setDarkModeEnabled(enabled: Boolean)
     fun isDarkModeEnabled(): Flow<Boolean>
+
+    // selected forms
+    suspend fun saveSelectedForms(context: Context, ids: Set<String>)
+
+    suspend fun loadSelectedForms(context: Context): Set<String>
+
+    // clear data
 
     suspend fun clear()
 

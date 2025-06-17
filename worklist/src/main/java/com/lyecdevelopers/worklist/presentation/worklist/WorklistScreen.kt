@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -33,9 +35,9 @@ fun WorklistScreen(
     patients: List<PatientVisit>,
     onPatientClick: (PatientVisit) -> Unit,
     onStartVisit: (PatientVisit) -> Unit,
+    onRegisterPatient: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-
     val viewModel: WorklistViewModel = viewModel()
 
     var filters by rememberSaveable(stateSaver = PatientFilters.Saver) {
@@ -43,12 +45,25 @@ fun WorklistScreen(
     }
 
     val filteredPatients = patients.filter {
-        (filters.nameQuery.isBlank() || it.name.contains(
-            filters.nameQuery, ignoreCase = true
-        )) && (filters.gender == null || it.gender == filters.gender) && (filters.visitStatus == null || it.status == filters.visitStatus)
+        (filters.nameQuery.isBlank() || it.name.contains(filters.nameQuery, ignoreCase = true)) &&
+                (filters.gender == null || it.gender == filters.gender) &&
+                (filters.visitStatus == null || it.status == filters.visitStatus)
     }
 
-    Scaffold { padding ->
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onRegisterPatient,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Register Patient"
+                )
+            }
+        }
+    ) { padding ->
         LazyColumn(
             contentPadding = padding,
             modifier = modifier
@@ -57,8 +72,7 @@ fun WorklistScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                FilterSection(
-                    filters = filters, onFiltersChanged = { filters = it })
+                FilterSection(filters = filters, onFiltersChanged = { filters = it })
             }
 
             item {
@@ -94,18 +108,19 @@ fun WorklistScreen(
                         )
                     }
                 }
-
             } else {
                 items(filteredPatients, key = { it.id }) { patient ->
                     PatientCard(
                         patient = patient,
                         onStartVisit = { onStartVisit(patient) },
-                        onViewDetails = { onPatientClick(patient) })
+                        onViewDetails = { onPatientClick(patient) }
+                    )
                 }
             }
         }
     }
 }
+
 
 
 

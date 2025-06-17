@@ -4,8 +4,10 @@ import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 private val Context.dataStore by preferencesDataStore(name = "app_preferences")
@@ -22,6 +24,8 @@ class PreferenceManagerImpl(
         private val IS_LOGGED_IN = booleanPreferencesKey("is_logged_in")
         private val USERNAME = stringPreferencesKey("username")
         private val PASSWORD = stringPreferencesKey("password")
+        private val SELECTED_FORM_IDS = stringSetPreferencesKey("selected_form_ids")
+
     }
 
     override suspend fun saveAuthToken(token: String) {
@@ -94,9 +98,20 @@ class PreferenceManagerImpl(
         return context.dataStore.data.map { it[DARK_MODE] ?: false }
     }
 
+    override suspend fun saveSelectedForms(context: Context, ids: Set<String>) {
+        context.dataStore.edit { prefs ->
+            prefs[SELECTED_FORM_IDS] = ids
+        }
+    }
+
+    override suspend fun loadSelectedForms(context: Context): Set<String> {
+        val prefs = context.dataStore.data.first()
+        return prefs[SELECTED_FORM_IDS] ?: emptySet()
+    }
+
     override suspend fun clear() {
         context.dataStore.edit { it.clear() }
     }
+
+
 }
-
-
