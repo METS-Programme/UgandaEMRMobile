@@ -7,7 +7,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -22,6 +26,8 @@ import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -54,14 +60,16 @@ fun TextInputField(
             },
             trailingIcon = if (isPassword) {
                 {
-//                    val icon = if (passwordVisible) Icons.Filled.e else Icons.Default.VisibilityOff
-//                    val description = if (passwordVisible) "Hide password" else "Show password"
-//                    IconButton(
-//                        onClick = { passwordVisible = !passwordVisible },
-//                        modifier = Modifier.semantics { role = androidx.compose.ui.semantics.Role.Button }
-//                    ) {
-//                        Icon(imageVector = icon, contentDescription = description)
-//                    }
+                    val icon =
+                        if (passwordVisible) Icons.Filled.Visibility else Icons.Default.VisibilityOff
+                    val description = if (passwordVisible) "Hide password" else "Show password"
+                    IconButton(
+                        onClick = { passwordVisible = !passwordVisible },
+                        modifier = Modifier.semantics {
+                            role = androidx.compose.ui.semantics.Role.Button
+                        }) {
+                        Icon(imageVector = icon, contentDescription = description)
+                    }
                 }
             } else null,
             visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
