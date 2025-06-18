@@ -1,16 +1,13 @@
 package com.lyecdevelopers.form.presentation.questionnaire
 
-import android.util.Log
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ca.uhn.fhir.context.FhirContext
-import com.google.android.fhir.FhirEngine
+import com.lyecdevelopers.core._base.BaseViewModel
 import com.lyecdevelopers.core.common.scheduler.SchedulerProvider
 import com.lyecdevelopers.core.model.Result
 import com.lyecdevelopers.form.domain.mapper.FormMapper
 import com.lyecdevelopers.form.domain.usecase.FormsUseCase
 import com.lyecdevelopers.form.presentation.state.QuestionnaireState
-import com.lyecdevelopers.form.utils.QuestionnaireResponseConverter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,10 +19,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class QuestionnaireViewModel @Inject constructor(
-    private var fhirEngine: FhirEngine,
     private val formsUseCase: FormsUseCase,
     private val schedulerProvider: SchedulerProvider,
-) : ViewModel() {
+) : BaseViewModel() {
 
     private val _state = MutableStateFlow(QuestionnaireState(isLoading = true))
     val state: StateFlow<QuestionnaireState> = _state.asStateFlow()
@@ -76,19 +72,6 @@ class QuestionnaireViewModel @Inject constructor(
         }
     }
 
-
-    fun savePatient(response: QuestionnaireResponse) {
-        viewModelScope.launch {
-            try {
-                val patient = QuestionnaireResponseConverter.toPatient(response)
-                fhirEngine.create(patient)
-            } catch (e: Exception) {
-                Log.e("RegisterPatient", "Failed to save patient: ${e.localizedMessage}")
-            }
-        }
-    }
-
-    fun getQuestionnaireResponse(): QuestionnaireResponse? = questionnaireResponse
 }
 
 

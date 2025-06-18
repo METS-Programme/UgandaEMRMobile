@@ -1,10 +1,10 @@
 package com.lyecdevelopers.form.presentation.registration
 
 import android.content.Context
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ca.uhn.fhir.context.FhirContext
 import com.google.android.fhir.FhirEngine
+import com.lyecdevelopers.core._base.BaseViewModel
 import com.lyecdevelopers.core.common.scheduler.SchedulerProvider
 import com.lyecdevelopers.core.utils.AppLogger
 import com.lyecdevelopers.form.presentation.state.QuestionnaireState
@@ -25,7 +25,7 @@ class RegisterPatientViewModel @Inject constructor(
     private var fhirEngine: FhirEngine,
     private val schedulerProvider: SchedulerProvider,
     @ApplicationContext private val context: Context,
-) : ViewModel() {
+) : BaseViewModel() {
 
     private val _state = MutableStateFlow(QuestionnaireState())
     val state: StateFlow<QuestionnaireState> = _state.asStateFlow()

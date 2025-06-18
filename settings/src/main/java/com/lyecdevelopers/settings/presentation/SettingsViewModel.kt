@@ -1,19 +1,18 @@
 package com.lyecdevelopers.settings.presentation
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lyecdevelopers.core._base.BaseViewModel
 import com.lyecdevelopers.core.common.scheduler.SchedulerProvider
 import com.lyecdevelopers.core.data.preference.PreferenceManager
 import com.lyecdevelopers.core.model.Result
 import com.lyecdevelopers.settings.domain.usecase.SettingsUseCase
-import com.lyecdevelopers.settings.presentation.event.SettingsUiEvent
+import com.lyecdevelopers.settings.presentation.event.SettingsEvent
+import com.lyecdevelopers.settings.presentation.state.SettingsUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -23,24 +22,30 @@ class SettingsViewModel @Inject constructor(
     private val settingsUseCase: SettingsUseCase,
     private val preferenceManager: PreferenceManager,
     private val schedulerProvider: SchedulerProvider,
-) : ViewModel() {
+) : BaseViewModel() {
 
-    private val _logoutSuccess = MutableStateFlow(false)
-    val logoutSuccess: StateFlow<Boolean> = _logoutSuccess.asStateFlow()
+    // state
+    private val _uiState = MutableStateFlow(SettingsUiState())
+    val uiState: StateFlow<SettingsUiState> = _uiState
 
-    // user details
-    private val _userName = MutableStateFlow<String>("")
-    val username: StateFlow<String> = _userName.asStateFlow()
-
-    // general
-    private val _uiEvent = MutableSharedFlow<SettingsUiEvent>()
-    val uiEvent: SharedFlow<SettingsUiEvent> = _uiEvent
-
-    init {
-        accountDetails()
+    // handle events
+    fun onEvent(event: SettingsEvent) {
+        when (event) {
+            is SettingsEvent.LoadSettings -> loadSettings()
+            is SettingsEvent.ToggleDarkMode -> toggleDarkMode(event.enabled)
+            is SettingsEvent.SyncNow -> sync()
+            is SettingsEvent.Logout -> logout()
+            is SettingsEvent.NavigateToProfile -> {}
+            is SettingsEvent.NavigateToAbout -> {}
+            is SettingsEvent.NavigateToLanguageSelection -> {}
+            is SettingsEvent.UpdateUsername -> updateUsername(event.username)
+            is SettingsEvent.UpdateServerUrl -> updateServerUrl(event.serverUrl)
+            is SettingsEvent.UpdateSyncInterval -> updateSyncInterval(event.intervalInMinutes)
+        }
     }
 
-    fun logout() {
+
+    private fun logout() {
         viewModelScope.launch(schedulerProvider.io) {
             val username = preferenceManager.getUsername().firstOrNull() ?: ""
             val password = preferenceManager.getPassword().firstOrNull() ?: ""
@@ -48,33 +53,53 @@ class SettingsViewModel @Inject constructor(
                 username, password
             ).collect { result ->
                 withContext(schedulerProvider.main) {
-                    when (result) {
-                        is Result.Error -> {
-                            _uiEvent.emit(
-                                SettingsUiEvent.ShowError(
-                                    result.message
-                                )
-                            )
-                        }
-
-                        is Result.Loading -> {
-                            _uiEvent.emit(SettingsUiEvent.Loading)
-                        }
-
-                        is Result.Success<*> -> {
-                            preferenceManager.clear()
-                            _uiEvent.emit(SettingsUiEvent.LogoutSuccess)
-                        }
-                    }
+                    showLoading()
+                    handleResult(
+                        result = result,
+                        onSuccess = {
+                            viewModelScope.launch {
+                                preferenceManager.clear()
+                            }
+                        },
+                        successMessage = "Successfully logged out",
+                        errorMessage = (result as? Result.Error)?.message
+                    )
+                    hideLoading()
                 }
             }
         }
     }
 
 
-    private fun accountDetails() {
-        viewModelScope.launch(schedulerProvider.io) {
-            _userName.value = preferenceManager.getUsername().firstOrNull() ?: ""
+    private fun loadSettings() {
+        viewModelScope.launch(schedulerProvider.io) {}
+    }
+
+    private fun toggleDarkMode(event: Boolean) {
+        viewModelScope.launch(schedulerProvider.io) {}
+
+    }
+
+    private fun sync() {
+        viewModelScope.launch(schedulerProvider.io) {}
+
+    }
+
+    private fun updateUsername(username: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(username = username) }
+        }
+    }
+
+    private fun updateServerUrl(url: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(serverUrl = url) }
+        }
+    }
+
+    private fun updateSyncInterval(interval: Int) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(syncIntervalInMinutes = interval) }
         }
     }
 

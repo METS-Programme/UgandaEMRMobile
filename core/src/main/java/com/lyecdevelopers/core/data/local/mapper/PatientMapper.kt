@@ -16,13 +16,17 @@ fun PatientEntity.toDomain(): Patient {
 fun Patient.toEntity(): PatientEntity {
     return PatientEntity(
         id = TODO(),
+        patientIdentifier = TODO(),
         firstName = TODO(),
         lastName = TODO(),
         gender = TODO(),
         dateOfBirth = TODO(),
         phoneNumber = TODO(),
         address = TODO(),
-        isSynced = TODO()
+        isSynced = TODO(),
+        status = TODO(),
+        visitHistory = TODO(),
+        encounters = TODO()
     )
 }
 
