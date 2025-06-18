@@ -44,11 +44,6 @@
       "text": "National Identification Number (NIN)"
     },
     {
-      "linkId": "art_number",
-      "type": "string",
-      "text": "ART Number"
-    },
-    {
       "linkId": "address",
       "type": "group",
       "text": "Address",
