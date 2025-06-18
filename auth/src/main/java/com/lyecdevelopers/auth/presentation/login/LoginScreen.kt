@@ -28,7 +28,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.lyecdevelopers.auth.presentation.LoginViewModel
+import com.lyecdevelopers.auth.presentation.AuthViewModel
 import com.lyecdevelopers.auth.presentation.event.LoginEvent
 import com.lyecdevelopers.core.ui.components.SectionTitle
 import com.lyecdevelopers.core.ui.components.SubmitButton
@@ -38,7 +38,7 @@ import com.lyecdevelopers.core.ui.components.TextInputField
 @Composable
 fun LoginScreen(
 ) {
-    val viewModel: LoginViewModel = hiltViewModel()
+    val viewModel: AuthViewModel = hiltViewModel()
     val state by viewModel.uiState.collectAsState()
     val passwordFocusRequester = remember { FocusRequester() }
 

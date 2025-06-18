@@ -38,7 +38,7 @@ import com.lyecdevelopers.core.ui.theme.UgandaEMRMobileTheme
 fun AuthScreen(
     onLoginSuccess: () -> Unit
 ) {
-    val viewModel: LoginViewModel = hiltViewModel()
+    val viewModel: AuthViewModel = hiltViewModel()
     var isLoading by remember { mutableStateOf(false) }
 
     UgandaEMRMobileTheme {

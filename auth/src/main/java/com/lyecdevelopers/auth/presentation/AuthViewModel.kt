@@ -17,7 +17,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class LoginViewModel @Inject constructor(
+class AuthViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
     private val schedulerProvider: SchedulerProvider,
     private val preferenceManager: PreferenceManager,
