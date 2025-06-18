@@ -13,9 +13,6 @@ val localProperties = Properties().apply {
 }
 
 val apiBaseUrl = localProperties["API_BASE_URL"] as String? ?: ""
-val apiClientId = localProperties["API_CLIENT_ID"] as String? ?: ""
-val apiServerUsername = localProperties["API_SERVER_USERNAME"] as String? ?: ""
-val apiServerPassword = localProperties["API_SERVER_PASSWORD"] as String? ?: ""
 
 android {
     namespace = "com.lyecdevelopers.core"
@@ -35,9 +32,6 @@ android {
 
         // url config
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
-        buildConfigField("String", "API_CLIENT_ID", "\"$apiClientId\"")
-        buildConfigField("String", "API_SERVER_USERNAME", "\"$apiServerUsername\"")
-        buildConfigField("String", "API_SERVER_PASSWORD", "\"$apiServerPassword\"")
     }
 
     buildTypes {
@@ -87,6 +81,7 @@ dependencies {
     implementation(libs.android.fhir.engine)
     implementation(libs.android.fhir.sdc)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.appcompat)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
 

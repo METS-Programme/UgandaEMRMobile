@@ -20,7 +20,7 @@ import androidx.fragment.app.FragmentManager
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.lyecdevelopers.auth.presentation.login.LoginViewModel
+import com.lyecdevelopers.auth.presentation.LoginViewModel
 import com.lyecdevelopers.core.model.BottomNavItem
 import com.lyecdevelopers.core.ui.components.BottomNavigationBar
 
