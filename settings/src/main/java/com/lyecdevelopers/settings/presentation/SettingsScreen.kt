@@ -1,6 +1,5 @@
 package com.lyecdevelopers.settings.presentation
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -23,7 +22,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -31,115 +29,97 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.lyecdevelopers.core.ui.components.BaseScreen
 import com.lyecdevelopers.core.ui.components.SettingsItem
-import com.lyecdevelopers.core_navigation.navigation.Destinations
-import com.lyecdevelopers.settings.presentation.event.SettingsUiEvent
+import com.lyecdevelopers.settings.presentation.event.SettingsEvent
 
 @Composable
 fun SettingsScreen(
     navController: NavController,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
-
     var showServerDialog by remember { mutableStateOf(false) }
-    var serverUrl by remember { mutableStateOf("https://api.ugandaemr.org") }
-    var syncInterval by remember { mutableIntStateOf(15) }
-    val context = LocalContext.current
+    val state by viewModel.uiState.collectAsState()
+    var isLoading by remember { mutableStateOf(false) }
 
-    // get values
-    val username by viewModel.username.collectAsState()
-
-    // Collect UI events like logout and error
-    LaunchedEffect(Unit) {
-        viewModel.uiEvent.collect { event ->
-            when (event) {
-                is SettingsUiEvent.LogoutSuccess -> {
-                    navController.navigate(Destinations.SPLASH) {
-                        popUpTo(Destinations.MAIN) { inclusive = true }
-                        launchSingleTop = true
+    BaseScreen(
+        uiEventFlow = viewModel.uiEvent, isLoading = isLoading, showLoading = { isLoading = it }) {
+        Scaffold { padding ->
+            LazyColumn(
+                contentPadding = padding,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                item {
+                    SettingsSection(title = "Account") {
+                        SettingsItem(
+                            title = "Username",
+                            subtitle = state.username,
+                            onClick = { /* Optional: open editable dialog */ })
+                        SettingsItem(
+                            title = "Facility", subtitle = "Kampala Health Center", onClick = {})
                     }
-
                 }
 
-                is SettingsUiEvent.ShowError -> {
-                    Toast.makeText(context, event.message, Toast.LENGTH_LONG).show()
+                item {
+                    SettingsSection(title = "Preferences") {
+                        SettingsItem(
+                            title = "Language", subtitle = "English", onClick = { /* TODO */ })
+                        SettingsItem(
+                            title = "Dark Mode",
+                            subtitle = if (state.isDarkMode) "On" else "Off",
+                            onClick = {
+                                viewModel.onEvent(SettingsEvent.ToggleDarkMode(!state.isDarkMode))
+                            })
+                    }
                 }
 
-                SettingsUiEvent.Loading -> {
-                    // Optional: Show loading state
+                item {
+                    SettingsSection(title = "Server") {
+                        SettingsItem(
+                            title = "Server URL",
+                            subtitle = state.serverUrl,
+                            onClick = { showServerDialog = true })
+                        SettingsItem(
+                            title = "Sync Interval",
+                            subtitle = "${state.syncIntervalInMinutes} mins",
+                            onClick = { showServerDialog = true })
+                    }
                 }
-            }
-        }
-    }
 
-    Scaffold { padding ->
-        LazyColumn(
-            contentPadding = padding,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            item {
-                SettingsSection(title = "Account") {
-                    SettingsItem(title = "Username", subtitle = username, onClick = {})
-                    SettingsItem(
-                        title = "Facility", subtitle = "Kampala Health Center", onClick = {})
-                }
-            }
-
-            item {
-                SettingsSection(title = "Preferences") {
-                    SettingsItem(
-                        title = "Language", subtitle = "English", onClick = { /* TODO */ })
-                    SettingsItem(
-                        title = "Dark Mode", subtitle = "On", onClick = { /* TODO */ })
-                }
-            }
-
-            item {
-                SettingsSection(title = "Server") {
-                    SettingsItem(
-                        title = "Server URL",
-                        subtitle = serverUrl,
-                        onClick = { showServerDialog = true })
-                    SettingsItem(
-                        title = "Sync Interval",
-                        subtitle = "$syncInterval mins",
-                        onClick = { showServerDialog = true })
-                }
-            }
-
-            item {
-                Button(
-                    onClick = { viewModel.logout() },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                ) {
-                    Text("Logout", color = MaterialTheme.colorScheme.onError)
+                item {
+                    Button(
+                        onClick = { viewModel.onEvent(SettingsEvent.Logout) },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                    ) {
+                        Text("Logout", color = MaterialTheme.colorScheme.onError)
+                    }
                 }
             }
         }
-    }
 
-    if (showServerDialog) {
-        SettingsServerConfigurationDialog(
-            currentUrl = serverUrl,
-            currentInterval = syncInterval,
-            onDismiss = { showServerDialog = false },
-            onSave = { newUrl, newInterval ->
-                serverUrl = newUrl
-                syncInterval = newInterval
-                showServerDialog = false
-            })
+        if (showServerDialog) {
+            SettingsServerConfigurationDialog(
+                currentUrl = state.serverUrl,
+                currentInterval = state.syncIntervalInMinutes,
+                onDismiss = { showServerDialog = false },
+                onSave = { newUrl, newInterval ->
+                    viewModel.onEvent(SettingsEvent.UpdateServerUrl(newUrl))
+                    viewModel.onEvent(SettingsEvent.UpdateSyncInterval(newInterval))
+                    showServerDialog = false
+                })
+        }
     }
 }
+
 
 
 @Composable

@@ -17,10 +17,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.fragment.app.FragmentManager
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.lyecdevelopers.auth.presentation.LoginViewModel
 import com.lyecdevelopers.core.model.BottomNavItem
 import com.lyecdevelopers.core.ui.components.BottomNavigationBar
 
@@ -28,7 +26,6 @@ import com.lyecdevelopers.core.ui.components.BottomNavigationBar
 @Composable
 fun MainScreen(
     fragmentManager: FragmentManager,
-    viewModel: LoginViewModel = hiltViewModel(),
     navController: NavHostController,
 ) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
