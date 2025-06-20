@@ -64,7 +64,7 @@ Android FHIR Engine (local store) + Remote FHIR API (OpenMRS)
 ### ✅ Prerequisites
 
 * Android Studio Hedgehog or later
-* JDK 17
+* JDK 11
 * Kotlin 1.9+
 * Gradle 8+
 * FHIR-compatible OpenMRS server
@@ -153,5 +153,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## 👥 Maintained by
 
-> Ministry of Health - Uganda
-> In partnership with open-source contributors, HISP Uganda, and implementation partners of UgandaEMR.
+> METS Program - Uganda
