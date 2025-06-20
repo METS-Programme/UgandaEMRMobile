@@ -15,13 +15,23 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface PatientDao {
 
+    // ✅ Return Flow without suspend for reactive observation
     @Transaction
     @Query("SELECT * FROM patients WHERE id = :patientId")
-    suspend fun getPatientWithVisits(patientId: String): Flow<PatientWithVisits?>
+    fun observePatientWithVisits(patientId: String): Flow<PatientWithVisits?>
 
     @Transaction
     @Query("SELECT * FROM patients")
-    suspend fun getAllPatientsWithVisits(): Flow<List<PatientWithVisits>>
+    fun observeAllPatientsWithVisits(): Flow<List<PatientWithVisits>>
+
+    // ✅ For one-shot fetch (used in UseCase/ViewModel)
+    @Transaction
+    @Query("SELECT * FROM patients WHERE id = :patientId")
+    suspend fun getPatientWithVisits(patientId: String): PatientWithVisits?
+
+    @Transaction
+    @Query("SELECT * FROM patients")
+    suspend fun getAllPatientsWithVisits(): List<PatientWithVisits>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPatient(patient: PatientEntity)
@@ -39,8 +49,9 @@ interface PatientDao {
     suspend fun getPatientById(id: String): PatientEntity?
 
     @Query("SELECT * FROM patients ORDER BY lastName ASC")
-    fun getAllPatients(): List<PatientEntity>
+    suspend fun getAllPatients(): List<PatientEntity>
 
     @Query("DELETE FROM patients")
     suspend fun clearAll()
 }
+

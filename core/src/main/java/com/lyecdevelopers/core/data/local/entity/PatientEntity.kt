@@ -15,7 +15,7 @@ data class PatientEntity(
     val dateOfBirth: String,
     val phoneNumber: String?,
     val address: String?,
-    val status: VisitStatus?,
+    val status: VisitStatus,
     val isSynced: Boolean = false,
     val visitHistory: String,
     val encounters: String,

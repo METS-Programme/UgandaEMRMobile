@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.navigation.NavController
 import com.lyecdevelopers.core.model.NotificationType
 import com.lyecdevelopers.core.ui.event.UiEvent
 import kotlinx.coroutines.flow.Flow
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.Flow
 fun UiEventHandler(
     uiEventFlow: Flow<UiEvent>,
     showLoading: (Boolean) -> Unit = {},
+    navController: NavController,
     onEventHandled: (() -> Unit)? = null,
 ) {
     var dialogData by remember { mutableStateOf<Triple<String, String, NotificationType>?>(null) }
@@ -38,6 +40,15 @@ fun UiEventHandler(
 
                 UiEvent.ShowLoading -> showLoading(true)
                 UiEvent.HideLoading -> showLoading(false)
+                is UiEvent.Navigate -> {
+                    navController.navigate(event.route)
+                    onEventHandled?.invoke()
+                }
+
+                is UiEvent.PopBackStack -> {
+                    navController.popBackStack()
+                    onEventHandled?.invoke()
+                }
             }
         }
     }
