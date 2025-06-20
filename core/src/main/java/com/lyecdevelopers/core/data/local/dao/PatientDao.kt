@@ -1,5 +1,6 @@
 package com.lyecdevelopers.core.data.local.dao
 
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
@@ -14,6 +15,39 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PatientDao {
+
+
+    @Query(
+        """
+        SELECT * FROM patients 
+        WHERE (:name IS NULL OR firstName LIKE '%' || :name || '%' OR lastName LIKE '%' || :name || '%')
+        AND (:gender IS NULL OR gender = :gender)
+        AND (:status IS NULL OR status = :status)
+        ORDER BY lastName ASC
+    """
+    )
+    fun getPagedPatients(
+        name: String?,
+        gender: String?,
+        status: String?,
+    ): PagingSource<Int, PatientEntity>
+
+
+    @Query(
+        """
+    SELECT * FROM patients 
+    WHERE (:name IS NULL OR firstName LIKE '%' || :name || '%' OR lastName LIKE '%' || :name || '%') 
+    AND (:gender IS NULL OR gender = :gender)
+    AND (:status IS NULL OR status = :status)
+    ORDER BY lastName ASC
+"""
+    )
+    fun searchPatients(
+        name: String?,
+        gender: String?,
+        status: String?,
+    ): Flow<List<PatientEntity>>
+
 
     // ✅ Return Flow without suspend for reactive observation
     @Transaction

@@ -64,6 +64,7 @@ dependencies {
     implementation(libs.android.fhir.engine)
     implementation(libs.android.fhir.sdc)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.paging.common.android)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
 
@@ -79,6 +80,7 @@ dependencies {
     // Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
+    implementation(libs.room.paging) // ✅ Add this
     ksp(libs.room.compiler)
 
     // Moshi

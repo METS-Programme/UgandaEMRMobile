@@ -3,6 +3,7 @@ package com.lyecdevelopers.form.data.repository
 import android.database.sqlite.SQLiteDatabaseCorruptException
 import android.database.sqlite.SQLiteDatabaseLockedException
 import android.database.sqlite.SQLiteException
+import androidx.paging.PagingSource
 import com.lyecdevelopers.core.data.local.dao.PatientDao
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
 import com.lyecdevelopers.core.model.PatientWithVisits
@@ -25,7 +26,6 @@ class PatientRepositoryImpl @Inject constructor(
         patientDao.observePatientWithVisits(patientId) // updated to the Flow version
             .map { Result.Success(it) }.catch { e ->
                 AppLogger.e("getPatientWithVisits", e.message ?: "Unknown error", e)
-                emit(Result.Error(e.localizedMessage ?: "Unable to load patient visits"))
             }.flowOn(Dispatchers.IO)
 
 
@@ -34,7 +34,6 @@ class PatientRepositoryImpl @Inject constructor(
         patientDao.observeAllPatientsWithVisits()
             .map { Result.Success(it) }.catch { e ->
                 AppLogger.e("getAllPatientsWithVisits", e.message ?: "Unknown error", e)
-                emit(Result.Error(e.localizedMessage ?: "Unable to load all patient visits"))
             }.flowOn(Dispatchers.IO)
 
 
@@ -77,5 +76,26 @@ class PatientRepositoryImpl @Inject constructor(
         }
 
     }.flowOn(Dispatchers.IO)
+
+    override suspend fun searchPatients(
+        name: String?,
+        gender: String?,
+        status: String?,
+    ): Flow<Result<List<PatientEntity>>> = flow {
+        emit(Result.Loading)
+        try {
+            patientDao.searchPatients(name, gender, status).collect { list ->
+                emit(Result.Success(list))
+            }
+        } catch (e: Exception) {
+            AppLogger.e("searchPatients", e.message ?: "Unknown error", e)
+            emit(Result.Error(e.localizedMessage ?: "Unable to search patients"))
+        }
+    }.flowOn(Dispatchers.IO)
+
+    override fun getPagedPatients(
+        name: String?, gender: String?, status: String?,
+    ): PagingSource<Int, PatientEntity> = patientDao.getPagedPatients(name, gender, status)
+
 
 }
