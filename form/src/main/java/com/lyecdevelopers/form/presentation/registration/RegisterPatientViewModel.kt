@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
@@ -58,11 +59,20 @@ class RegisterPatientViewModel @Inject constructor(
     ) {
         viewModelScope.launch(schedulerProvider.io) {
             _state.value = _state.value.copy(isLoading = true)
+            withContext(schedulerProvider.main) {
+                showLoading()
+            }
             try {
                 val json = context.assets.open(filename).bufferedReader().use { it.readText() }
                 loadRegisterPatientQuestionnaireFromJson(json)
+                withContext(schedulerProvider.main) {
+                    hideLoading()
+                }
             } catch (e: Exception) {
-                AppLogger.e("FHIR_PARSE_ERROR", e.message ?: "Unknown error", e)
+                AppLogger.e(("FHIR_PARSE_ERROR" + e.message), e)
+                withContext(schedulerProvider.main) {
+                    hideLoading()
+                }
                 _state.value = _state.value.copy(
                     isLoading = false, error = "Failed to load form: ${e.localizedMessage}"
                 )
@@ -78,11 +88,12 @@ class RegisterPatientViewModel @Inject constructor(
             questionnaire = parser.parseResource(Questionnaire::class.java, questionnaireJson)
             questionnaireResponse = QuestionnaireResponse()
 
+
             _state.value = _state.value.copy(
                 isLoading = false, questionnaireJson = parser.encodeResourceToString(questionnaire)
             )
         } catch (e: Exception) {
-            AppLogger.e("FHIR_PARSE_ERROR", e.message ?: "Unknown error", e)
+            AppLogger.e(("FHIR_PARSE_ERROR" + e.message), e)
             _state.value = _state.value.copy(
                 isLoading = false, error = e.localizedMessage
             )
@@ -110,7 +121,9 @@ class RegisterPatientViewModel @Inject constructor(
     private fun submit() {
         viewModelScope.launch(schedulerProvider.io) {
             _state.update { it.copy(isLoading = true) }
-            showLoading()
+            withContext(schedulerProvider.main) {
+                showLoading()
+            }
             try {
                 val patient = _state.value.answers.toPatient(_state.value.patientId)
 
@@ -129,7 +142,11 @@ class RegisterPatientViewModel @Inject constructor(
 
                 _state.update { it.copy(isLoading = false, isSubmitted = true) }
 
-                hideLoading()
+                withContext(schedulerProvider.main) {
+                    hideLoading()
+                }
+                navigate("worklist_main")
+
             } catch (e: Exception) {
                 hideLoading()
                 AppLogger.e("RegisterPatient", "Failed to save patient: ${e.localizedMessage}")
@@ -142,7 +159,9 @@ class RegisterPatientViewModel @Inject constructor(
     private fun handleSubmitWithResponse(responseJson: String) {
         viewModelScope.launch(schedulerProvider.io) {
             _state.update { it.copy(isLoading = true) }
-            showLoading()
+            withContext(schedulerProvider.main) {
+                showLoading()
+            }
             try {
                 val parser = FhirContext.forR4().newJsonParser()
                 val response = parser.parseResource(QuestionnaireResponse::class.java, responseJson)
@@ -161,12 +180,18 @@ class RegisterPatientViewModel @Inject constructor(
                     visitHistory = "[]", // You can pass real data here
                     encounters = "[]"
                 )
-                patientsUseCase.saveLocallyOnly(entity)
 
+                patientsUseCase.saveLocallyOnly(entity)
                 _state.update { it.copy(isLoading = false, isSubmitted = true) }
-                hideLoading()
+                withContext(schedulerProvider.main) {
+                    hideLoading()
+                }
+                navigate("worklist_main")
+
             } catch (e: Exception) {
-                hideLoading()
+                withContext(schedulerProvider.main) {
+                    hideLoading()
+                }
                 AppLogger.e("RegisterPatient", "Submit failed: ${e.localizedMessage}")
                 _state.update { it.copy(isLoading = false, error = e.localizedMessage) }
             }

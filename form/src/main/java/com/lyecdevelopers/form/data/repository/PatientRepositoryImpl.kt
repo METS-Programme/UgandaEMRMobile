@@ -22,15 +22,20 @@ class PatientRepositoryImpl @Inject constructor(
     private val patientDao: PatientDao,
 ) : PatientRepository {
     override suspend fun getPatientWithVisits(patientId: String): Flow<Result<PatientWithVisits?>> =
-        patientDao.getPatientWithVisits(patientId).map { Result.Success(it) }.catch { e ->
-            AppLogger.e("getPatientWithVisits", e.message ?: "Unknown error", e)
-        }.flowOn(Dispatchers.IO)
+        patientDao.observePatientWithVisits(patientId) // updated to the Flow version
+            .map { Result.Success(it) }.catch { e ->
+                AppLogger.e("getPatientWithVisits", e.message ?: "Unknown error", e)
+                emit(Result.Error(e.localizedMessage ?: "Unable to load patient visits"))
+            }.flowOn(Dispatchers.IO)
+
 
 
     override suspend fun getAllPatientsWithVisits(): Flow<Result<List<PatientWithVisits>>> =
-        patientDao.getAllPatientsWithVisits().map { Result.Success(it) }.catch { e ->
-            AppLogger.e("getAllPatientsWithVisits", e.message ?: "Unknown error", e)
-        }.flowOn(Dispatchers.IO)
+        patientDao.observeAllPatientsWithVisits()
+            .map { Result.Success(it) }.catch { e ->
+                AppLogger.e("getAllPatientsWithVisits", e.message ?: "Unknown error", e)
+                emit(Result.Error(e.localizedMessage ?: "Unable to load all patient visits"))
+            }.flowOn(Dispatchers.IO)
 
 
     override suspend fun createInFhir(patient: Patient) {

@@ -21,10 +21,9 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentResultListener
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.navigation.NavController
 import com.lyecdevelopers.core.ui.components.BaseScreen
-import com.lyecdevelopers.core.ui.components.ErrorView
 import com.lyecdevelopers.core.ui.components.FragmentContainer
-import com.lyecdevelopers.core.ui.components.LoadingView
 import com.lyecdevelopers.form.presentation.registration.event.PatientRegistrationEvent
 import org.hl7.fhir.r4.model.Patient
 
@@ -32,6 +31,7 @@ import org.hl7.fhir.r4.model.Patient
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterPatientScreen(
+    navController: NavController,
     fragmentManager: FragmentManager = LocalContext.current.let {
         (it as? FragmentActivity)?.supportFragmentManager
             ?: throw IllegalStateException("Not a FragmentActivity")
@@ -41,39 +41,33 @@ fun RegisterPatientScreen(
     val viewModel: RegisterPatientViewModel = hiltViewModel()
     val uiState by viewModel.state.collectAsState()
     var isLoading by remember { mutableStateOf(false) }
-
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // ✅ Trigger initial load (either for new or edit mode)
-    LaunchedEffect(Unit) {
-        val loadEvent = patient?.let {
-            PatientRegistrationEvent.LoadForEdit(it)
-        } ?: PatientRegistrationEvent.Load
-
-        viewModel.onEvent(loadEvent)
+    // Load form: either for new registration or edit
+    LaunchedEffect(patient?.id) {
+        val event = patient?.let { PatientRegistrationEvent.LoadForEdit(it) }
+            ?: PatientRegistrationEvent.Load
+        viewModel.onEvent(event)
     }
 
-    // 🔁 Listen for fragment result events (submit, cancel)
+    // Handle result from QuestionnaireFragment
     DisposableEffect(fragmentManager, lifecycleOwner) {
         val submitListener = FragmentResultListener { _, bundle ->
-            val responseJson = bundle.getString(RegisterPatientFragment.RESPONSE_BUNDLE_KEY)
-            if (!responseJson.isNullOrEmpty()) {
+            bundle.getString(RegisterPatientFragment.RESPONSE_BUNDLE_KEY)?.let { responseJson ->
                 viewModel.onEvent(PatientRegistrationEvent.SubmitWithResponse(responseJson))
             }
         }
 
         val cancelListener = FragmentResultListener { _, bundle ->
-            val cancelled = bundle.getBoolean(RegisterPatientFragment.CANCEL_BUNDLE_KEY, false)
-            if (cancelled) {
+            if (bundle.getBoolean(RegisterPatientFragment.CANCEL_BUNDLE_KEY, false)) {
                 viewModel.onEvent(PatientRegistrationEvent.Reset)
-                // TODO: Optionally navigate back here
+                // No navController.popBackStack() here — BaseScreen will handle via UiEvent
             }
         }
 
         fragmentManager.setFragmentResultListener(
             RegisterPatientFragment.SUBMIT_RESULT_KEY, lifecycleOwner, submitListener
         )
-
         fragmentManager.setFragmentResultListener(
             RegisterPatientFragment.CANCEL_RESULT_KEY, lifecycleOwner, cancelListener
         )
@@ -95,41 +89,25 @@ fun RegisterPatientScreen(
                         .fillMaxSize()
                         .padding(padding)
                 ) {
-                    when {
-                        uiState.isLoading || isLoading -> {
-                            LoadingView()
-                        }
-
-                        uiState.error != null -> {
-                            ErrorView(
-                                message = uiState.error!!, onRetry = {
-                                    val retryEvent = patient?.let {
-                                        PatientRegistrationEvent.LoadForEdit(it)
-                                    } ?: PatientRegistrationEvent.Load
-                                    viewModel.onEvent(retryEvent)
-                                })
-                        }
-
-                        uiState.questionnaireJson != null -> {
-
-                            val fragment = RegisterPatientFragment().apply {
-                                arguments = bundleOf(
-                                    RegisterPatientFragment.ARG_QUESTIONNAIRE_JSON to uiState.questionnaireJson,
-                                    RegisterPatientFragment.ARG_PREFILLED_ANSWERS to uiState.answers
-                                )
-                            }
-
-                            FragmentContainer(
-                                modifier = Modifier.fillMaxSize(),
-                                fragmentManager = fragmentManager,
-                                fragment = fragment,
-                                tag = RegisterPatientFragment.TAG
+                    uiState.questionnaireJson?.let { json ->
+                        val fragment = RegisterPatientFragment().apply {
+                            arguments = bundleOf(
+                                RegisterPatientFragment.ARG_QUESTIONNAIRE_JSON to json,
+                                RegisterPatientFragment.ARG_PREFILLED_ANSWERS to uiState.answers
                             )
                         }
+
+                        FragmentContainer(
+                            modifier = Modifier.fillMaxSize(),
+                            fragmentManager = fragmentManager,
+                            fragment = fragment,
+                            tag = RegisterPatientFragment.TAG
+                        )
                     }
                 }
             }
-        })
+        }, navController = navController, isLoading = isLoading
+    )
 }
 
 
