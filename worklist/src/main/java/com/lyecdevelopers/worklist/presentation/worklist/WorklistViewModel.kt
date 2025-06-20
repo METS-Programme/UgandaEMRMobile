@@ -79,7 +79,7 @@ class WorklistViewModel @Inject constructor(
             }
 
             is WorklistEvent.OnStatusFilterChanged -> {
-//                statusFilter = event.status.takeIf { it.isNotBlank() }
+                statusFilter = event.status?.name
 
             }
         }
