@@ -2,6 +2,7 @@ package com.lyecdevelopers.core.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.lyecdevelopers.core.model.VisitStatus
 
 
 @Entity(tableName = "patients")
@@ -14,7 +15,7 @@ data class PatientEntity(
     val dateOfBirth: String,
     val phoneNumber: String?,
     val address: String?,
-    val status: String?,
+    val status: VisitStatus?,
     val isSynced: Boolean = false,
     val visitHistory: String,
     val encounters: String,
