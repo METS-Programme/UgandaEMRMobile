@@ -18,7 +18,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.lyecdevelopers.core.ui.components.ErrorView
 import com.lyecdevelopers.core.ui.components.FragmentContainer
 import com.lyecdevelopers.core.ui.components.LoadingView
-import com.lyecdevelopers.form.presentation.registration.RegisterPatientFragment
 
 @Composable
 fun QuestionnaireScreen(
@@ -61,7 +60,7 @@ fun QuestionnaireScreen(
                         modifier = Modifier.fillMaxSize(),
                         fragmentManager = fragmentManager,
                         fragment = fragment,
-                        tag = RegisterPatientFragment.QUESTIONNAIRE_FRAGMENT_TAG
+                        tag = FormQuestionnaireFragment.QUESTIONNAIRE_FRAGMENT_TAG
                     )
                 }
             }
