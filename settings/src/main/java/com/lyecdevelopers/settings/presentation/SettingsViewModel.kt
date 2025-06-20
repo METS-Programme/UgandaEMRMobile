@@ -5,6 +5,7 @@ import com.lyecdevelopers.core._base.BaseViewModel
 import com.lyecdevelopers.core.common.scheduler.SchedulerProvider
 import com.lyecdevelopers.core.data.preference.PreferenceManager
 import com.lyecdevelopers.core.model.Result
+import com.lyecdevelopers.core_navigation.navigation.Destinations
 import com.lyecdevelopers.settings.domain.usecase.SettingsUseCase
 import com.lyecdevelopers.settings.presentation.event.SettingsEvent
 import com.lyecdevelopers.settings.presentation.state.SettingsUiState
@@ -64,6 +65,7 @@ class SettingsViewModel @Inject constructor(
                         successMessage = "Successfully logged out",
                         errorMessage = (result as? Result.Error)?.message
                     )
+                    navigate(Destinations.SPLASH)
                     hideLoading()
                 }
             }

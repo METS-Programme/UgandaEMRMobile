@@ -13,9 +13,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.lyecdevelopers.core.model.VisitStatus
 import com.lyecdevelopers.core.ui.components.DropdownSelector
 import com.lyecdevelopers.worklist.domain.model.PatientFilters
-import com.lyecdevelopers.worklist.domain.model.VisitStatus
 
 @Composable
 fun FilterSection(
