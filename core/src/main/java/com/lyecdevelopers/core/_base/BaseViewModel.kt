@@ -54,6 +54,12 @@ open class BaseViewModel : ViewModel() {
         }
     }
 
+    protected fun navigate(route: String) {
+        viewModelScope.launch {
+            _uiEvent.emit(UiEvent.Navigate(route))
+        }
+    }
+
 
     protected fun showLoading() {
         emitUiEvent(UiEvent.ShowLoading)
@@ -61,6 +67,10 @@ open class BaseViewModel : ViewModel() {
 
     protected fun hideLoading() {
         emitUiEvent(UiEvent.HideLoading)
+    }
+
+    protected fun popBackStack() {
+        emitUiEvent(UiEvent.PopBackStack)
     }
 
 }
