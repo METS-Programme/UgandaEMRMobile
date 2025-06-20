@@ -47,7 +47,7 @@ fun WorklistScreen(
     LaunchedEffect(filters) {
         viewModel.onEvent(WorklistEvent.OnNameFilterChanged(filters.nameQuery))
         viewModel.onEvent(WorklistEvent.OnGenderFilterChanged(filters.gender))
-//        viewModel.onEvent(WorklistEvent.OnStatusFilterChanged(filters.visitStatus.toString()))
+        viewModel.onEvent(WorklistEvent.OnStatusFilterChanged(filters.visitStatus))
     }
 
     BaseScreen(
