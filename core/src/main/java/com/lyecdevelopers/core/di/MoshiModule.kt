@@ -1,7 +1,6 @@
 package com.lyecdevelopers.core.di
 
 import com.lyecdevelopers.core.model.Form
-import com.lyecdevelopers.core.model.Patient
 import com.lyecdevelopers.core.model.auth.LoginResponse
 import com.lyecdevelopers.core.model.auth.LogoutResponse
 import com.squareup.moshi.JsonAdapter
@@ -31,16 +30,11 @@ object MoshiModule {
     fun provideFormAdapter(moshi: Moshi): JsonAdapter<Form> =
         moshi.adapter(Form::class.java)
 
-    @Provides
-    @Singleton
-    fun providePatientAdapter(moshi: Moshi): JsonAdapter<Patient> =
-        moshi.adapter(Patient::class.java)
 
     @Provides
     @Singleton
     fun provideLoginResponseAdapter(moshi: Moshi): JsonAdapter<LoginResponse> =
         moshi.adapter(LoginResponse::class.java)
-
 
     @Provides
     @Singleton

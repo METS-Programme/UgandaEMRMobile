@@ -5,13 +5,23 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
+import com.lyecdevelopers.core.model.PatientWithVisits
 import kotlinx.coroutines.flow.Flow
 
 
 @Dao
 interface PatientDao {
+
+    @Transaction
+    @Query("SELECT * FROM patients WHERE id = :patientId")
+    suspend fun getPatientWithVisits(patientId: String): Flow<PatientWithVisits?>
+
+    @Transaction
+    @Query("SELECT * FROM patients")
+    suspend fun getAllPatientsWithVisits(): Flow<List<PatientWithVisits>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPatient(patient: PatientEntity)
@@ -29,7 +39,7 @@ interface PatientDao {
     suspend fun getPatientById(id: String): PatientEntity?
 
     @Query("SELECT * FROM patients ORDER BY lastName ASC")
-    fun getAllPatients(): Flow<List<PatientEntity>>
+    fun getAllPatients(): List<PatientEntity>
 
     @Query("DELETE FROM patients")
     suspend fun clearAll()
