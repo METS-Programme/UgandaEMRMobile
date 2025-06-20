@@ -55,9 +55,11 @@ class AuthViewModel @Inject constructor(
         }
 
         viewModelScope.launch(schedulerProvider.io) {
+            withContext(schedulerProvider.main) {
+                showLoading()
+            }
             loginUseCase(username, password).collect { result ->
                 withContext(schedulerProvider.main) {
-                    showLoading()
                     _uiState.update { it.copy(isLoading = result is Result.Loading) }
                     handleResult(
                         result = result,
@@ -68,7 +70,9 @@ class AuthViewModel @Inject constructor(
                         errorMessage = (result as? Result.Error)?.message
                     )
 
-                    hideLoading()
+                    withContext(schedulerProvider.main) {
+                        hideLoading()
+                    }
                 }
             }
 

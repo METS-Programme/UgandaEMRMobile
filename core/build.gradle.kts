@@ -75,6 +75,8 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.hilt.navigation.compose)
     implementation(libs.material.icons.extended)
+    implementation(libs.androidx.paging.common.android)
+
 
 
     // fhir
@@ -99,6 +101,7 @@ dependencies {
     // Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
+    implementation(libs.room.paging) // ✅ Add this
     ksp(libs.room.compiler)
 
     // Moshi
