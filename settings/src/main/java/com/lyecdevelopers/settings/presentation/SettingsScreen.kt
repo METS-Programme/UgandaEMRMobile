@@ -46,7 +46,11 @@ fun SettingsScreen(
     var isLoading by remember { mutableStateOf(false) }
 
     BaseScreen(
-        uiEventFlow = viewModel.uiEvent, isLoading = isLoading, showLoading = { isLoading = it }) {
+        uiEventFlow = viewModel.uiEvent,
+        isLoading = isLoading,
+        showLoading = { isLoading = it },
+        navController = navController
+    ) {
         Scaffold { padding ->
             LazyColumn(
                 contentPadding = padding,

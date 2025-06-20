@@ -29,10 +29,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lyecdevelopers.auth.presentation.login.LoginScreen
+import com.lyecdevelopers.core.R
 import com.lyecdevelopers.core.ui.components.BaseScreen
 import com.lyecdevelopers.core.ui.components.CircularImage
 import com.lyecdevelopers.core.ui.components.HeadlineText
 import com.lyecdevelopers.core.ui.theme.UgandaEMRMobileTheme
+
 
 @Composable
 fun AuthScreen(
@@ -41,11 +43,12 @@ fun AuthScreen(
     val viewModel: AuthViewModel = hiltViewModel()
     var isLoading by remember { mutableStateOf(false) }
 
+
     UgandaEMRMobileTheme {
         BaseScreen(
             uiEventFlow = viewModel.uiEvent,
-            isLoading = isLoading,
-            showLoading = { isLoading = it }) {
+            isLoading = isLoading, showLoading = { isLoading = it },
+        ) {
             Scaffold { paddingValues ->
                 Box(
                     modifier = Modifier
@@ -61,7 +64,7 @@ fun AuthScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         CircularImage(
-                            imageResId = com.lyecdevelopers.core.R.drawable.ic_launcher_foreground,
+                            imageResId = R.drawable.ic_launcher_foreground,
                             contentDescription = "UgandaEMR Logo",
                             modifier = Modifier.size(150.dp)
                         )
