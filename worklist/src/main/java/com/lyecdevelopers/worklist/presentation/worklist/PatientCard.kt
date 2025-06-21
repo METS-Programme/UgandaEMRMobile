@@ -22,11 +22,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.lyecdevelopers.worklist.domain.model.PatientVisit
+import com.lyecdevelopers.core.data.local.entity.PatientEntity
 
 @Composable
 fun PatientCard(
-    patient: PatientVisit,
+    patient: PatientEntity,
     onStartVisit: () -> Unit,
     onViewDetails: () -> Unit,
 ) {
@@ -39,17 +39,17 @@ fun PatientCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "${patient.name}, ${patient.age} yrs",
+                        text = "${patient.firstName}, ${patient.lastName}",
                         style = MaterialTheme.typography.titleMedium
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        text = patient.visitType,
+                        text = "Community",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "Scheduled: ${patient.scheduledTime}",
+                        text = "Scheduled: ",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

@@ -24,14 +24,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.lyecdevelopers.worklist.domain.model.PatientVisit
-import com.lyecdevelopers.worklist.domain.model.VisitStatus
+import com.lyecdevelopers.core.data.local.entity.PatientEntity
+import com.lyecdevelopers.core.model.VisitStatus
 
 @Composable
 fun WorklistSummary(
-    worklistViewModel: WorklistViewModel = hiltViewModel(),
-    patients: List<PatientVisit>,
+    patients: List<PatientEntity>,
 ) {
 
     val total = patients.size

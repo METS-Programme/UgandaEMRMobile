@@ -1,7 +1,7 @@
 package com.lyecdevelopers.form.presentation.forms
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lyecdevelopers.core._base.BaseViewModel
 import com.lyecdevelopers.core.common.scheduler.SchedulerProvider
 import com.lyecdevelopers.core.model.Result
 import com.lyecdevelopers.core.model.o3.o3Form
@@ -22,7 +22,7 @@ import javax.inject.Inject
 class FormsViewModel @Inject constructor(
     private val formsUseCase: FormsUseCase,
     private val schedulerProvider: SchedulerProvider,
-) : ViewModel() {
+) : BaseViewModel() {
 
     private val _uiState = MutableStateFlow(FormsUiState())
     val uiState: StateFlow<FormsUiState> = _uiState.asStateFlow()

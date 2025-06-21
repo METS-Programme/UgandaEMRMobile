@@ -25,16 +25,11 @@ object NetworkModule {
     @Singleton
     fun provideConfig(): Config = Config(
         baseUrl = BuildConfig.API_BASE_URL,
-        apiKey = BuildConfig.API_CLIENT_ID,
-        username = BuildConfig.API_SERVER_USERNAME,
-        password = BuildConfig.API_SERVER_PASSWORD
     )
 
     @Provides
     @Singleton
-    fun provideAuthInterceptor(
-        config: Config,
-    ): AuthInterceptor = AuthInterceptor(config)
+    fun provideAuthInterceptor(): AuthInterceptor = AuthInterceptor()
 
     @Provides
     @Singleton

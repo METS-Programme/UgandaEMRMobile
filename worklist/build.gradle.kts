@@ -37,6 +37,8 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
+
     }
     kotlinOptions {
         jvmTarget = "11"
@@ -58,6 +60,13 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
     implementation(libs.material.icons.extended)
 
+    // fhir
+    implementation(libs.android.fhir.engine)
+    implementation(libs.android.fhir.sdc)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.paging.common.android)
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
+
 
     // Hilt
     implementation(libs.hilt.android)
@@ -71,6 +80,7 @@ dependencies {
     // Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
+    implementation(libs.room.paging) // ✅ Add this
     ksp(libs.room.compiler)
 
     // Moshi

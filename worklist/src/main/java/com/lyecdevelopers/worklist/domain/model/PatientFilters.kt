@@ -2,6 +2,7 @@ package com.lyecdevelopers.worklist.domain.model
 
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.listSaver
+import com.lyecdevelopers.core.model.VisitStatus
 
 data class PatientFilters(
     val nameQuery: String = "",

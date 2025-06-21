@@ -22,11 +22,17 @@ fun NavGraphBuilder.worklistGraph(fragmentManager: FragmentManager, navControlle
     ) {
         composable("worklist_main") {
 
-            WorklistScreen(patients = emptyList(), onPatientClick = { patient ->
+            WorklistScreen(onPatientClick = { patient ->
                 navController.navigate("patient_details/${patient.id}")
             }, onStartVisit = { /* TODO */ }, onRegisterPatient = {
                 navController.navigate("register_patient")
             })
+        }
+
+
+        // 👇 New route for patient registration
+        composable("register_patient") {
+            RegisterPatientScreen(fragmentManager = fragmentManager, navController = navController)
         }
 
         composable("patient_details/{patientId}") { backStackEntry ->
@@ -70,10 +76,6 @@ fun NavGraphBuilder.worklistGraph(fragmentManager: FragmentManager, navControlle
             }
         }
 
-        // 👇 New route for patient registration
-        composable("register_patient") {
-            RegisterPatientScreen(fragmentManager = fragmentManager)
-        }
 
     }
 

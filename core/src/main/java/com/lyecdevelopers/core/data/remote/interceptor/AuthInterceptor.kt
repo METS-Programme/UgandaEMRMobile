@@ -1,6 +1,5 @@
 package com.lyecdevelopers.core.data.remote.interceptor
 
-import com.lyecdevelopers.core.model.Config
 import okhttp3.Credentials
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -8,20 +7,36 @@ import javax.inject.Inject
 
 
 class AuthInterceptor @Inject constructor(
-    private val config: Config,
 ) : Interceptor {
+
+    // In-memory cached username & password
+    @Volatile
+    private var username: String? = null
+
+    @Volatile
+    private var password: String? = null
+
+    fun updateCredentials(username: String, password: String) {
+        this.username = username
+        this.password = password
+    }
+
     override fun intercept(chain: Interceptor.Chain): Response {
         val original = chain.request()
 
-        // Basic Authentication header
-        val basicAuth = Credentials.basic(
-            config.username, config.password
-        )
+        val user = username
+        val pass = password
 
-        val request = original.newBuilder()
-            .header("Authorization", basicAuth)
-            .build()
+        val requestBuilder = original.newBuilder()
+
+        if (!user.isNullOrEmpty() && !pass.isNullOrEmpty()) {
+            val basicAuth = Credentials.basic(user, pass)
+            requestBuilder.header("Authorization", basicAuth)
+        }
+
+        val request = requestBuilder.build()
 
         return chain.proceed(request)
     }
 }
+

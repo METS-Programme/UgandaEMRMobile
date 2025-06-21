@@ -73,6 +73,7 @@ dependencies {
     // Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
+    implementation(libs.room.paging) // ✅ Add this
     ksp(libs.room.compiler)
 
     // Moshi
