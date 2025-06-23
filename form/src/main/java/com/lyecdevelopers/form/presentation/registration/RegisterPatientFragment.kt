@@ -10,7 +10,6 @@ import androidx.fragment.app.commitNow
 import androidx.lifecycle.lifecycleScope
 import ca.uhn.fhir.context.FhirContext
 import com.google.android.fhir.datacapture.QuestionnaireFragment
-import com.lyecdevelopers.core.utils.AppLogger
 import com.lyecdevelopers.form.R
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -33,8 +32,6 @@ class RegisterPatientFragment : Fragment() {
 
         val questionnaireJson = requireArguments().getString(ARG_QUESTIONNAIRE_JSON)
             ?: error("Missing questionnaire JSON in RegisterPatientFragment arguments")
-
-        AppLogger.d(TAG, "RegisterPatientFragment received JSON: ${questionnaireJson.take(100)}...")
 
         val questionnaireFragment = QuestionnaireFragment.builder()
             .setQuestionnaire(questionnaireJson).setShowCancelButton(true).setShowSubmitButton(true)

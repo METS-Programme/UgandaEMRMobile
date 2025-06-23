@@ -6,12 +6,16 @@ import androidx.room.TypeConverters
 import com.lyecdevelopers.core.data.local.dao.FormDao
 import com.lyecdevelopers.core.data.local.dao.PatientDao
 import com.lyecdevelopers.core.data.local.dao.VisitDao
+import com.lyecdevelopers.core.data.local.dao.VisitSummaryDao
+import com.lyecdevelopers.core.data.local.entity.EncounterEntity
 import com.lyecdevelopers.core.data.local.entity.FormEntity
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
 import com.lyecdevelopers.core.data.local.entity.VisitEntity
+import com.lyecdevelopers.core.data.local.entity.VisitSummaryEntity
+import com.lyecdevelopers.core.data.local.entity.VitalsEntity
 
 @Database(
-    entities = [FormEntity::class, PatientEntity::class, VisitEntity::class],
+    entities = [FormEntity::class, PatientEntity::class, VisitEntity::class, VisitSummaryEntity::class, VitalsEntity::class, EncounterEntity::class],
     version = 1,
     exportSchema = false
 )
@@ -22,4 +26,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun visitDao(): VisitDao
     abstract fun formDao(): FormDao
     abstract fun patientDao(): PatientDao
+    abstract fun visitSummaryDao(): VisitSummaryDao
 }

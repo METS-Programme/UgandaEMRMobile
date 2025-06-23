@@ -6,37 +6,25 @@ import okhttp3.Response
 import javax.inject.Inject
 
 
-class AuthInterceptor @Inject constructor(
-) : Interceptor {
-
-    // In-memory cached username & password
-    @Volatile
-    private var username: String? = null
+class AuthInterceptor @Inject constructor() : Interceptor {
 
     @Volatile
-    private var password: String? = null
+    private var credentials: String? = null
 
     fun updateCredentials(username: String, password: String) {
-        this.username = username
-        this.password = password
+        credentials = Credentials.basic(username, password)
     }
 
     override fun intercept(chain: Interceptor.Chain): Response {
-        val original = chain.request()
+        val requestBuilder = chain.request().newBuilder()
 
-        val user = username
-        val pass = password
-
-        val requestBuilder = original.newBuilder()
-
-        if (!user.isNullOrEmpty() && !pass.isNullOrEmpty()) {
-            val basicAuth = Credentials.basic(user, pass)
-            requestBuilder.header("Authorization", basicAuth)
+        credentials?.let {
+            requestBuilder.header("Authorization", it)
         }
 
-        val request = requestBuilder.build()
-
-        return chain.proceed(request)
+        return chain.proceed(requestBuilder.build())
     }
 }
+
+
 

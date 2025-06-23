@@ -47,9 +47,22 @@ class PatientRepositoryImpl @Inject constructor(
         patientDao.insertPatient(entity)
     }
 
-    override suspend fun getLocalPatient(id: String): PatientEntity? {
-        return patientDao.getPatientById(id)
+    override suspend fun getLocalPatient(id: String): Flow<Result<PatientEntity?>> {
+        return patientDao.getPatientById(id).map { Result.Success(it) }
+            .catch { e ->
+                AppLogger.e("getLocalPatient", e.message ?: "Unknown error", e)
+
+                val errorMessage = when (e) {
+                    is SQLiteException -> "Database error occurred: ${e.localizedMessage}"
+                    is IllegalStateException -> "Invalid state during DB fetch: ${e.localizedMessage}"
+                    else -> "Unexpected error during DB fetch: ${e.localizedMessage}"
+                }
+
+                emit(Result.Error(errorMessage))
+            }.flowOn(Dispatchers.IO)
     }
+
+
 
     override suspend fun loadPatients(): Flow<Result<List<PatientEntity>>> = flow {
         emit(Result.Loading)

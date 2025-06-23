@@ -12,7 +12,6 @@ import com.lyecdevelopers.core.model.BottomNavItem
 import com.lyecdevelopers.form.presentation.forms.FormsScreen
 import com.lyecdevelopers.form.presentation.questionnaire.QuestionnaireScreen
 import com.lyecdevelopers.form.presentation.registration.RegisterPatientScreen
-import com.lyecdevelopers.worklist.domain.model.PatientDetails
 import com.lyecdevelopers.worklist.presentation.patient.PatientDetailsScreen
 import com.lyecdevelopers.worklist.presentation.worklist.WorklistScreen
 
@@ -22,11 +21,15 @@ fun NavGraphBuilder.worklistGraph(fragmentManager: FragmentManager, navControlle
     ) {
         composable("worklist_main") {
 
-            WorklistScreen(onPatientClick = { patient ->
-                navController.navigate("patient_details/${patient.id}")
-            }, onStartVisit = { /* TODO */ }, onRegisterPatient = {
-                navController.navigate("register_patient")
-            })
+            WorklistScreen(
+                onPatientClick = { patient ->
+                    navController.navigate("patient_details/${patient.id}")
+                },
+                onStartVisit = { /* TODO */ },
+                onRegisterPatient = {
+                    navController.navigate("register_patient")
+                },
+            )
         }
 
 
@@ -35,15 +38,21 @@ fun NavGraphBuilder.worklistGraph(fragmentManager: FragmentManager, navControlle
             RegisterPatientScreen(fragmentManager = fragmentManager, navController = navController)
         }
 
-        composable("patient_details/{patientId}") { backStackEntry ->
+        composable(
+            "patient_details/{patientId}", arguments = listOf(
+                navArgument("patientId") { type = NavType.StringType })
+        ) { backStackEntry ->
             val patientId = backStackEntry.arguments?.getString("patientId") ?: return@composable
 
             PatientDetailsScreen(
-                patient = PatientDetails.empty(),
+                patientId = patientId,
                 onStartVisit = { /* TODO */ },
                 onStartEncounter = { _, _ ->
                     navController.navigate("patient_details/$patientId/forms")
-                })
+                },
+                navController = navController,
+                onAddVitals = {/*TODO */ },
+            )
         }
 
         composable("patient_details/{patientId}/forms") { backStackEntry ->
@@ -68,6 +77,7 @@ fun NavGraphBuilder.worklistGraph(fragmentManager: FragmentManager, navControlle
 
             if (patientId != null && formId != null) {
                 QuestionnaireScreen(
+                    navController = navController,
                     fragmentManager = fragmentManager,
                     formId = formId,
                 )

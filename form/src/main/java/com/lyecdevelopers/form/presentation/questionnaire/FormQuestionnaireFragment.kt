@@ -4,12 +4,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commitNow
+import androidx.lifecycle.lifecycleScope
+import ca.uhn.fhir.context.FhirContext
 import com.google.android.fhir.datacapture.QuestionnaireFragment
-import com.lyecdevelopers.core.utils.AppLogger
 import com.lyecdevelopers.form.R
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 
 @AndroidEntryPoint
@@ -27,36 +30,87 @@ class FormQuestionnaireFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState) // Call super.onViewCreated
 
+
         val questionnaireJson = requireArguments().getString(ARG_QUESTIONNAIRE_JSON)
-            ?: error("Missing questionnaire JSON in RegisterPatientFragment arguments")
+            ?: error("Missing questionnaire JSON in FormQuestionnaireFragment arguments")
 
-        AppLogger.d(TAG, "RegisterPatientFragment received JSON: ${questionnaireJson.take(100)}...")
-
-        // Always ensure the nested QuestionnaireFragment is replaced with the latest JSON.
-        // This handles cases where RegisterPatientFragment is recreated or arguments change.
         val questionnaireFragment = QuestionnaireFragment.builder()
-            .setQuestionnaire(questionnaireJson) // Always use the latest JSON
-            .setShowCancelButton(true).setShowSubmitButton(true).showOptionalText(true)
-            .showRequiredText(false).setSubmitButtonText(
-                getString(com.google.android.fhir.datacapture.R.string.submit_questionnaire)
-            ).build()
+            .setQuestionnaire(questionnaireJson)
+            .setShowCancelButton(true)
+            .setShowSubmitButton(true)
+            .showOptionalText(true)
+            .showRequiredText(false)
+            .setSubmitButtonText(getString(com.google.android.fhir.datacapture.R.string.submit_questionnaire))
+            .build()
 
-        // Use replace instead of add to ensure old instances are removed
-        // commitNowAllowingStateLoss is generally safe when dealing with AndroidView
+        // Replace any existing instance
         childFragmentManager.commitNow(allowStateLoss = true) {
             setReorderingAllowed(true)
             replace(
-                R.id.fragment_container_view, // This should be the ID of the container in fragment_questionnaire_container.xml
-                questionnaireFragment, QUESTIONNAIRE_FRAGMENT_TAG
+                R.id.fragment_container_view, questionnaireFragment, TAG
             )
+        }
+
+        // Submit handler
+        childFragmentManager.setFragmentResultListener(
+            QuestionnaireFragment.SUBMIT_REQUEST_KEY, viewLifecycleOwner
+        ) { _, _ ->
+            viewLifecycleOwner.lifecycleScope.launch {
+                handleSubmit()
+            }
+        }
+
+
+        // Cancel handler
+        childFragmentManager.setFragmentResultListener(
+            QuestionnaireFragment.CANCEL_REQUEST_KEY, viewLifecycleOwner
+        ) { _, _ ->
+            handleCancel()
         }
 
     }
 
+    /**
+     * Extracts QuestionnaireResponse from nested QuestionnaireFragment
+     * and emits it as a result to the parent (Compose).
+     */
+    private suspend fun handleSubmit() {
+        val nestedFragment = childFragmentManager.findFragmentByTag(TAG)
+        if (nestedFragment is QuestionnaireFragment) {
+            val questionnaireResponse = nestedFragment.getQuestionnaireResponse()
+
+            // Serialize QuestionnaireResponse to JSON
+            val responseJson =
+                FhirContext.forR4().newJsonParser().encodeResourceToString(questionnaireResponse)
+
+            // Send to Compose parent via FragmentResult
+            parentFragmentManager.setFragmentResult(
+                SUBMIT_RESULT_KEY, bundleOf(RESPONSE_BUNDLE_KEY to responseJson)
+            )
+        }
+    }
+
+    private fun handleCancel() {
+        parentFragmentManager.setFragmentResult(
+            CANCEL_RESULT_KEY, bundleOf(CANCEL_BUNDLE_KEY to true)
+        )
+    }
+
 
     companion object {
-        private const val TAG = "RegisterPatientFragment"
-        const val QUESTIONNAIRE_FRAGMENT_TAG = "questionnaire-fragment-tag"
-        const val ARG_QUESTIONNAIRE_JSON = "questionnaire"
+        const val TAG = "FormQuestionnaireFragment"
+
+        // Argument keys (ensure they're unique!)
+        const val ARG_QUESTIONNAIRE_JSON = "questionnaire-json"
+        const val ARG_PREFILLED_ANSWERS = "prefilled-answers"
+
+        // Result keys
+        const val SUBMIT_RESULT_KEY = "submit-questionnaire-response"
+        const val RESPONSE_BUNDLE_KEY = "questionnaire-response-json"
+
+        // cancel
+        const val CANCEL_RESULT_KEY = "cancel-questionnaire"
+        const val CANCEL_BUNDLE_KEY = "cancelled"
+
     }
 }

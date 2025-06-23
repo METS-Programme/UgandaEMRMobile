@@ -80,7 +80,7 @@ interface PatientDao {
     suspend fun deletePatient(patient: PatientEntity)
 
     @Query("SELECT * FROM patients WHERE id = :id")
-    suspend fun getPatientById(id: String): PatientEntity?
+    fun getPatientById(id: String): Flow<PatientEntity?>
 
     @Query("SELECT * FROM patients ORDER BY lastName ASC")
     suspend fun getAllPatients(): List<PatientEntity>

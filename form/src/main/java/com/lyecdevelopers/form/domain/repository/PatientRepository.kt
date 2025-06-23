@@ -19,7 +19,7 @@ interface PatientRepository {
 
     suspend fun saveToLocalDb(entity: PatientEntity)
 
-    suspend fun getLocalPatient(id: String): PatientEntity?
+    suspend fun getLocalPatient(id: String): Flow<Result<PatientEntity?>>
 
     suspend fun loadPatients(): Flow<Result<List<PatientEntity>>>
 

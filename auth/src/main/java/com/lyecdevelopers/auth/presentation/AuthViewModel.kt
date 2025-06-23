@@ -7,6 +7,7 @@ import com.lyecdevelopers.auth.presentation.state.LoginUIState
 import com.lyecdevelopers.core._base.BaseViewModel
 import com.lyecdevelopers.core.common.scheduler.SchedulerProvider
 import com.lyecdevelopers.core.data.preference.PreferenceManager
+import com.lyecdevelopers.core.data.remote.interceptor.AuthInterceptor
 import com.lyecdevelopers.core.model.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +22,7 @@ class AuthViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
     private val schedulerProvider: SchedulerProvider,
     private val preferenceManager: PreferenceManager,
+    private val authInterceptor: AuthInterceptor,
 ) : BaseViewModel() {
 
     // state
@@ -99,6 +101,9 @@ class AuthViewModel @Inject constructor(
             preferenceManager.saveUsername(username)
             preferenceManager.savePassword(password)
             preferenceManager.setIsLoggedIn(true)
+
+            // This makes future requests use Basic Auth
+            authInterceptor.updateCredentials(username, password)
         }
     }
 }

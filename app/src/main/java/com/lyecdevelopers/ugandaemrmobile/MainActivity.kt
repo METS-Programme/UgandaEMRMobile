@@ -14,11 +14,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.lyecdevelopers.auth.presentation.AuthScreen
 import com.lyecdevelopers.core.data.preference.PreferenceManager
+import com.lyecdevelopers.core.data.remote.interceptor.AuthInterceptor
 import com.lyecdevelopers.core.ui.components.SplashScreen
 import com.lyecdevelopers.core.ui.theme.UgandaEMRMobileTheme
 import com.lyecdevelopers.core_navigation.navigation.Destinations
 import com.lyecdevelopers.main.MainScreen
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject
 
 
@@ -27,6 +29,10 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var preferenceManager: PreferenceManager
+
+    @Inject
+    lateinit var authInterceptor: AuthInterceptor
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,6 +43,15 @@ class MainActivity : AppCompatActivity() {
                 val navBarNavController = rememberNavController()
                 val isLoggedIn by preferenceManager.isLoggedIn().collectAsState(initial = false)
                 var showSplash by remember { mutableStateOf(true) }
+
+                LaunchedEffect(Unit) {
+                    val username = preferenceManager.getUsername().firstOrNull()
+                    val password = preferenceManager.getPassword().firstOrNull()
+
+                    if (!username.isNullOrEmpty() && !password.isNullOrEmpty()) {
+                        authInterceptor.updateCredentials(username, password)
+                    }
+                }
 
                 if (showSplash) {
                     SplashScreen(

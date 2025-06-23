@@ -29,7 +29,7 @@ class PatientsUseCase @Inject constructor(
         repository.saveToLocalDb(entity)
     }
 
-    suspend fun getLocalPatient(id: String): PatientEntity? {
+    suspend fun getPatientById(id: String): Flow<Result<PatientEntity?>> {
         return repository.getLocalPatient(id)
     }
 
@@ -54,8 +54,6 @@ class PatientsUseCase @Inject constructor(
             config = PagingConfig(pageSize = 5),
             pagingSourceFactory = { repository.getPagedPatients(name, gender, status) }).flow
     }
-
-
 
     /**
      * Common submit logic for patient registration
