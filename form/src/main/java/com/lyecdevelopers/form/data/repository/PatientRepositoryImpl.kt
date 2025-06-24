@@ -47,8 +47,8 @@ class PatientRepositoryImpl @Inject constructor(
         patientDao.insertPatient(entity)
     }
 
-    override suspend fun getLocalPatient(id: String): Flow<Result<PatientEntity?>> {
-        return patientDao.getPatientById(id).map { Result.Success(it) }
+    override suspend fun getLocalPatient(id: String): Flow<Result<PatientEntity?>> = flow {
+        patientDao.getPatientById(id).map { Result.Success(it) }
             .catch { e ->
                 AppLogger.e("getLocalPatient", e.message ?: "Unknown error", e)
 
@@ -59,8 +59,10 @@ class PatientRepositoryImpl @Inject constructor(
                 }
 
                 emit(Result.Error(errorMessage))
-            }.flowOn(Dispatchers.IO)
-    }
+            }.collect { emit(it) } // collect the mapped Result and re-emit
+    }.flowOn(Dispatchers.IO)
+
+
 
 
 
