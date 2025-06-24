@@ -38,14 +38,25 @@ jobs:
       - name: Build and run unit tests
         run: ./gradlew clean assembleDebug assembleRelease testDebugUnitTest --stacktrace
 
+      - name: Check for androidTest presence
+        id: check_android_test
+        run: |
+          if find . -type f -path "*/src/androidTest/*Test.kt" | grep -q .; then
+            echo "has_tests=true" >> $GITHUB_OUTPUT
+          else
+            echo "No instrumented tests found."
+            echo "has_tests=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Run Instrumented Tests on Emulator
+        if: steps.check_android_test.outputs.has_tests == 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 30
           target: google_apis
           arch: x86_64
           profile: pixel
-          script: ./gradlew connectedDebugAndroidTest
+          script: ./gradlew connectedDebugAndroidTest --no-daemon
 
       - name: Upload Debug APK artifact
         uses: actions/upload-artifact@v4
