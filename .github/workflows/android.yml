@@ -56,11 +56,18 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel
-          script: ./gradlew connectedDebugAndroidTest --no-daemon || echo "::warning::Instrumented tests failed"
-          wait-for-emulator: true
+          emulator-options: "-no-snapshot-save -no-boot-anim -accel on"
           disable-animations: true
           show-logs: true
-          emulator-options: "-no-snapshot-save -no-boot-anim -accel on"
+          script: |
+            echo "Waiting for emulator to boot..."
+            boot_completed="0"
+            until [ "$boot_completed" = "1" ]; do
+              boot_completed=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
+              sleep 5
+            done
+            echo "Emulator booted. Running instrumented tests..."
+            ./gradlew connectedDebugAndroidTest --no-daemon || echo "::warning::Instrumented tests failed"
 
       - name: Upload Debug APK artifact
         uses: actions/upload-artifact@v4
