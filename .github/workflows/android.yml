@@ -48,6 +48,12 @@ jobs:
             echo "has_tests=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Restart ADB (safety net)
+        if: steps.check_android_test.outputs.has_tests == 'true'
+        run: |
+          adb kill-server || true
+          adb start-server || true
+
       - name: Run Instrumented Tests on Emulator
         if: steps.check_android_test.outputs.has_tests == 'true'
         uses: reactivecircus/android-emulator-runner@v2
@@ -57,6 +63,9 @@ jobs:
           arch: x86_64
           profile: pixel
           script: ./gradlew connectedDebugAndroidTest --no-daemon
+          emulator-options: "-no-snapshot-save -no-boot-anim -accel on"
+          disable-animations: true
+          show-logs: true
 
       - name: Upload Debug APK artifact
         uses: actions/upload-artifact@v4
