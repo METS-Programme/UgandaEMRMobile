@@ -37,6 +37,8 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
+
     }
     kotlinOptions {
         jvmTarget = "11"
@@ -62,6 +64,12 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.hilt.navigation.compose)
     implementation(libs.material.icons.extended)
+
+    //fhir
+    implementation(libs.android.fhir.engine)
+    implementation(libs.android.fhir.sdc)
+    implementation(libs.appcompat)
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 
 
 
