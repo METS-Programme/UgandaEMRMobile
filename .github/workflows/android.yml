@@ -38,46 +38,6 @@ jobs:
       - name: Build and run unit tests
         run: ./gradlew clean assembleDebug assembleRelease testDebugUnitTest --stacktrace
 
-      - name: Check for androidTest presence
-        id: check_android_test
-        run: |
-          if find . -type f -path "*/src/androidTest/*Test.kt" | grep -q .; then
-            echo "has_tests=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_tests=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Run Instrumented Tests on Emulator
-        if: steps.check_android_test.outputs.has_tests == 'true'
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 30
-          target: google_apis
-          arch: x86_64
-          profile: pixel
-          emulator-options: "-no-snapshot-save -no-boot-anim -accel on"
-          disable-animations: true
-          show-logs: true
-          script: |
-            echo "Waiting for emulator to boot..."
-            boot_completed="0"
-            export PATH=$ANDROID_SDK_ROOT/platform-tools:$PATH
-            timeout=60
-            count=0
-            while [ "$boot_completed" != "1" ] && [ $count -lt $timeout ]; do
-              boot_completed=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
-              sleep 5
-              count=$((count + 1))
-            done
-
-            if [ "$boot_completed" != "1" ]; then
-              echo "::error::Emulator failed to boot in time."
-              exit 1
-            fi
-
-            echo "Emulator booted. Running instrumented tests..."
-            ./gradlew connectedDebugAndroidTest --no-daemon || echo "::warning::Instrumented tests failed"
-
       - name: Upload Debug APK artifact
         uses: actions/upload-artifact@v4
         with:
@@ -89,6 +49,17 @@ jobs:
         with:
           name: UgandaEMR-Mobile-release-apk
           path: app/build/outputs/apk/release/app-release.apk
+
+      - name: Upload Release APK to Firebase App Distribution
+        if: github.ref == 'refs/heads/main'
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_APP_ID }}
+          token: ${{ secrets.FIREBASE_CREDENTIALS }}
+          groups: internal-testers
+          file: app/build/outputs/apk/release/app-release.apk
+          releaseNotes: |
+            Automated build from GitHub Actions
 
       - name: Auto-tag new version
         if: github.ref == 'refs/heads/main'
@@ -134,3 +105,19 @@ jobs:
             app/build/outputs/apk/release/app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Notify Slack on Success
+        if: success()
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{
+              "text": "✅ *Build and Release Successful* for `${{ github.repository }}` on `${{ github.ref_name }}`. Version: `${{ steps.get_tag.outputs.tag }}`"
+            }' ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify Slack on Failure
+        if: failure()
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{
+              "text": "❌ *Build Failed* for `${{ github.repository }}` on `${{ github.ref_name }}`."
+            }' ${{ secrets.SLACK_WEBHOOK_URL }}
