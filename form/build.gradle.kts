@@ -44,6 +44,9 @@ android {
         isCoreLibraryDesugaringEnabled = true
 
     }
+
+    packaging { resources.excludes.addAll(listOf("META-INF/ASL-2.0.txt", "META-INF/LGPL-3.0.txt")) }
+
     kotlinOptions {
         jvmTarget = "11"
     }

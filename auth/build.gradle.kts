@@ -38,11 +38,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
         isCoreLibraryDesugaringEnabled = true
-
     }
     kotlinOptions {
         jvmTarget = "11"
     }
+    packaging { resources.excludes.addAll(listOf("META-INF/ASL-2.0.txt", "META-INF/LGPL-3.0.txt")) }
 
     hilt {
         enableAggregatingTask = false
