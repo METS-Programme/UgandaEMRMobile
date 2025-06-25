@@ -1,3 +1,5 @@
+import java.io.ByteArrayOutputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -5,6 +7,30 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
 }
+
+
+
+fun getVersionCode(): Int {
+    val stdout = ByteArrayOutputStream()
+    exec {
+        commandLine("git", "rev-list", "--count", "HEAD")
+        standardOutput = stdout
+    }
+    return stdout.toString().trim().toInt()
+}
+
+fun getVersionName(): String {
+    val stdout = ByteArrayOutputStream()
+    exec {
+        commandLine("git", "describe", "--tags", "--abbrev=0")
+        standardOutput = stdout
+        isIgnoreExitValue = true
+    }
+    val tag = stdout.toString().trim()
+    return tag.ifEmpty { "0.1.0" }
+}
+
+
 
 android {
     namespace = "com.lyecdevelopers.ugandaemrmobile"
@@ -14,8 +40,8 @@ android {
         applicationId = "com.lyecdevelopers.ugandaemrmobile"
         minSdk = 28
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = (getVersionCode())
+        versionName = (getVersionName())
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

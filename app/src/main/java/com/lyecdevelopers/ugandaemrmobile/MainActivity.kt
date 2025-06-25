@@ -3,29 +3,24 @@ package com.lyecdevelopers.ugandaemrmobile
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.lyecdevelopers.auth.presentation.AuthScreen
 import com.lyecdevelopers.core.data.preference.PreferenceManager
-import com.lyecdevelopers.core.ui.SharedViewModel
+import com.lyecdevelopers.core.data.remote.interceptor.AuthInterceptor
 import com.lyecdevelopers.core.ui.components.SplashScreen
-import com.lyecdevelopers.core.ui.event.UiEvent
 import com.lyecdevelopers.core.ui.theme.UgandaEMRMobileTheme
 import com.lyecdevelopers.core_navigation.navigation.Destinations
 import com.lyecdevelopers.main.MainScreen
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject
 
 
@@ -35,6 +30,10 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var preferenceManager: PreferenceManager
 
+    @Inject
+    lateinit var authInterceptor: AuthInterceptor
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -43,59 +42,16 @@ class MainActivity : AppCompatActivity() {
                 val navController = rememberNavController()
                 val navBarNavController = rememberNavController()
                 val isLoggedIn by preferenceManager.isLoggedIn().collectAsState(initial = false)
-                val sharedViewModel: SharedViewModel = hiltViewModel()
-
                 var showSplash by remember { mutableStateOf(true) }
 
-                // dialog state
-                var showDialog by remember { mutableStateOf(false) }
-                var dialogTitle by remember { mutableStateOf("") }
-                var dialogMessage by remember { mutableStateOf("") }
-                var confirmText by remember { mutableStateOf("OK") }
-                val onConfirmAction = remember { mutableStateOf<(() -> Unit)?>(null) }
-
                 LaunchedEffect(Unit) {
-                    sharedViewModel.uiEvent.collect { event ->
-                        when (event) {
-                            is UiEvent.ShowDialog -> {
-                                dialogTitle = event.title
-                                dialogMessage = event.message
-                                confirmText = event.confirmText
-                                onConfirmAction.value = event.onConfirm
-                                showDialog = true
+                    val username = preferenceManager.getUsername().firstOrNull()
+                    val password = preferenceManager.getPassword().firstOrNull()
 
-                                event.autoDismissAfterMillis?.let { delayMillis ->
-                                    delay(delayMillis)
-                                    showDialog = false
-                                    event.onConfirm?.invoke()
-                                }
-                            }
-
-                            is UiEvent.DismissDialog -> {
-                                showDialog = false
-                            }
-
-                            else -> {}
-                        }
+                    if (!username.isNullOrEmpty() && !password.isNullOrEmpty()) {
+                        authInterceptor.updateCredentials(username, password)
                     }
                 }
-
-                if (showDialog) {
-                    AlertDialog(
-                        onDismissRequest = { showDialog = false },
-                        title = { Text(dialogTitle) },
-                        text = { Text(dialogMessage) },
-                        confirmButton = {
-                            TextButton(onClick = {
-                                showDialog = false
-                                onConfirmAction.value?.invoke()
-                            }) {
-                                Text(confirmText)
-                            }
-                        })
-                }
-
-
 
                 if (showSplash) {
                     SplashScreen(

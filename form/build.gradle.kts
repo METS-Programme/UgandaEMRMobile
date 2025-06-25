@@ -44,6 +44,9 @@ android {
         isCoreLibraryDesugaringEnabled = true
 
     }
+
+    packaging { resources.excludes.addAll(listOf("META-INF/ASL-2.0.txt", "META-INF/LGPL-3.0.txt")) }
+
     kotlinOptions {
         jvmTarget = "11"
     }
@@ -72,6 +75,8 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.hilt.navigation.compose)
     implementation(libs.material.icons.extended)
+    implementation(libs.androidx.paging.common.android)
+
 
 
 
@@ -100,6 +105,7 @@ dependencies {
     // Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
+    implementation(libs.room.paging) // ✅ Add this
     ksp(libs.room.compiler)
 
     // Moshi

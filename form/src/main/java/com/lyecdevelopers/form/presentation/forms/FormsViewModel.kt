@@ -1,10 +1,11 @@
 package com.lyecdevelopers.form.presentation.forms
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lyecdevelopers.core._base.BaseViewModel
 import com.lyecdevelopers.core.common.scheduler.SchedulerProvider
+import com.lyecdevelopers.core.data.local.entity.FormEntity
 import com.lyecdevelopers.core.model.Result
-import com.lyecdevelopers.core.model.o3.o3Form
+import com.lyecdevelopers.form.domain.mapper.o3Form
 import com.lyecdevelopers.form.domain.usecase.FormsUseCase
 import com.lyecdevelopers.form.presentation.event.FormsEvent
 import com.lyecdevelopers.form.presentation.state.FormsUiState
@@ -22,10 +23,15 @@ import javax.inject.Inject
 class FormsViewModel @Inject constructor(
     private val formsUseCase: FormsUseCase,
     private val schedulerProvider: SchedulerProvider,
-) : ViewModel() {
+) : BaseViewModel() {
 
     private val _uiState = MutableStateFlow(FormsUiState())
     val uiState: StateFlow<FormsUiState> = _uiState.asStateFlow()
+
+
+    init {
+        loadLocalForms()
+    }
 
     fun onEvent(event: FormsEvent) {
         when (event) {
@@ -60,7 +66,8 @@ class FormsViewModel @Inject constructor(
                         }
 
                         is Result.Success<*> -> {
-                            val localForms = result.data as? List<o3Form> ?: emptyList()
+                            val localForms = (result.data as? List<FormEntity>)?.map { it.o3Form() }
+                                ?: emptyList()
                             _uiState.update {
                                 it.copy(
                                     isLoading = false,
