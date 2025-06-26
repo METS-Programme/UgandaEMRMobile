@@ -87,7 +87,7 @@ fun FormsScreen(
                         items(
                             forms,
                             key = { it.uuid ?: it.name ?: it.hashCode().toString() }) { form ->
-                            form.name?.let { name ->
+                            form.name?.let {
                                 Surface(
                                     modifier = Modifier
                                         .fillMaxWidth()

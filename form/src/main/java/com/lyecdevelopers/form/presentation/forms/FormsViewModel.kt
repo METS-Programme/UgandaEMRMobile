@@ -3,7 +3,6 @@ package com.lyecdevelopers.form.presentation.forms
 import androidx.lifecycle.viewModelScope
 import com.lyecdevelopers.core._base.BaseViewModel
 import com.lyecdevelopers.core.common.scheduler.SchedulerProvider
-import com.lyecdevelopers.core.data.local.entity.FormEntity
 import com.lyecdevelopers.core.model.Result
 import com.lyecdevelopers.form.domain.mapper.o3Form
 import com.lyecdevelopers.form.domain.usecase.FormsUseCase
@@ -60,14 +59,15 @@ class FormsViewModel @Inject constructor(
         viewModelScope.launch(schedulerProvider.io) {
             formsUseCase.getAllLocalForms().collect { result ->
                 withContext(schedulerProvider.main) {
-                    when (result) {
-                        is Result.Loading -> {
-                            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-                        }
-
-                        is Result.Success<*> -> {
-                            val localForms = (result.data as? List<FormEntity>)?.map { it.o3Form() }
-                                ?: emptyList()
+                    _uiState.update {
+                        it.copy(
+                            isLoading = true, errorMessage = null
+                        )
+                    }
+                    handleResult(
+                        result = result,
+                        onSuccess = { formEntities ->
+                            val localForms = formEntities.map { it.o3Form() }
                             _uiState.update {
                                 it.copy(
                                     isLoading = false,
@@ -76,21 +76,16 @@ class FormsViewModel @Inject constructor(
                                     errorMessage = null
                                 )
                             }
-                        }
-
-                        is Result.Error -> {
-                            _uiState.update {
-                                it.copy(
-                                    isLoading = false,
-                                    errorMessage = result.message
-                                )
-                            }
-                        }
-                    }
+                        },
+                        successMessage = "Successfully loaded local forms",
+                        errorMessage = (result as? Result.Error)?.message
+                    )
+                    hideLoading()
                 }
             }
         }
     }
+
 
 }
 
