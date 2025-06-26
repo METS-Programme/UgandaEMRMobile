@@ -4,6 +4,7 @@ import android.database.sqlite.SQLiteDatabaseCorruptException
 import android.database.sqlite.SQLiteDatabaseLockedException
 import android.database.sqlite.SQLiteException
 import androidx.paging.PagingSource
+import com.google.android.fhir.FhirEngine
 import com.lyecdevelopers.core.data.local.dao.PatientDao
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
 import com.lyecdevelopers.core.model.PatientWithVisits
@@ -21,6 +22,7 @@ import javax.inject.Inject
 
 class PatientRepositoryImpl @Inject constructor(
     private val patientDao: PatientDao,
+    private val fhirEngine: FhirEngine,
 ) : PatientRepository {
     override suspend fun getPatientWithVisits(patientId: String): Flow<Result<PatientWithVisits?>> =
         patientDao.observePatientWithVisits(patientId) // updated to the Flow version
@@ -38,9 +40,11 @@ class PatientRepositoryImpl @Inject constructor(
 
 
     override suspend fun createInFhir(patient: Patient) {
+        fhirEngine.create(patient)
     }
 
     override suspend fun updateInFhir(patient: Patient) {
+        fhirEngine.update(patient)
     }
 
     override suspend fun saveToLocalDb(entity: PatientEntity) {
