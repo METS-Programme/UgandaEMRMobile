@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.lyecdevelopers.main"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 28
@@ -69,6 +69,8 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.hilt.navigation.compose)
     implementation(libs.material.icons.extended)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.constraintlayout)
 
 
     // Hilt

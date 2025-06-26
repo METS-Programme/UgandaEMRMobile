@@ -6,6 +6,8 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.services)
+    alias(libs.plugins.crashlytics)
 }
 
 
@@ -34,12 +36,11 @@ fun getVersionName(): String {
 
 android {
     namespace = "com.lyecdevelopers.ugandaemrmobile"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.lyecdevelopers.ugandaemrmobile"
         minSdk = 28
-        targetSdk = 35
         versionCode = (getVersionCode())
         versionName = (getVersionName())
 
@@ -105,12 +106,13 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
     implementation(libs.material.icons.extended)
     implementation(libs.splashscreen)
+    implementation(libs.androidx.appcompat)
+
 
 
     // fhir
     implementation(libs.android.fhir.engine)
     implementation(libs.android.fhir.sdc)
-    implementation(libs.appcompat)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     // Hilt
@@ -135,6 +137,12 @@ dependencies {
 
     // logging
     implementation(libs.timber)
+
+    // firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.google.firebase.analytics)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
