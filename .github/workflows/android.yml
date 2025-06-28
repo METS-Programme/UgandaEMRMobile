@@ -50,19 +50,28 @@ jobs:
           name: UgandaEMR-Mobile-release-apk
           path: app/build/outputs/apk/release/app-release.apk
 
-      - name: Upload Release APK to Firebase App Distribution
-        if: github.ref == 'refs/heads/main'
-        uses: wzieba/Firebase-Distribution-Github-Action@v1
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Download Debug APK artifact
+        uses: actions/download-artifact@v4
         with:
-          appId: ${{ secrets.FIREBASE_APP_ID }}
-          token: ${{ secrets.FIREBASE_CREDENTIALS }}
-          groups: internal-testers
-          file: app/build/outputs/apk/release/app-release.apk
-          releaseNotes: |
-            Automated build from GitHub Actions
+          name: UgandaEMR-Mobile-debug-apk
+          path: app/build/outputs/apk/debug
+
+      - name: Download Release APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: UgandaEMR-Mobile-release-apk
+          path: app/build/outputs/apk/release
 
       - name: Auto-tag new version
-        if: github.ref == 'refs/heads/main'
         run: |
           git fetch --tags
           LATEST_TAG=$(git describe --tags --abbrev=0 || echo "v0.0.0")
@@ -93,6 +102,16 @@ jobs:
           git fetch --tags
           TAG=$(git describe --tags --abbrev=0)
           echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Upload Release APK to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_APP_ID }}
+          token: ${{ secrets.FIREBASE_CREDENTIALS }}
+          groups: internal-testers
+          file: app/build/outputs/apk/release/app-release.apk
+          releaseNotes: |
+            Automated build from GitHub Actions
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
