@@ -29,10 +29,8 @@ jobs:
       - name: Accept SDK Licenses
         run: yes | sdkmanager --licenses
 
-      - name: Show local.properties
-        run: cat local.properties
-
-      - name: Create local.properties
+      # ✅ Create local.properties & keystore at project root
+      - name: Create local.properties & decode keystore
         run: |
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           echo "KEYSTORE_FILE=keystore/release.jks" >> local.properties
@@ -40,11 +38,11 @@ jobs:
           echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> local.properties
           echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> local.properties
 
-      - name: Decode keystore at correct path
-        run: |
           mkdir -p keystore
           printf '%s' "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > keystore/release.jks
 
+      - name: Show local.properties
+        run: cat local.properties
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
@@ -58,11 +56,10 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: ${{ runner.os }}-gradle-
 
-      # ✅ Write google-services.json
+      # ✅ Write google-services.json from secret
       - name: Write google-services.json
         run: echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > app/google-services.json
 
-      # ✅ Build with release signing config
       - name: Build and run unit tests
         run: ./gradlew clean assembleDebug assembleRelease testDebugUnitTest --no-daemon --stacktrace
 
