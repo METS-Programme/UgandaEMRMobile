@@ -32,6 +32,16 @@ jobs:
       - name: Create local.properties
         run: echo "sdk.dir=$ANDROID_HOME" > local.properties
 
+      # 🔑 Decode keystore and add signing configs
+      - name: Decode keystore and add signing configs
+        run: |
+          mkdir -p keystore
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > keystore/release.jks
+          echo "KEYSTORE_FILE=keystore/release.jks" >> local.properties
+          echo "KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> local.properties
+          echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> local.properties
+          echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> local.properties
+
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
@@ -64,7 +74,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: UgandaEMR-Mobile-release-apk
-          path: app/build/outputs/apk/release/app-release-unsigned.apk
+          path: app/build/outputs/apk/release/app-release.apk
 
   release:
     needs: build
@@ -125,14 +135,12 @@ jobs:
           git log ${LATEST_TAG}..HEAD --pretty=format:"- %s" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      # ✅ Install firebase-tools globally
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
-      # ✅ Upload APK using firebase-tools CLI + Firebase Token
       - name: Upload Release APK to Firebase App Distribution
         run: |
-          firebase appdistribution:distribute app/build/outputs/apk/release/app-release-unsigned.apk \
+          firebase appdistribution:distribute app/build/outputs/apk/release/app-release.apk \
             --app ${{ secrets.FIREBASE_APP_ID }} \
             --groups internal-testers \
             --release-notes "Automated build from GitHub Actions with Service Account"
@@ -147,7 +155,7 @@ jobs:
           body: ${{ env.RELEASE_NOTES }}
           files: |
             app/build/outputs/apk/debug/app-debug.apk
-            app/build/outputs/apk/release/app-release-unsigned.apk
+            app/build/outputs/apk/release/app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
