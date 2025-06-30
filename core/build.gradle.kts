@@ -16,7 +16,7 @@ val apiBaseUrl = localProperties["API_BASE_URL"] as String? ?: ""
 
 android {
     namespace = "com.lyecdevelopers.core"
-    compileSdk = 35
+    compileSdk = 36
 
     buildFeatures {
         buildConfig = true
@@ -79,6 +79,7 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
     implementation(libs.material.icons.extended)
     implementation(libs.androidx.paging.common.android)
+    implementation(libs.androidx.appcompat)
 
 
 
@@ -86,7 +87,6 @@ dependencies {
     implementation(libs.android.fhir.engine)
     implementation(libs.android.fhir.sdc)
     implementation(libs.androidx.constraintlayout)
-    implementation(libs.appcompat)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
 
@@ -104,7 +104,7 @@ dependencies {
     // Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
-    implementation(libs.room.paging) // ✅ Add this
+    implementation(libs.room.paging)
     ksp(libs.room.compiler)
 
     // Moshi
@@ -121,6 +121,11 @@ dependencies {
 
     // logging
     implementation(libs.timber)
+
+    // firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.google.firebase.analytics)
 
 
     // Optional: for previewing Composables

@@ -8,11 +8,10 @@ plugins {
 
 android {
     namespace = "com.lyecdevelopers.auth"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 28
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
@@ -64,30 +63,30 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.hilt.navigation.compose)
     implementation(libs.material.icons.extended)
+    implementation(libs.androidx.appcompat)
+
 
     //fhir
     implementation(libs.android.fhir.engine)
     implementation(libs.android.fhir.sdc)
-    implementation(libs.appcompat)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
 
-
-// Hilt
+    // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
-// Retrofit + OkHttp
+    // Retrofit + OkHttp
     implementation(libs.retrofit)
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
 
-// Room
+    // Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
 
-// Moshi
+    // Moshi
     implementation(libs.moshi)
     implementation(libs.moshi.kotlin)
     ksp(libs.moshi.kotlin.codegen)
@@ -96,7 +95,7 @@ dependencies {
     // logging
     implementation(libs.timber)
 
-// Optional: for previewing Composables
+    // Optional: for previewing Composables
     debugImplementation(libs.androidx.ui.tooling)
 
 }

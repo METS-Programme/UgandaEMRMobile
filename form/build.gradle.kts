@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.lyecdevelopers.form"
-    compileSdk = 35
+    compileSdk = 36
 
     buildFeatures {
         buildConfig = true
@@ -76,6 +76,10 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
     implementation(libs.material.icons.extended)
     implementation(libs.androidx.paging.common.android)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.constraintlayout)
+
+
 
 
 
@@ -83,7 +87,6 @@ dependencies {
     // fhir
     implementation(libs.android.fhir.engine)
     implementation(libs.android.fhir.sdc)
-    implementation(libs.androidx.constraintlayout)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
 
@@ -105,7 +108,7 @@ dependencies {
     // Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
-    implementation(libs.room.paging) // ✅ Add this
+    implementation(libs.room.paging)
     ksp(libs.room.compiler)
 
     // Moshi

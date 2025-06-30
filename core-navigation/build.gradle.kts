@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.lyecdevelopers.core_navigation"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 28
