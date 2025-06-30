@@ -161,19 +161,21 @@ jobs:
           ls -l app/build/outputs/apk/debug/app-debug.apk
           ls -l app/build/outputs/apk/release/app-release-unsigned.apk
 
-      - name: Write Firebase service account key
+      - name: Write Firebase Service Account JSON
         run: |
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > $HOME/firebase-key.json
 
-      - name: Upload to Firebase App Distribution using Service Account
+      - name: Upload Release APK to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
-            appId: ${{ secrets.FIREBASE_APP_ID }}
-            serviceCredentialsFile: $HOME/firebase-key.json
-            groups: internal-testers
-            file: app/build/outputs/apk/release/app-release-unsigned.apk
-            releaseNotes: |
-                Automated build from GitHub Actions with Service Account
+          appId: ${{ secrets.FIREBASE_APP_ID }}
+          serviceCredentialsFile: $HOME/firebase-key.json
+          groups: internal-testers
+          file: app/build/outputs/apk/release/app-release-unsigned.apk
+          releaseNotes: |
+              Automated build from GitHub Actions with Service Account
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: $HOME/firebase-key.json
 
 
       - name: Create GitHub Release
