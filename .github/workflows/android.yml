@@ -35,7 +35,7 @@ jobs:
       # 🔑 Decode keystore and add signing configs
       - name: Decode keystore and add signing configs
         run: |
-          mkdir -p keystore
+          mkdir -p app/keystore
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > app/keystore/release.jks
           echo "KEYSTORE_FILE=keystore/release.jks" >> local.properties
           echo "KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> local.properties
