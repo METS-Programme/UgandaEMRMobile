@@ -30,17 +30,18 @@ jobs:
         run: yes | sdkmanager --licenses
 
       - name: Create local.properties
-        run: echo "sdk.dir=$ANDROID_HOME" > local.properties
-
-      # 🔑 Robust keystore decode and signing config
-      - name: Decode keystore and add signing configs
         run: |
-          mkdir -p app/keystore
-          printf '%s' "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > app/keystore/release.jks
-          echo "KEYSTORE_FILE=app/keystore/release.jks" >> local.properties
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          echo "KEYSTORE_FILE=keystore/release.jks" >> local.properties
           echo "KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> local.properties
           echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> local.properties
           echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> local.properties
+
+      # 🔑 Robust keystore decode at project root
+      - name: Decode keystore
+        run: |
+          mkdir -p keystore
+          printf '%s' "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > keystore/release.jks
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
@@ -54,7 +55,6 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: ${{ runner.os }}-gradle-
 
-      # ✅ Write google-services.json from secret
       - name: Write google-services.json
         run: echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > app/google-services.json
 
