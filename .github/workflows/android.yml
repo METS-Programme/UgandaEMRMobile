@@ -44,10 +44,10 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: ${{ runner.os }}-gradle-
 
+      # ✅ Write google-services.json from secret
       - name: Write google-services.json
-        run: |
-              echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > app/google-services.json
-      
+        run: echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > app/google-services.json
+
       - name: Build and run unit tests
         run: ./gradlew clean assembleDebug assembleRelease testDebugUnitTest --no-daemon --stacktrace
 
@@ -94,46 +94,18 @@ jobs:
         id: auto_tag
         run: |
           git fetch --tags
-
           LATEST_TAG=$(git tag --sort=-v:refname | head -n 1)
           if [ -z "$LATEST_TAG" ]; then
             LATEST_TAG="v0.0.0"
           fi
           echo "Latest tag: $LATEST_TAG"
-
           VERSION_PARTS=(${LATEST_TAG//./ })
           MAJOR=${VERSION_PARTS[0]#v}
           MINOR=${VERSION_PARTS[1]}
           PATCH=${VERSION_PARTS[2]}
-
-          COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=%B)
-          echo "Commits since last tag:"
-          echo "$COMMITS"
-
-          BUMP="patch"
-          if echo "$COMMITS" | grep -q "BREAKING CHANGE"; then
-            BUMP="major"
-          elif echo "$COMMITS" | grep -q "^feat:"; then
-            BUMP="minor"
-          elif echo "$COMMITS" | grep -q "^fix:"; then
-            BUMP="patch"
-          fi
-          echo "Determined bump: $BUMP"
-
-          if [ "$BUMP" = "major" ]; then
-            MAJOR=$((MAJOR + 1))
-            MINOR=0
-            PATCH=0
-          elif [ "$BUMP" = "minor" ]; then
-            MINOR=$((MINOR + 1))
-            PATCH=0
-          elif [ "$BUMP" = "patch" ]; then
-            PATCH=$((PATCH + 1))
-          fi
-
-          NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+          NEW_PATCH=$((PATCH + 1))
+          NEW_VERSION="v${MAJOR}.${MINOR}.${NEW_PATCH}"
           echo "New version: $NEW_VERSION"
-
           if git rev-parse "$NEW_VERSION" >/dev/null 2>&1; then
             echo "Tag $NEW_VERSION already exists! Skipping..."
             echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
@@ -153,54 +125,42 @@ jobs:
           git log ${LATEST_TAG}..HEAD --pretty=format:"- %s" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      - name: Get latest tag for release
-        id: get_tag
-        run: |
-          git fetch --tags
-          TAG=$(git tag --sort=-v:refname | head -n 1)
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-
-      - name: Debug check APK files exist
-        run: |
-          ls -l app/build/outputs/apk/debug/app-debug.apk
-          ls -l app/build/outputs/apk/release/app-release-unsigned.apk
-
+      # ✅ Write Firebase Service Account JSON
       - name: Write Firebase Service Account JSON
-        run: |
-          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > $HOME/firebase-key.json
+        run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > $HOME/firebase-key.json
 
+      # ✅ Install firebase-tools globally
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      # ✅ Upload APK using firebase-tools CLI + Service Account
       - name: Upload Release APK to Firebase App Distribution
-        uses: wzieba/Firebase-Distribution-Github-Action@v1
-        with:
-          appId: ${{ secrets.FIREBASE_APP_ID }}
-          serviceCredentialsFile: $HOME/firebase-key.json
-          groups: internal-testers
-          file: app/build/outputs/apk/release/app-release-unsigned.apk
-          releaseNotes: |
-              Automated build from GitHub Actions with Service Account
+        run: |
+          firebase appdistribution:distribute app/build/outputs/apk/release/app-release-unsigned.apk \
+            --app ${{ secrets.FIREBASE_APP_ID }} \
+            --groups internal-testers \
+            --release-notes "Automated build from GitHub Actions with Service Account"
         env:
           GOOGLE_APPLICATION_CREDENTIALS: $HOME/firebase-key.json
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.get_tag.outputs.tag }}
-          name: Release ${{ steps.get_tag.outputs.tag }}
+          tag_name: ${{ steps.auto_tag.outputs.tag }}
+          name: Release ${{ steps.auto_tag.outputs.tag }}
           body: ${{ env.RELEASE_NOTES }}
           files: |
             app/build/outputs/apk/debug/app-debug.apk
             app/build/outputs/apk/release/app-release-unsigned.apk
-          draft: false
-          prerelease: false
-          fail_on_unmatched_files: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Notify Slack on Success
         if: success()
         run: |
           curl -X POST -H 'Content-type: application/json' \
             --data '{
-              "text": "✅ *Build and Release Successful* for `${{ github.repository }}` on `${{ github.ref_name }}`. Version: `${{ steps.get_tag.outputs.tag }}`"
+              "text": "✅ *Build and Release Successful* for `${{ github.repository }}` on `${{ github.ref_name }}`. Version: `${{ steps.auto_tag.outputs.tag }}`"
             }' ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - name: Notify Slack on Failure
