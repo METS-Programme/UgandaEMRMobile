@@ -90,6 +90,7 @@ jobs:
         id: auto_tag
         run: |
           git fetch --tags
+
           LATEST_TAG=$(git tag --sort=-v:refname | head -n 1)
           if [ -z "$LATEST_TAG" ]; then
             LATEST_TAG="v0.0.0"
@@ -101,9 +102,32 @@ jobs:
           MINOR=${VERSION_PARTS[1]}
           PATCH=${VERSION_PARTS[2]}
 
-          NEW_PATCH=$((PATCH + 1))
-          NEW_VERSION="v${MAJOR}.${MINOR}.${NEW_PATCH}"
+          COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=%B)
+          echo "Commits since last tag:"
+          echo "$COMMITS"
 
+          BUMP="patch"
+          if echo "$COMMITS" | grep -q "BREAKING CHANGE"; then
+            BUMP="major"
+          elif echo "$COMMITS" | grep -q "^feat:"; then
+            BUMP="minor"
+          elif echo "$COMMITS" | grep -q "^fix:"; then
+            BUMP="patch"
+          fi
+          echo "Determined bump: $BUMP"
+
+          if [ "$BUMP" = "major" ]; then
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+          elif [ "$BUMP" = "minor" ]; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+          elif [ "$BUMP" = "patch" ]; then
+            PATCH=$((PATCH + 1))
+          fi
+
+          NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
           echo "New version: $NEW_VERSION"
 
           if git rev-parse "$NEW_VERSION" >/dev/null 2>&1; then
@@ -132,6 +156,11 @@ jobs:
           TAG=$(git tag --sort=-v:refname | head -n 1)
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
+      - name: Debug check APK files exist
+        run: |
+          ls -l app/build/outputs/apk/debug/app-debug.apk
+          ls -l app/build/outputs/apk/release/app-release-unsigned.apk
+
       - name: Upload Release APK to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
@@ -151,8 +180,10 @@ jobs:
           files: |
             app/build/outputs/apk/debug/app-debug.apk
             app/build/outputs/apk/release/app-release-unsigned.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          draft: false
+          prerelease: false
+          fail_on_unmatched_files: true
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Notify Slack on Success
         if: success()
