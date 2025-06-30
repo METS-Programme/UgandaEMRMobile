@@ -10,8 +10,6 @@ plugins {
     alias(libs.plugins.crashlytics)
 }
 
-
-
 fun getVersionCode(): Int {
     val stdout = ByteArrayOutputStream()
     exec {
@@ -32,8 +30,6 @@ fun getVersionName(): String {
     return tag.ifEmpty { "0.1.0" }
 }
 
-
-
 android {
     namespace = "com.lyecdevelopers.ugandaemrmobile"
     compileSdk = 36
@@ -41,15 +37,25 @@ android {
     defaultConfig {
         applicationId = "com.lyecdevelopers.ugandaemrmobile"
         minSdk = 28
-        versionCode = (getVersionCode())
-        versionName = (getVersionName())
+        versionCode = getVersionCode()
+        versionName = getVersionName()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file(project.findProperty("KEYSTORE_FILE") ?: "keystore/release.jks")
+            storePassword = project.findProperty("KEYSTORE_PASSWORD") as String? ?: ""
+            keyAlias = project.findProperty("KEY_ALIAS") as String? ?: ""
+            keyPassword = project.findProperty("KEY_PASSWORD") as String? ?: ""
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -64,25 +70,30 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "2.0.20"
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
         isCoreLibraryDesugaringEnabled = true
     }
 
-    packaging { resources.excludes.addAll(listOf("META-INF/ASL-2.0.txt", "META-INF/LGPL-3.0.txt")) }
+    packaging {
+        resources.excludes.addAll(
+            listOf("META-INF/ASL-2.0.txt", "META-INF/LGPL-3.0.txt")
+        )
+    }
 
     kotlinOptions {
         jvmTarget = "11"
     }
 
-    kotlin { jvmToolchain(11) }
-
+    kotlin {
+        jvmToolchain(11)
+    }
 
     hilt {
         enableAggregatingTask = false
     }
-
 }
 
 dependencies {
@@ -107,8 +118,6 @@ dependencies {
     implementation(libs.material.icons.extended)
     implementation(libs.splashscreen)
     implementation(libs.androidx.appcompat)
-
-
 
     // fhir
     implementation(libs.android.fhir.engine)
@@ -142,7 +151,6 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.google.firebase.analytics)
-
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
