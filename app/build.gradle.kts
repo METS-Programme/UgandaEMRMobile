@@ -1,4 +1,5 @@
 import java.io.ByteArrayOutputStream
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -30,6 +31,23 @@ fun getVersionName(): String {
     return tag.ifEmpty { "0.1.0" }
 }
 
+val localProperties = Properties().apply {
+    load(project.rootProject.file("local.properties").inputStream())
+}
+
+
+// get store file
+val fileUrl = localProperties["KEYSTORE_FILE"] as String? ?: ""
+
+// get store password
+val keystorePassword = localProperties["KEYSTORE_PASSWORD"] as String? ?: ""
+
+// get key alias
+val keyAlias = localProperties["KEY_ALIAS"] as String? ?: ""
+
+// get key password
+val keyPassword = localProperties["KEY_PASSWORD"] as String? ?: ""
+
 android {
     namespace = "com.lyecdevelopers.ugandaemrmobile"
     compileSdk = 36
@@ -45,12 +63,13 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = rootProject.file("keystore/release.jks")
-            storePassword = project.findProperty("KEYSTORE_PASSWORD") as String? ?: ""
-            keyAlias = project.findProperty("KEY_ALIAS") as String? ?: ""
-            keyPassword = project.findProperty("KEY_PASSWORD") as String? ?: ""
+            storeFile = file(fileUrl)
+            storePassword = keystorePassword
+            keyAlias = keyAlias
+            keyPassword = keyPassword
         }
     }
+
 
     buildTypes {
         release {
