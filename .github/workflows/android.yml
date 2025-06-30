@@ -32,12 +32,12 @@ jobs:
       - name: Create local.properties
         run: echo "sdk.dir=$ANDROID_HOME" > local.properties
 
-      # 🔑 Decode keystore and add signing configs
+      # 🔑 Robust keystore decode and signing config
       - name: Decode keystore and add signing configs
         run: |
           mkdir -p app/keystore
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > app/keystore/release.jks
-          echo "KEYSTORE_FILE=keystore/release.jks" >> local.properties
+          printf '%s' "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > app/keystore/release.jks
+          echo "KEYSTORE_FILE=app/keystore/release.jks" >> local.properties
           echo "KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> local.properties
           echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> local.properties
           echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> local.properties
