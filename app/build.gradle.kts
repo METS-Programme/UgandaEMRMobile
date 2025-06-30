@@ -35,17 +35,10 @@ val localProperties = Properties().apply {
     load(project.rootProject.file("local.properties").inputStream())
 }
 
-
-// get store file
+// Get keystore properties
 val fileUrl = localProperties["KEYSTORE_FILE"] as String? ?: ""
-
-// get store password
 val keystorePassword = localProperties["KEYSTORE_PASSWORD"] as String? ?: ""
-
-// get key alias
 val keyAlias = localProperties["KEY_ALIAS"] as String? ?: ""
-
-// get key password
 val keyPassword = localProperties["KEY_PASSWORD"] as String? ?: ""
 
 android {
@@ -63,13 +56,13 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file(fileUrl)
+            // ✅ Always resolve from project root!
+            storeFile = rootProject.file(fileUrl)
             storePassword = keystorePassword
             keyAlias = keyAlias
             keyPassword = keyPassword
         }
     }
-
 
     buildTypes {
         release {
