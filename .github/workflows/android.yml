@@ -29,7 +29,9 @@ jobs:
       - name: Accept SDK Licenses
         run: yes | sdkmanager --licenses
 
-      # ✅ Create local.properties with signing config
+      - name: Show local.properties
+        run: cat local.properties
+
       - name: Create local.properties
         run: |
           echo "sdk.dir=$ANDROID_HOME" > local.properties
@@ -38,11 +40,11 @@ jobs:
           echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> local.properties
           echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> local.properties
 
-      # ✅ Decode keystore to match local.properties path
-      - name: Decode keystore
+      - name: Decode keystore at correct path
         run: |
           mkdir -p keystore
           printf '%s' "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > keystore/release.jks
+
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
