@@ -35,12 +35,6 @@ val localProperties = Properties().apply {
     load(project.rootProject.file("local.properties").inputStream())
 }
 
-// Get keystore properties
-val fileUrl = localProperties["KEYSTORE_FILE"] as String? ?: ""
-val keystorePassword = localProperties["KEYSTORE_PASSWORD"] as String? ?: ""
-val keyAlias = localProperties["KEY_ALIAS"] as String? ?: ""
-val keyPassword = localProperties["KEY_PASSWORD"] as String? ?: ""
-
 android {
     namespace = "com.lyecdevelopers.ugandaemrmobile"
     compileSdk = 36
@@ -56,11 +50,17 @@ android {
 
     signingConfigs {
         create("release") {
-            // ✅ Always resolve from project root!
-            storeFile = rootProject.file(fileUrl)
-            storePassword = keystorePassword
-            keyAlias = keyAlias
-            keyPassword = keyPassword
+            val storeFilePath = localProperties.getProperty("KEYSTORE_FILE") ?: ""
+            val storePasswordProp = localProperties.getProperty("KEYSTORE_PASSWORD") ?: ""
+            val keyAliasProp = localProperties.getProperty("KEY_ALIAS") ?: ""
+            val keyPasswordProp = localProperties.getProperty("KEY_PASSWORD") ?: ""
+
+            println("🔑 [Signing] Using keystore at: $storeFilePath")
+
+            storeFile = rootProject.file(storeFilePath)
+            storePassword = storePasswordProp
+            keyAlias = keyAliasProp
+            keyPassword = keyPasswordProp
         }
     }
 
