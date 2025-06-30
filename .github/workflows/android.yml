@@ -23,8 +23,17 @@ jobs:
           distribution: 'temurin'
           java-version: 17
 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Accept SDK Licenses
+        run: yes | sdkmanager --licenses
+
       - name: Create local.properties
-        run: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+        run: echo "sdk.dir=$ANDROID_HOME" > local.properties
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
 
       - name: Cache Gradle packages
         uses: actions/cache@v3
@@ -36,7 +45,10 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle-
 
       - name: Build and run unit tests
-        run: ./gradlew clean assembleDebug assembleRelease testDebugUnitTest --stacktrace
+        run: ./gradlew clean assembleDebug assembleRelease testDebugUnitTest --no-daemon --stacktrace
+
+      - name: Debug: Show APK files
+        run: ls -R app/build/outputs/apk
 
       - name: Upload Debug APK artifact
         uses: actions/upload-artifact@v4
@@ -54,6 +66,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+
+    outputs:
+      tag: ${{ steps.get_tag.outputs.tag }}
 
     steps:
       - name: Checkout repository
