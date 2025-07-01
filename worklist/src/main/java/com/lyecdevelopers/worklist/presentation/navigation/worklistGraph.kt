@@ -9,10 +9,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.lyecdevelopers.core.model.BottomNavItem
+import com.lyecdevelopers.worklist.presentation.patient.RecordVitalScreen
 import com.lyecdevelopers.form.presentation.forms.FormsScreen
 import com.lyecdevelopers.form.presentation.questionnaire.QuestionnaireScreen
 import com.lyecdevelopers.form.presentation.registration.RegisterPatientScreen
 import com.lyecdevelopers.worklist.presentation.patient.PatientDetailsScreen
+import com.lyecdevelopers.worklist.presentation.patient.StartVisitScreen
 import com.lyecdevelopers.worklist.presentation.worklist.WorklistScreen
 
 fun NavGraphBuilder.worklistGraph(fragmentManager: FragmentManager, navController: NavController) {
@@ -46,12 +48,12 @@ fun NavGraphBuilder.worklistGraph(fragmentManager: FragmentManager, navControlle
 
             PatientDetailsScreen(
                 patientId = patientId,
-                onStartVisit = { /* TODO */ },
+                onStartVisit = { navController.navigate("patient_details/$patientId/startVisit")},
                 onStartEncounter = { _, _ ->
                     navController.navigate("patient_details/$patientId/forms")
                 },
                 navController = navController,
-                onAddVitals = {/*TODO */ },
+                onAddVitals = { navController.navigate("patient_details/$patientId/vitals")},
             )
         }
 
@@ -63,6 +65,22 @@ fun NavGraphBuilder.worklistGraph(fragmentManager: FragmentManager, navControlle
                     navController.navigate("patient_details/$patientId/forms/${form.uuid}")
                 },
                 patientId = patientId,
+            )
+        }
+
+        composable("patient_details/{patientId}/vitals") { backStackEntry ->
+            val patientId = backStackEntry.arguments?.getString("patientId") ?: return@composable
+
+            RecordVitalScreen(
+                navController = navController
+            )
+        }
+
+        composable("patient_details/{patientId}/startVisit") { backStackEntry ->
+            val patientId = backStackEntry.arguments?.getString("patientId") ?: return@composable
+
+            StartVisitScreen(
+
             )
         }
 
