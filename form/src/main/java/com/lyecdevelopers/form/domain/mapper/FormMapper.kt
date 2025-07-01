@@ -1,15 +1,17 @@
 package com.lyecdevelopers.form.domain.mapper
 
-import com.lyecdevelopers.core.data.local.entity.FormEntity
 import com.lyecdevelopers.core.model.FieldType
-import org.hl7.fhir.r4.model.CodeType
-import org.hl7.fhir.r4.model.CodeableConcept
+import com.lyecdevelopers.core.model.o3.o3Form
+import com.lyecdevelopers.form.domain.model.OpenmrsObs
+import com.lyecdevelopers.form.utils.FhirExtensions
 import org.hl7.fhir.r4.model.Coding
-import org.hl7.fhir.r4.model.Extension
 import org.hl7.fhir.r4.model.Questionnaire
+import org.hl7.fhir.r4.model.QuestionnaireResponse
+import java.time.Instant
 
 object FormMapper {
-    fun toQuestionnaire(form: FormEntity): Questionnaire {
+
+    fun toQuestionnaire(form: o3Form): Questionnaire {
         val questionnaire = Questionnaire().apply {
             id = form.uuid
             title = form.name
@@ -17,212 +19,52 @@ object FormMapper {
             version = form.version
         }
 
-        form.pages?.forEach { page ->
+        form.pages?.forEachIndexed { pageIndex, page ->
             val pageGroup = Questionnaire.QuestionnaireItemComponent().apply {
-                linkId = page.label
-                text = page.label
+                linkId = "${pageIndex + 1}"
                 type = Questionnaire.QuestionnaireItemType.GROUP
+                text = page.label
+                extension.add(FhirExtensions.pageItemControlExtension())
             }
 
-            page.sections.forEach { section ->
-                val sectionGroup = Questionnaire.QuestionnaireItemComponent().apply {
-                    linkId = section.label
+            page.sections.forEachIndexed { sectionIndex, section ->
+                // Section header as display
+                val sectionHeading = Questionnaire.QuestionnaireItemComponent().apply {
+                    linkId = "${pageIndex + 1}.${sectionIndex + 1}"
+                    type = Questionnaire.QuestionnaireItemType.DISPLAY
                     text = section.label
-                    type = Questionnaire.QuestionnaireItemType.GROUP
-
                 }
+                pageGroup.addItem(sectionHeading)
 
-                section.questions.forEach { question ->
-                    val item = Questionnaire.QuestionnaireItemComponent().apply {
-                        linkId = question.id ?: question.label
+                section.questions.forEachIndexed { questionIndex, question ->
+                    val questionItem = Questionnaire.QuestionnaireItemComponent().apply {
+                        linkId = "${pageIndex + 1}.${sectionIndex + 1}.${questionIndex + 1}"
+                        type = FhirExtensions.mapFieldType(question.questionoptions.rendering)
                         text = question.label
-                        type = when (question.questionoptions.rendering) {
-                            FieldType.NUMBER -> Questionnaire.QuestionnaireItemType.DECIMAL
-                            FieldType.DATE -> Questionnaire.QuestionnaireItemType.DATE
-                            FieldType.DATETIME -> Questionnaire.QuestionnaireItemType.DATETIME
-                            FieldType.TEXT,
-                            FieldType.TEXTAREA,
-                                -> {
-                                this.extension.add(
-                                    Extension().apply {
-                                        url =
-                                            "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl"
-                                        setValue(
-                                            CodeableConcept().addCoding(
-                                                Coding().apply {
-                                                    system =
-                                                        "http://hl7.org/fhir/questionnaire-item-control"
-                                                    code = "text-box"
-                                                    display = "text box"
-                                                })
-                                        )
+                        required = question.required.toBooleanStrict()
+                        repeats = when (question.questionoptions.rendering) {
+                            FieldType.MULTI_CHECKBOX -> true
+                            else -> false
+                        }
+                        FhirExtensions.addItemControlExtension(
+                            this, question.questionoptions.rendering
+                        )
 
+                        if (!question.questionoptions.answers.isNullOrEmpty()) {
+                            question.questionoptions.answers?.forEach { ans ->
+                                addAnswerOption(
+                                    Questionnaire.QuestionnaireItemAnswerOptionComponent().apply {
+                                        value = Coding().apply {
+                                            code = ans.concept
+                                            display = ans.label
+                                        }
                                     })
-
-
-                                Questionnaire.QuestionnaireItemType.STRING
                             }
-                            FieldType.DROPDOWN,
-                            FieldType.SELECT,
-                                -> {
-                                extension.add(
-                                    Extension().apply {
-                                        url =
-                                            "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl"
-                                        setValue(
-                                            CodeableConcept().addCoding(
-                                                Coding().apply {
-                                                    system =
-                                                        "http://hl7.org/fhir/questionnaire-item-control"
-                                                    code = "drop-down"
-                                                    display = "Dropdown"
-                                                })
-                                        )
-
-                                    },
-                                )
-
-                                // Add options
-                                question.questionoptions.answers?.forEach { answer ->
-                                    addAnswerOption(
-                                        Questionnaire.QuestionnaireItemAnswerOptionComponent()
-                                            .apply {
-                                                value = Coding().apply {
-                                                    code = answer.concept
-                                                    display = answer.label
-                                                }
-                                            },
-                                    )
-                                }
-
-                                Questionnaire.QuestionnaireItemType.CHOICE
-                            }
-
-                            FieldType.RADIO -> {
-                                extension.add(
-                                    Extension().apply {
-                                        url =
-                                            "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl"
-                                        setValue(
-                                            CodeableConcept().addCoding(
-                                                Coding().apply {
-                                                    system =
-                                                        "http://hl7.org/fhir/questionnaire-item-control"
-                                                    code = "radio-button"
-                                                    display = "radio button"
-                                                },
-                                            )
-                                        )
-                                    },
-                                )
-
-                                extension.add(
-                                    Extension().apply {
-                                        url =
-                                            "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation"
-                                        setValue(
-                                            CodeType(
-                                                "horizontal"
-                                            )
-                                        )
-
-                                    },
-                                )
-
-                                // Add options
-                                question.questionoptions.answers?.forEach { answer ->
-                                    addAnswerOption(
-                                        Questionnaire.QuestionnaireItemAnswerOptionComponent()
-                                            .apply {
-                                                value = Coding().apply {
-                                                    code = answer.concept
-                                                    display = answer.label
-                                                }
-                                            },
-                                    )
-                                }
-
-                                Questionnaire.QuestionnaireItemType.CHOICE
-                            }
-
-                            FieldType.CHECKBOX -> {
-                                extension.add(
-                                    Extension().apply {
-                                        url =
-                                            "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl"
-                                        setValue(
-                                            CodeableConcept().addCoding(
-                                                Coding().apply {
-                                                    system =
-                                                        "http://hl7.org/fhir/questionnaire-item-control"
-                                                    code = "check-box"
-                                                    display = "Checkbox"
-                                                },
-                                            )
-                                        )
-                                    },
-                                )
-
-                                // Add options
-                                question.questionoptions.answers?.forEach { answer ->
-                                    addAnswerOption(
-                                        Questionnaire.QuestionnaireItemAnswerOptionComponent()
-                                            .apply {
-                                                value = Coding().apply {
-                                                    code = answer.concept
-                                                    display = answer.label
-                                                }
-                                            },
-                                    )
-                                }
-                                Questionnaire.QuestionnaireItemType.CHOICE
-                            }
-
-                            FieldType.MULTI_CHECKBOX -> {
-                                repeats = true
-                                extension.add(
-                                    Extension().apply {
-                                        url =
-                                            "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl"
-                                        setValue(
-                                            CodeableConcept().addCoding(
-                                                Coding().apply {
-                                                    system =
-                                                        "http://hl7.org/fhir/questionnaire-item-control"
-                                                    code = "check-box"
-                                                    display = "Checkbox"
-                                                },
-                                            )
-                                        )
-                                    },
-                                )
-
-                                // Add answer options
-                                question.questionoptions.answers?.forEach { answer ->
-                                    addAnswerOption(
-                                        Questionnaire.QuestionnaireItemAnswerOptionComponent()
-                                            .apply {
-                                                value = Coding().apply {
-                                                    code = answer.concept
-                                                    display = answer.label
-                                                }
-                                            },
-                                    )
-                                }
-
-                                Questionnaire.QuestionnaireItemType.CHOICE
-                            }
-
-
-                            else -> Questionnaire.QuestionnaireItemType.STRING
                         }
                     }
 
-                    sectionGroup.addItem(item)
+                    pageGroup.addItem(questionItem)
                 }
-
-
-                pageGroup.addItem(sectionGroup)
             }
 
             questionnaire.addItem(pageGroup)
@@ -230,4 +72,93 @@ object FormMapper {
 
         return questionnaire
     }
+
+
+    fun extractObsFromResponse(
+        response: QuestionnaireResponse,
+        patientUuid: String,
+        encounterDateTime: String = Instant.now().toString(),
+    ): List<OpenmrsObs> {
+
+        val obsList = mutableListOf<OpenmrsObs>()
+
+        fun processItems(items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>) {
+            for (item in items) {
+                if (item.hasAnswer()) {
+                    item.answer.forEach { answer ->
+                        val concept: String
+                        val value: Any
+
+                        when {
+                            // ✅ For coded answers, use the selected option’s code
+                            answer.hasValueCoding() -> {
+                                concept = answer.valueCoding.code
+                                value = answer.valueCoding.display ?: answer.valueCoding.code
+                            }
+
+                            // ✅ For primitive answers, use the question’s linkId as concept
+                            answer.hasValueStringType() -> {
+                                concept = item.linkId
+                                value = answer.valueStringType.value
+                            }
+
+                            answer.hasValueDateType() -> {
+                                concept = item.linkId
+                                value = answer.valueDateType.valueAsString
+                            }
+
+                            answer.hasValueIntegerType() -> {
+                                concept = item.linkId
+                                value = answer.valueIntegerType.value
+                            }
+
+                            answer.hasValueDecimalType() -> {
+                                concept = item.linkId
+                                value = answer.valueDecimalType.value
+                            }
+
+                            answer.hasValueBooleanType() -> {
+                                concept = item.linkId
+                                value = answer.valueBooleanType.value
+                            }
+
+                            answer.hasValueDateTimeType() -> {
+                                concept = item.linkId
+                                value = answer.valueDateTimeType.valueAsString
+                            }
+
+                            else -> {
+                                // Skip unsupported answer type
+                                return@forEach
+                            }
+                        }
+
+                        obsList.add(
+                            OpenmrsObs(
+                                person = patientUuid,
+                                concept = concept,
+                                obsDatetime = encounterDateTime,
+                                value = value
+                            )
+                        )
+                    }
+                }
+
+                if (item.hasItem()) {
+                    processItems(item.item)
+                }
+            }
+        }
+
+        processItems(response.item)
+        return obsList
+    }
+
+
+    fun String?.toBooleanStrict(): Boolean = this?.equals("true", ignoreCase = true) == true
+
+
 }
+
+
+
