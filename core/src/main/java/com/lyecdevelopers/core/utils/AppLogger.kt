@@ -1,6 +1,7 @@
 package com.lyecdevelopers.core.utils
 
 import android.util.Log
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.lyecdevelopers.core.BuildConfig
 import timber.log.Timber
 
@@ -50,12 +51,12 @@ object AppLogger {
         override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
             if (priority == Log.VERBOSE || priority == Log.DEBUG || priority == Log.INFO) return
 
-//            val crashlytics = FirebaseCrashlytics.getInstance()
-//            crashlytics.log(message)
-//
-//            if (t != null && priority == Log.ERROR) {
-//                crashlytics.recordException(t)
-//            }
+            val crashlytics = FirebaseCrashlytics.getInstance()
+            crashlytics.log(message)
+
+            if (t != null && priority == Log.ERROR) {
+                crashlytics.recordException(t)
+            }
         }
     }
 }

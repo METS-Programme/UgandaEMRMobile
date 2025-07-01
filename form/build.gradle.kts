@@ -79,11 +79,6 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)
 
-
-
-
-
-
     // fhir
     implementation(libs.android.fhir.engine)
     implementation(libs.android.fhir.sdc)
@@ -119,6 +114,11 @@ dependencies {
 
     // logging
     implementation(libs.timber)
+
+    // firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
 
     // Optional: for previewing Composables
     implementation(libs.androidx.ui.tooling.preview)

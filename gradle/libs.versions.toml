@@ -138,8 +138,7 @@ splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "core
 # firebase
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
-google-firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
-
+firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 
 # Test
 junit = { group = "junit", name = "junit", version.ref = "junit" }

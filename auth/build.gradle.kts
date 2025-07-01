@@ -65,12 +65,10 @@ dependencies {
     implementation(libs.material.icons.extended)
     implementation(libs.androidx.appcompat)
 
-
     //fhir
     implementation(libs.android.fhir.engine)
     implementation(libs.android.fhir.sdc)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
-
 
     // Hilt
     implementation(libs.hilt.android)
@@ -94,6 +92,11 @@ dependencies {
 
     // logging
     implementation(libs.timber)
+
+    // firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
 
     // Optional: for previewing Composables
     debugImplementation(libs.androidx.ui.tooling)
