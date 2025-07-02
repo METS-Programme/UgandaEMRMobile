@@ -1,6 +1,7 @@
 package com.lyecdevelopers.core.data.local.db
 
 import androidx.room.TypeConverter
+import com.lyecdevelopers.core.model.OpenmrsObs
 import com.lyecdevelopers.core.model.o3.Meta
 import com.lyecdevelopers.core.model.o3.Pages
 import com.lyecdevelopers.core.model.o3.Programs
@@ -40,28 +41,7 @@ class FormTypeConverters {
         }
     }
 
-    // ----- ConceptReferences -----
-//    @TypeConverter
-//    fun fromConceptReferences(concepts: Map<String, ConceptReference>?): String? {
-//        return concepts?.let {
-//            val type = Types.newParameterizedType(
-//                Map::class.java, String::class.java, ConceptReference::class.java
-//            )
-//            moshi.adapter<Map<String, ConceptReference>>(type).toJson(it)
-//        }
-//    }
-//
-//    @TypeConverter
-//    fun toConceptReferences(json: String?): Map<String, ConceptReference>? {
-//        return json?.let {
-//            val type = Types.newParameterizedType(
-//                Map::class.java, String::class.java, ConceptReference::class.java
-//            )
-//            moshi.adapter<Map<String, ConceptReference>>(type).fromJson(it)
-//        }
-//    }
-
-    // Optional: Programs
+    // ----- Programs -----
     @TypeConverter
     fun fromPrograms(programs: Programs?): String? {
         return programs?.let { moshi.adapter(Programs::class.java).toJson(it) }
@@ -70,6 +50,23 @@ class FormTypeConverters {
     @TypeConverter
     fun toPrograms(json: String?): Programs? {
         return json?.let { moshi.adapter(Programs::class.java).fromJson(it) }
+    }
+
+    // ----- List<OpenmrsObs> -----
+    @TypeConverter
+    fun fromObsList(obs: List<OpenmrsObs>?): String? {
+        return obs?.let {
+            val type = Types.newParameterizedType(List::class.java, OpenmrsObs::class.java)
+            moshi.adapter<List<OpenmrsObs>>(type).toJson(it)
+        }
+    }
+
+    @TypeConverter
+    fun toObsList(obsJson: String?): List<OpenmrsObs>? {
+        return obsJson?.let {
+            val type = Types.newParameterizedType(List::class.java, OpenmrsObs::class.java)
+            moshi.adapter<List<OpenmrsObs>>(type).fromJson(it)
+        }
     }
 }
 

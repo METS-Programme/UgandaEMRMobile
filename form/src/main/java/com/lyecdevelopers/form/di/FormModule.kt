@@ -3,6 +3,7 @@ package com.lyecdevelopers.form.di
 import android.content.Context
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.FhirEngineProvider
+import com.lyecdevelopers.core.data.local.dao.EncounterDao
 import com.lyecdevelopers.core.data.local.dao.FormDao
 import com.lyecdevelopers.core.data.local.dao.PatientDao
 import com.lyecdevelopers.core.data.remote.FormApi
@@ -46,10 +47,11 @@ object FormModule {
     fun provideFormRepository(
         formApi: FormApi,
         formDao: FormDao,
+        encounterDao: EncounterDao,
     ): FormRepository {
         return FormRepositoryImpl(
             formApi = formApi,
-            formDao = formDao,
+            formDao = formDao, encounterDao = encounterDao
         )
     }
 

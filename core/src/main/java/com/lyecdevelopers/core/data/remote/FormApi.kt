@@ -8,6 +8,7 @@ import com.lyecdevelopers.core.model.cohort.DataDefinition
 import com.lyecdevelopers.core.model.encounter.EncounterTypeListResponse
 import com.lyecdevelopers.core.model.o3.o3Form
 import com.lyecdevelopers.core.model.order.OrderTypeListResponse
+import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -66,5 +67,14 @@ interface FormApi {
     @POST("ugandaemrreports/dataDefinition")
     suspend fun generateDataDefinition(@Body payload: DataDefinition): Response<Any>
 
+
+    // save encounter
+    @POST("encounter")
+    suspend fun saveEncounter(@Body payload: Any): Response<Any>
+
+    @POST("/fhir/Patient")
+    suspend fun savePatient(
+        @Body patient: RequestBody,
+    ): Response<Unit>
 
 }
