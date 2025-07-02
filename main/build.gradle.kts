@@ -46,6 +46,11 @@ android {
     hilt {
         enableAggregatingTask = false
     }
+    configurations.all {
+        resolutionStrategy {
+            force("com.google.guava:guava:32.1.3-android")
+        }
+    }
 }
 
 dependencies {

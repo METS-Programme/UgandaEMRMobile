@@ -47,9 +47,7 @@ android {
 
     packaging { resources.excludes.addAll(listOf("META-INF/ASL-2.0.txt", "META-INF/LGPL-3.0.txt")) }
 
-    kotlinOptions {
-        jvmTarget = "11"
-    }
+
 
     kotlin { jvmToolchain(11) }
 
@@ -57,6 +55,8 @@ android {
     hilt {
         enableAggregatingTask = false
     }
+
+
 }
 
 dependencies {

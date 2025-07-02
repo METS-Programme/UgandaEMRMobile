@@ -65,6 +65,10 @@ android {
     hilt {
         enableAggregatingTask = false
     }
+
+    kotlin {
+        jvmToolchain(11)
+    }
 }
 
 dependencies {
