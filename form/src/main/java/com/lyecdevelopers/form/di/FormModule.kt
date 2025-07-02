@@ -57,9 +57,10 @@ object FormModule {
     @Singleton
     fun providePatientRepository(
         patientDao: PatientDao,
+        fhirEngine: FhirEngine,
     ): PatientRepository {
         return PatientRepositoryImpl(
-            patientDao = patientDao,
+            patientDao = patientDao, fhirEngine = fhirEngine
         )
     }
 }
