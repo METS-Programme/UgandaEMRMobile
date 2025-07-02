@@ -1,10 +1,10 @@
 package com.lyecdevelopers.form.domain.mapper
 
 import com.lyecdevelopers.core.BuildConfig
+import com.lyecdevelopers.core.data.local.entity.FormEntity
 import com.lyecdevelopers.core.model.FieldType
-import com.lyecdevelopers.core.model.o3.o3Form
+import com.lyecdevelopers.core.model.OpenmrsObs
 import com.lyecdevelopers.core.utils.AppLogger
-import com.lyecdevelopers.form.domain.model.OpenmrsObs
 import com.lyecdevelopers.form.utils.FhirExtensions
 import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.Extension
@@ -15,7 +15,7 @@ import java.time.Instant
 
 object FormMapper {
 
-    fun toQuestionnaire(form: o3Form): Questionnaire {
+    fun toQuestionnaire(form: FormEntity): Questionnaire {
         val questionnaire = Questionnaire().apply {
             id = form.uuid
             title = form.name

@@ -1,4 +1,4 @@
-package com.lyecdevelopers.form.domain.model
+package com.lyecdevelopers.core.model
 
 data class OpenmrsObs(
     val person: String,

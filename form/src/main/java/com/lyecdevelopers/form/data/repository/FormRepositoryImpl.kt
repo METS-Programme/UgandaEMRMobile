@@ -1,7 +1,9 @@
 package com.lyecdevelopers.form.data.repository
 
 
+import com.lyecdevelopers.core.data.local.dao.EncounterDao
 import com.lyecdevelopers.core.data.local.dao.FormDao
+import com.lyecdevelopers.core.data.local.entity.EncounterEntity
 import com.lyecdevelopers.core.data.local.entity.FormEntity
 import com.lyecdevelopers.core.data.remote.FormApi
 import com.lyecdevelopers.core.model.Form
@@ -18,6 +20,7 @@ import javax.inject.Inject
 class FormRepositoryImpl @Inject constructor(
     private val formDao: FormDao,
     private val formApi: FormApi,
+    private val encounterDao: EncounterDao,
 ) : FormRepository {
 
     override fun loadForms(): Flow<Result<List<Form>>> = flow {
@@ -95,6 +98,10 @@ class FormRepositoryImpl @Inject constructor(
 
     override suspend fun deleteForm(uuid: String) {
         formDao.deleteFormById(uuid)
+    }
+
+    override suspend fun saveEncounterLocally(encounter: EncounterEntity) {
+        encounterDao.insert(encounter)
     }
 
 }

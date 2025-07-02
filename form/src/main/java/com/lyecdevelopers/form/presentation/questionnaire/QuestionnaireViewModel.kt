@@ -10,6 +10,8 @@ import com.lyecdevelopers.form.domain.mapper.FormMapper
 import com.lyecdevelopers.form.domain.usecase.FormsUseCase
 import com.lyecdevelopers.form.presentation.questionnaire.event.QuestionnaireEvent
 import com.lyecdevelopers.form.presentation.questionnaire.state.QuestionnaireState
+import com.lyecdevelopers.form.utils.EncounterExtensions.toEncounterEntity
+import com.lyecdevelopers.form.utils.EncounterExtensions.toOpenmrsEncounter
 import com.lyecdevelopers.form.utils.QuestionnaireUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +22,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
+import java.time.Instant
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -51,13 +55,11 @@ class QuestionnaireViewModel @Inject constructor(
         viewModelScope.launch(schedulerProvider.io) {
             formsUseCase.getLocalFormById(uuid).collect { result ->
                 withContext(schedulerProvider.main) {
-
                     _state.update {
                         it.copy(
                             isLoading = true,
                         )
                     }
-
                     handleResult(
                         result = result,
                         onSuccess = { formEntity ->
@@ -66,11 +68,11 @@ class QuestionnaireViewModel @Inject constructor(
                                     formEntity?.let { FormMapper.toQuestionnaire(it) }
                                 val questionnaireJson = FhirContext.forR4().newJsonParser()
                                     .encodeResourceToString(questionnaire)
-
                                 _state.update {
                                     it.copy(
                                         isLoading = false,
                                         questionnaireJson = questionnaireJson,
+                                        questionnaire = questionnaire,
                                         error = null
                                     )
                                 }
@@ -115,20 +117,80 @@ class QuestionnaireViewModel @Inject constructor(
     }
 
 
+    /**
+     * Handles the submission of a questionnaire response.
+     * It parses the response JSON, updates the ViewModel's state with the questionnaire and response,
+     * and prepares for further actions like creating an encounter.
+     *
+     * @param responseJson A JSON string representing the questionnaire response.
+     */
     private fun handleSubmitWithResponse(responseJson: String) {
         viewModelScope.launch(schedulerProvider.io) {
+            // ✅ Show loading on Main
+            withContext(schedulerProvider.main) { showLoading() }
+
             _state.update { it.copy(isLoading = true) }
+
             try {
                 val parser = FhirContext.forR4().newJsonParser()
                 val response = parser.parseResource(QuestionnaireResponse::class.java, responseJson)
                 questionnaireResponse = response
 
+                val state = _state.value
+                val questionnaire = state.questionnaire
+
+                if (questionnaire != null) {
+                    val patientUuid = "test-patient" // TODO: inject real patientUuid
+                    val encounterTypeUuid = "test-encounter" // TODO: inject real type
+                    val locationUuid = "tests-location" // TODO: inject real location
+
+                    val toSubmit = response.toOpenmrsEncounter(
+                        questionnaireItems = questionnaire.item,
+                        patientUuid = patientUuid,
+                        encounterTypeUuid = encounterTypeUuid,
+                        locationUuid = locationUuid
+                    )
+
+                    AppLogger.d("Mapped OpenMRS Encounter: $toSubmit")
+
+                    val visitId = UUID.randomUUID().toString()
+                    val createdAt = Instant.now().toString()
+
+                    val encounterEntity = toSubmit.toEncounterEntity(
+                        visitId = visitId, synced = false, createdAt = createdAt
+                    )
+
+                    formsUseCase.saveEncounterLocally(encounterEntity)
+                    AppLogger.d("Encounter saved locally: $encounterEntity")
+
+                } else {
+                    AppLogger.e("No Questionnaire found in state — cannot map response.")
+                    _state.update {
+                        it.copy(
+                            isLoading = false, error = "Form definition is missing."
+                        )
+                    }
+                    withContext(schedulerProvider.main) { hideLoading() }
+                    return@launch
+                }
+
+                _state.update { it.copy(isLoading = false, isSubmitted = true) }
+
+                withContext(schedulerProvider.main) {
+                    hideLoading()
+                    navigate("worklist_main")
+                }
 
             } catch (e: Exception) {
-
+                AppLogger.e("Submit failed: ${e.localizedMessage}", e.stackTraceToString())
+                _state.update {
+                    it.copy(isLoading = false, error = e.localizedMessage ?: "Unknown error")
+                }
+                withContext(schedulerProvider.main) { hideLoading() }
             }
         }
     }
+
 
     private fun reset() {
         _state.value = QuestionnaireState()

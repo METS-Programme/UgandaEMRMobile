@@ -1,5 +1,6 @@
 package com.lyecdevelopers.form.domain.usecase
 
+import com.lyecdevelopers.core.data.local.entity.EncounterEntity
 import com.lyecdevelopers.core.data.local.entity.FormEntity
 import com.lyecdevelopers.core.model.Form
 import com.lyecdevelopers.core.model.Result
@@ -56,6 +57,11 @@ class FormsUseCase @Inject constructor(
     suspend fun deleteLocalForm(uuid: String) {
         repository.deleteForm(uuid)
     }
+
+    suspend fun saveEncounterLocally(encounter: EncounterEntity) {
+        repository.saveEncounterLocally(encounter)
+    }
+
 }
 
 

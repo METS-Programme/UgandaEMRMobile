@@ -1,5 +1,6 @@
 package com.lyecdevelopers.form.domain.repository
 
+import com.lyecdevelopers.core.data.local.entity.EncounterEntity
 import com.lyecdevelopers.core.data.local.entity.FormEntity
 import com.lyecdevelopers.core.model.Form
 import com.lyecdevelopers.core.model.Result
@@ -20,4 +21,6 @@ interface FormRepository {
     suspend fun getFormById(uuid: String): Flow<Result<FormEntity?>>
     suspend fun clearAllForms()
     suspend fun deleteForm(uuid: String)
+
+    suspend fun saveEncounterLocally(encounter: EncounterEntity)
 }
