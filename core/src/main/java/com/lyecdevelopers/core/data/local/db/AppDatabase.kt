@@ -28,6 +28,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun formDao(): FormDao
     abstract fun patientDao(): PatientDao
     abstract fun visitSummaryDao(): VisitSummaryDao
-
     abstract fun encounterDao(): EncounterDao
 }

@@ -1,6 +1,10 @@
 package com.lyecdevelopers.sync.data.repository
 
+import com.lyecdevelopers.core.data.local.dao.EncounterDao
 import com.lyecdevelopers.core.data.local.dao.FormDao
+import com.lyecdevelopers.core.data.local.dao.PatientDao
+import com.lyecdevelopers.core.data.local.entity.EncounterEntity
+import com.lyecdevelopers.core.data.local.entity.PatientEntity
 import com.lyecdevelopers.core.data.remote.FormApi
 import com.lyecdevelopers.core.model.Form
 import com.lyecdevelopers.core.model.Identifier
@@ -27,6 +31,8 @@ import javax.inject.Inject
 class SyncRepositoryImpl @Inject constructor(
     private val formApi: FormApi,
     private val formDao: FormDao,
+    private val encounterDao: EncounterDao,
+    private val patientDao: PatientDao,
 ) : SyncRepository {
 
     override fun loadForms(): Flow<Result<List<Form>>> = flow {
@@ -301,6 +307,56 @@ class SyncRepositoryImpl @Inject constructor(
             AppLogger.e(e.message ?: "Failed to create  data definition")
         }
     }.flowOn(Dispatchers.IO)
+
+    override fun getUnsynced(): Flow<List<EncounterEntity>> = flow {
+        try {
+            val unsynced = encounterDao.getUnsynced()
+            emit(unsynced)
+        } catch (e: Exception) {
+            AppLogger.e("DB error when fetching unsynced encounters: ${e.message}")
+            throw e // ⚡ Let the caller handle it!
+        }
+    }
+
+    override fun markSynced(encounter: EncounterEntity): Flow<Unit> = flow {
+        try {
+            val rows = encounterDao.update(encounter.copy(synced = true))
+            if (rows > 0) {
+                emit(Unit)
+            } else {
+                throw IllegalStateException("No rows updated — does encounter exist?")
+            }
+        } catch (e: Exception) {
+            AppLogger.e("DB error marking encounter synced: ${e.message}")
+            throw e // ⚡ Let the caller handle it!
+        }
+    }
+
+    override fun getUnsyncedPatients(): Flow<List<PatientEntity>> = flow {
+        try {
+            val unsynced = patientDao.getUnsyncedPatients()
+            emit(unsynced)
+        } catch (e: Exception) {
+            AppLogger.e("DB error when fetching unsynced patients: ${e.message}")
+            throw e // ⚡ Let the caller handle it!
+        }
+    }
+
+
+    override fun markSyncedPatient(patient: PatientEntity): Flow<Unit> = flow {
+        try {
+            val rows = patientDao.updatePatient(patient.copy(synced = true))
+            if (rows > 0) {
+                emit(Unit)
+            } else {
+                throw IllegalStateException("No rows updated — does patient exist?")
+            }
+        } catch (e: Exception) {
+            AppLogger.e("DB error marking patient synced: ${e.message}")
+            throw e // ⚡ Let the caller handle it!
+        }
+    }
+
 }
 
 

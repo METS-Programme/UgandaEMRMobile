@@ -74,7 +74,7 @@ interface PatientDao {
     suspend fun insertAll(patients: List<PatientEntity>)
 
     @Update
-    suspend fun updatePatient(patient: PatientEntity)
+    suspend fun updatePatient(patient: PatientEntity): Int
 
     @Delete
     suspend fun deletePatient(patient: PatientEntity)
@@ -87,5 +87,10 @@ interface PatientDao {
 
     @Query("DELETE FROM patients")
     suspend fun clearAll()
+
+    @Query("SELECT * FROM patients WHERE synced = 0")
+    suspend fun getUnsyncedPatients(): List<PatientEntity>
+
+
 }
 

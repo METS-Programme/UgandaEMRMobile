@@ -1,5 +1,7 @@
 package com.lyecdevelopers.sync.domain.usecase
 
+import com.lyecdevelopers.core.data.local.entity.EncounterEntity
+import com.lyecdevelopers.core.data.local.entity.PatientEntity
 import com.lyecdevelopers.core.model.Form
 import com.lyecdevelopers.core.model.Identifier
 import com.lyecdevelopers.core.model.PersonAttributeType
@@ -66,6 +68,27 @@ class SyncUseCase @Inject constructor(
     fun createDataDefinition(payload: DataDefinition): Flow<Result<Any>> {
         return repository.createDataDefinition(payload)
     }
+
+    // encounters
+    fun getUnsynced(): Flow<List<EncounterEntity>> {
+        return repository.getUnsynced()
+    }
+
+    fun markSynced(encounter: EncounterEntity): Flow<Unit> {
+        return repository.markSynced(encounter)
+    }
+
+
+    // patients
+    fun getUnsyncedPatients(): Flow<List<PatientEntity>> {
+        return repository.getUnsyncedPatients()
+    }
+
+    fun markSyncedPatient(patient: PatientEntity): Flow<Unit> {
+        return repository.markSyncedPatient(patient)
+    }
+
+
 
 
 }
