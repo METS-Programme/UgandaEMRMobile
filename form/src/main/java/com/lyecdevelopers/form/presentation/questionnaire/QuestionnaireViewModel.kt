@@ -78,7 +78,7 @@ class QuestionnaireViewModel @Inject constructor(
                                 }
                             } catch (e: Exception) {
                                 AppLogger.e(
-                                    "FormMapper",
+                                    "FormMapper${e.message}",
                                     "Error parsing form to questionnaire: ${e.message}",
                                     e
                                 )
@@ -162,6 +162,10 @@ class QuestionnaireViewModel @Inject constructor(
 
                     formsUseCase.saveEncounterLocally(encounterEntity)
                     AppLogger.d("Encounter saved locally: $encounterEntity")
+                    withContext(schedulerProvider.main) {
+                        hideLoading()
+                        navigate("worklist_main")
+                    }
 
                 } else {
                     AppLogger.e("No Questionnaire found in state — cannot map response.")
