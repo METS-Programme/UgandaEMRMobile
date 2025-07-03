@@ -99,6 +99,7 @@ data class Questions(
     @Json(name = "required") val required: String?,
     @Json(name = "id") val id: String?,
     @Json(name = "questionOptions") val questionoptions: Questionoptions,
+    @Json(name = "questions") val questions: List<Questions>? = null,
 ) {
     companion object {
         fun empty() = Questions(
@@ -107,8 +108,10 @@ data class Questions(
             id = "",
             questionoptions = Questionoptions.empty(),
             required = "false",
+            questions = emptyList(), // ✅ Correct type!
         )
     }
+
 }
 
 

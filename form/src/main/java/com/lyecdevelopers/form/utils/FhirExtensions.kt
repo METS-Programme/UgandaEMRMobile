@@ -86,7 +86,10 @@ object FhirExtensions {
             FieldType.CHECKBOX, FieldType.MULTI_CHECKBOX,
                 -> Questionnaire.QuestionnaireItemType.CHOICE
 
+            FieldType.FILE -> Questionnaire.QuestionnaireItemType.ATTACHMENT
+            FieldType.REPEATING -> Questionnaire.QuestionnaireItemType.GROUP
             else -> error("Unsupported field type: $fieldType")
         }
     }
+
 }
