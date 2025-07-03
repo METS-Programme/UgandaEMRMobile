@@ -25,9 +25,9 @@ fun EncounterCard(encounter: Encounter) {
             Text(encounter.encounterTypeUuid, style = MaterialTheme.typography.bodyMedium)
             Text(encounter.encounterDatetime.toString(), style = MaterialTheme.typography.bodySmall)
 
-            if (encounter.observations.isNotEmpty()) {
+            if (encounter.obs.isNotEmpty()) {
                 Spacer(Modifier.height(6.dp))
-                encounter.observations.forEach {
+                encounter.obs.forEach {
                     Text("• $it", style = MaterialTheme.typography.bodySmall)
                 }
             }
