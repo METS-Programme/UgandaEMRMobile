@@ -3,12 +3,16 @@ package com.lyecdevelopers.core.model.encounter
 import com.lyecdevelopers.core.model.OpenmrsObs
 
 data class EncounterPayload(
-    val id: String,
-    val visitId: String,
-    val type: String,
-    val date: String,
+    val uuid: String? = null,                 // Optional when creating
+    val visitUuid: String,
+    val encounterType: String,
+    val encounterDatetime: String,            // Use ISO format for JSON
     val patientUuid: String,
     val locationUuid: String,
-    val obs: List<OpenmrsObs>,
+    val provider: String? = null,
+    val obs: List<OpenmrsObs> = emptyList(),
+    val orders: List<Order> = emptyList(),
+    val formUuid: String? = null,
 )
+
 

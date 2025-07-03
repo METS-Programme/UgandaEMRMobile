@@ -29,6 +29,6 @@ class VisitRepositoryImpl @Inject constructor(
         visit.vitals?.let {
             visitSummaryDao.insertVitals(it.toEntity(visit.id))
         }
-        visitSummaryDao.insertEncounters(visit.encounters.map { it.toEntity(visit.id) })
+//        visitSummaryDao.insertEncounters(visit.encounters.map { it.toEntity(visit.id) })
     }
 }

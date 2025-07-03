@@ -22,8 +22,8 @@ fun EncounterCard(encounter: Encounter) {
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            Text(encounter.type, style = MaterialTheme.typography.bodyMedium)
-            Text(encounter.date, style = MaterialTheme.typography.bodySmall)
+            Text(encounter.encounterTypeUuid, style = MaterialTheme.typography.bodyMedium)
+            Text(encounter.encounterDatetime.toString(), style = MaterialTheme.typography.bodySmall)
 
             if (encounter.observations.isNotEmpty()) {
                 Spacer(Modifier.height(6.dp))

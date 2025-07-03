@@ -43,13 +43,13 @@ object EncounterExtensions {
     )
 
     fun OpenmrsEncounter.toEncounterEntity(
-        visitId: String,
+        visitUuid: String,
         synced: Boolean = false,
         createdAt: String,
     ): EncounterEntity {
         return EncounterEntity(
             id = UUID.randomUUID().toString(),
-            visitId = visitId,
+            visitUuid = visitUuid,
             encounterTypeUuid = this.encounterType,
             encounterDatetime = this.encounterDatetime,
             obs = this.obs,
@@ -57,6 +57,10 @@ object EncounterExtensions {
             patientUuid = this.patient,
             locationUuid = this.location,
             synced = synced,
+            providerUuid = "",
+            orders = emptyList(),
+            formUuid = "",
+            voided = false,
         )
     }
 

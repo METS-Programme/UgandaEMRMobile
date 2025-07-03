@@ -21,7 +21,7 @@ import com.lyecdevelopers.core.data.local.entity.VitalsEntity
     exportSchema = false
 )
 @TypeConverters(
-    FormTypeConverters::class, DateTimeTypeConverters::class, VisitStatusConverter::class
+    FormTypeConverters::class, DateTimeTypeConverters::class, VisitStatusConverter::class,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun visitDao(): VisitDao

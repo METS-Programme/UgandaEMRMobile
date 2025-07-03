@@ -71,15 +71,19 @@ class EncounterSyncWorker @AssistedInject constructor(
 
     private fun buildEncounterPayload(entity: EncounterEntity): EncounterPayload {
         return EncounterPayload(
-            id = entity.id,
-            visitId = entity.visitId,
-            type = entity.encounterTypeUuid,
-            date = entity.encounterTypeUuid,
-            patientUuid = entity.patientUuid,
-            locationUuid = entity.locationUuid,
-            obs = entity.obs
+            uuid = this.id.toString(),
+            visitUuid = entity.id,
+            encounterType = entity.encounterTypeUuid,
+            encounterDatetime = entity.encounterDatetime,
+            patient = entity.patientUuid,
+            location = entity.locationUuid,
+            provider = entity.locationUuid,
+            obs = entity.obs,
+            orders = entity.orders,
+            formUuid = entity.formUuid,
         )
     }
 }
+
 
 

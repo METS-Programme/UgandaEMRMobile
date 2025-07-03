@@ -11,13 +11,13 @@ data class VisitWithDetails(
 
     @Relation(
         parentColumn = "id",
-        entityColumn = "visitId"
+        entityColumn = "visitUuid"
     )
     val encounters: List<EncounterEntity> = emptyList(),
 
     @Relation(
         parentColumn = "id",
-        entityColumn = "visitId"
+        entityColumn = "visitUuid"
     )
     val vitals: VitalsEntity? = null,
 )

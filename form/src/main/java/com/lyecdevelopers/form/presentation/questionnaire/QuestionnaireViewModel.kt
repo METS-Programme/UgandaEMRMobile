@@ -153,11 +153,11 @@ class QuestionnaireViewModel @Inject constructor(
 
                     AppLogger.d("Mapped OpenMRS Encounter: $toSubmit")
 
-                    val visitId = UUID.randomUUID().toString()
+                    val visitUuid = UUID.randomUUID().toString()
                     val createdAt = Instant.now().toString()
 
                     val encounterEntity = toSubmit.toEncounterEntity(
-                        visitId = visitId, synced = false, createdAt = createdAt
+                        visitUuid = visitUuid, synced = false, createdAt = createdAt
                     )
 
                     formsUseCase.saveEncounterLocally(encounterEntity)

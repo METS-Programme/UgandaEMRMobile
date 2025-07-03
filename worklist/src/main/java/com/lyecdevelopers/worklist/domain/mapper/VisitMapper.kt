@@ -6,6 +6,7 @@ import com.lyecdevelopers.core.data.local.entity.VitalsEntity
 import com.lyecdevelopers.worklist.domain.model.Encounter
 import com.lyecdevelopers.worklist.domain.model.VisitSummary
 import com.lyecdevelopers.worklist.domain.model.Vitals
+import java.time.Instant
 
 fun VisitSummaryEntity.toDomain(
     encounters: List<EncounterEntity>,
@@ -26,13 +27,43 @@ fun VisitSummary.toEntity(patientId: String): VisitSummaryEntity = VisitSummaryE
 )
 
 // Encounters
-fun EncounterEntity.toDomain(): Encounter = Encounter(id, type, date)
+fun EncounterEntity.toDomain(): Encounter = Encounter(
+    uuid = id,
+    encounterTypeUuid = encounterTypeUuid,
+    encounterDatetime = Instant.parse(encounterDatetime),
+    patientUuid = patientUuid,
+    locationUuid = locationUuid,
+    providerUuid = providerUuid,
+    obs = obs,
+    orders = orders,
+    formUuid = formUuid,
+    visitUuid = visitUuid,
+    voided = voided,
+    synced = synced,
+    createdAt = Instant.parse(createdAt)
+)
 
-fun Encounter.toEntity(visitId: String): EncounterEntity = EncounterEntity(id, visitId, type, date)
+
+fun Encounter.toEntity(): EncounterEntity = EncounterEntity(
+    id = uuid,
+    encounterTypeUuid = encounterTypeUuid,
+    encounterDatetime = encounterDatetime.toString(),
+    patientUuid = patientUuid,
+    locationUuid = locationUuid,
+    providerUuid = providerUuid,
+    obs = obs,
+    orders = orders,
+    formUuid = formUuid,
+    visitUuid = visitUuid,
+    voided = voided,
+    synced = synced,
+    createdAt = createdAt.toString()
+)
+
 
 // Vitals
 fun VitalsEntity.toDomain(): Vitals = Vitals(bloodPressure, pulse, temperature)
 
-fun Vitals.toEntity(visitId: String): VitalsEntity = VitalsEntity(
-    visitId = visitId, temperature = temperature, pulse = 0, bloodPressure = bloodPressure
+fun Vitals.toEntity(visitUuid: String): VitalsEntity = VitalsEntity(
+    visitUuid = visitUuid, temperature = temperature, pulse = 0, bloodPressure = bloodPressure
 )
