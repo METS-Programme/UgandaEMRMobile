@@ -88,6 +88,7 @@ object FhirExtensions {
 
             FieldType.FILE -> Questionnaire.QuestionnaireItemType.ATTACHMENT
             FieldType.REPEATING -> Questionnaire.QuestionnaireItemType.GROUP
+            FieldType.UI_SELECT_EXTENDED -> Questionnaire.QuestionnaireItemType.STRING
             else -> error("Unsupported field type: $fieldType")
         }
     }

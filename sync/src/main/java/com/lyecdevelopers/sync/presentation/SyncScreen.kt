@@ -29,7 +29,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,13 +40,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.lyecdevelopers.core.model.cohort.Indicator
 import com.lyecdevelopers.core.model.cohort.IndicatorRepository
 import com.lyecdevelopers.core.model.o3.o3Form
+import com.lyecdevelopers.core.ui.components.BaseScreen
+import com.lyecdevelopers.sync.presentation.event.SyncEvent
 import com.lyecdevelopers.sync.presentation.forms.DownloadFormsScreen
-import com.lyecdevelopers.sync.presentation.forms.event.DownloadFormsUiEvent
 import com.lyecdevelopers.sync.presentation.patients.PatientFilterSectionContent
-import kotlinx.coroutines.flow.collectLatest
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,41 +64,12 @@ fun SyncScreen(
     onFormsSelected: (List<o3Form>) -> Unit = {},
 ) {
     val viewModel: SyncViewModel = hiltViewModel()
+    val uiState by viewModel.uiState.collectAsState()
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var isSheetVisible by rememberSaveable { mutableStateOf(false) }
     var showPatientFilterDialog by rememberSaveable { mutableStateOf(false) }
 
-    // Collect all state from ViewModel
-    val selectedCohort by viewModel.selectedCohort.collectAsState()
-    val selectedIndicator by viewModel.selectedIndicator.collectAsState()
-    val selectedDateRange by viewModel.selectedDateRange.collectAsState()
-
-    val cohortOptions by viewModel.cohorts.collectAsState()
-    val indicatorOptions: List<Indicator> = IndicatorRepository.reportIndicators
-
-    val availableParameters by viewModel.availableParameters.collectAsState()
-    val selectedParameters by viewModel.selectedParameters.collectAsState()
-    val highlightedAvailable by viewModel.highlightedAvailable.collectAsState()
-    val highlightedSelected by viewModel.highlightedSelected.collectAsState()
-
-    // forms
-    val formCount by viewModel.formCount.collectAsState()
-
-    // UI Event listener
-    LaunchedEffect(Unit) {
-        viewModel.uiEvent.collectLatest { event ->
-            when (event) {
-                is DownloadFormsUiEvent.ShowSnackbar -> {
-                }
-
-                is DownloadFormsUiEvent.FormsDownloaded -> {
-                    onFormsSelected(event.selectedForms)
-                    isSheetVisible = false
-                }
-            }
-        }
-    }
 
     if (isSheetVisible) {
         ModalBottomSheet(
@@ -111,126 +80,139 @@ fun SyncScreen(
         }
     }
 
-    Scaffold { padding ->
-        LazyColumn(
-            contentPadding = padding,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            item {
-                SyncSection(title = "Sync Status") {
-                    Surface(
-                        tonalElevation = 1.dp,
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text("Last Sync: $lastSyncTime")
-                            Text("Status: $lastSyncStatus")
-                            Text("Synced By: $lastSyncBy")
-                            lastSyncError?.let {
-                                Spacer(Modifier.height(8.dp))
-                                Text("Last Error: $it", color = MaterialTheme.colorScheme.error)
-                            }
-                            Spacer(Modifier.height(12.dp))
-                            Button(
-                                onClick = onSyncNow, modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(Icons.Filled.Sync, contentDescription = null)
-                                Spacer(Modifier.width(8.dp))
-                                Text("Sync Now")
-                            }
-                        }
-                    }
-                }
-            }
-
-            item {
-                SyncSection(title = "Data Summary") {
-                    Surface(
-                        tonalElevation = 1.dp,
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text("Forms Synced:")
-                                Text("$formCount")
-                            }
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text("Patients Synced:")
-                                Text("$patientsSynced")
+    BaseScreen(
+        uiEventFlow = viewModel.uiEvent,
+        isLoading = uiState.isLoading,
+        showLoading = { /* handled by uiState */ }) {
+        Scaffold { padding ->
+            LazyColumn(
+                contentPadding = padding,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                item {
+                    SyncSection(title = "Sync Status") {
+                        Surface(
+                            tonalElevation = 1.dp,
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text("Last Sync: $lastSyncTime")
+                                Text("Status: $lastSyncStatus")
+                                Text("Synced By: $lastSyncBy")
+                                lastSyncError?.let {
+                                    Spacer(Modifier.height(8.dp))
+                                    Text(
+                                        "Last Error: $it", color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                                Spacer(Modifier.height(12.dp))
+                                Button(
+                                    onClick = onSyncNow, modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Icon(Icons.Filled.Sync, contentDescription = null)
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Sync Now")
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            item {
-                SyncSection(title = "Auto Sync") {
-                    Surface(
-                        tonalElevation = 1.dp,
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Enable Auto-Sync")
-                                Spacer(Modifier.weight(1f))
-                                Switch(
-                                    checked = autoSyncEnabled, onCheckedChange = onToggleAutoSync
-                                )
+                item {
+                    SyncSection(title = "Data Summary") {
+                        Surface(
+                            tonalElevation = 1.dp,
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text("Forms Synced:")
+                                    Text("${uiState.formCount}")
+                                }
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text("Patients Synced:")
+                                    Text("$patientsSynced")
+                                }
                             }
-                            if (autoSyncEnabled) {
-                                Spacer(Modifier.height(4.dp))
+                        }
+                    }
+                }
+
+                item {
+                    SyncSection(title = "Auto Sync") {
+                        Surface(
+                            tonalElevation = 1.dp,
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text("Enable Auto-Sync")
+                                    Spacer(Modifier.weight(1f))
+                                    Switch(
+                                        checked = autoSyncEnabled,
+                                        onCheckedChange = onToggleAutoSync
+                                    )
+                                }
+                                if (autoSyncEnabled) {
+                                    Spacer(Modifier.height(4.dp))
+                                    Text(
+                                        "Interval: $autoSyncInterval",
+                                        color = Color.Gray,
+                                        fontSize = 14.sp
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    SyncSection(title = "Manual Download") {
+                        Surface(
+                            tonalElevation = 1.dp,
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
                                 Text(
-                                    "Interval: $autoSyncInterval",
-                                    color = Color.Gray,
-                                    fontSize = 14.sp
+                                    "Download Forms", style = MaterialTheme.typography.titleMedium
                                 )
-                            }
-                        }
-                    }
-                }
-            }
+                                Spacer(Modifier.height(8.dp))
+                                Button(
+                                    onClick = { isSheetVisible = true },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Icon(Icons.Default.Download, contentDescription = null)
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Download Forms")
+                                }
 
-            item {
-                SyncSection(title = "Manual Download") {
-                    Surface(
-                        tonalElevation = 1.dp,
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text("Download Forms", style = MaterialTheme.typography.titleMedium)
-                            Spacer(Modifier.height(8.dp))
-                            Button(
-                                onClick = { isSheetVisible = true },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(Icons.Default.Download, contentDescription = null)
-                                Spacer(Modifier.width(8.dp))
-                                Text("Download Forms")
-                            }
-
-                            Spacer(Modifier.height(16.dp))
-                            Text("Download Patients", style = MaterialTheme.typography.titleMedium)
-                            Spacer(Modifier.height(8.dp))
-                            Button(
-                                onClick = { showPatientFilterDialog = true },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(Icons.Default.Download, contentDescription = null)
-                                Spacer(Modifier.width(8.dp))
-                                Text("Download Patients")
+                                Spacer(Modifier.height(16.dp))
+                                Text(
+                                    "Download Patients",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Spacer(Modifier.height(8.dp))
+                                Button(
+                                    onClick = { showPatientFilterDialog = true },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Icon(Icons.Default.Download, contentDescription = null)
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Download Patients")
+                                }
                             }
                         }
                     }
@@ -239,45 +221,49 @@ fun SyncScreen(
         }
     }
 
-    // Patient Filter Dialog
     if (showPatientFilterDialog) {
         AlertDialog(onDismissRequest = { showPatientFilterDialog = false }, confirmButton = {
             TextButton(
                 onClick = {
-                    viewModel.onApplyFilters()
+                    viewModel.onEvent(SyncEvent.ApplyFilters)
                     showPatientFilterDialog = false
-                }) {
-                Text("Apply")
-            }
+                }) { Text("Apply") }
         }, dismissButton = {
             TextButton(onClick = { showPatientFilterDialog = false }) {
                 Text("Cancel")
             }
         }, text = {
             PatientFilterSectionContent(
-                cohortOptions = cohortOptions,
-                selectedCohort = selectedCohort,
-                onSelectedCohortChanged = viewModel::onSelectedCohortChanged,
-                indicatorOptions = indicatorOptions,
-                selectedIndicator = selectedIndicator,
-                onIndicatorSelected = viewModel::onIndicatorSelected,
-                selectedDateRange = selectedDateRange,
-                onDateRangeSelected = { startDate, endDate ->
-                    viewModel.onDateRangeSelected(Pair(startDate, endDate))
+                cohortOptions = uiState.cohorts,
+                selectedCohort = uiState.selectedCohort,
+                onSelectedCohortChanged = {
+                    viewModel.onEvent(SyncEvent.SelectedCohortChanged(it))
                 },
-                availableParameters = availableParameters,
-                selectedParameters = selectedParameters,
-                highlightedAvailable = highlightedAvailable,
-                highlightedSelected = highlightedSelected,
-                onHighlightAvailableToggle = { viewModel.toggleHighlightAvailable(it) },
-                onHighlightSelectedToggle = { viewModel.toggleHighlightSelected(it) },
-                onMoveRight = viewModel.moveRight,
-                onMoveLeft = viewModel.moveLeft,
+                indicatorOptions = IndicatorRepository.reportIndicators,
+                selectedIndicator = uiState.selectedIndicator,
+                onIndicatorSelected = {
+                    viewModel.onEvent(SyncEvent.IndicatorSelected(it))
+                },
+                selectedDateRange = uiState.selectedDateRange,
+                onDateRangeSelected = { startDate, endDate ->
+                    viewModel.onEvent(SyncEvent.DateRangeSelected(Pair(startDate, endDate)))
+                },
+                availableParameters = uiState.availableParameters,
+                selectedParameters = uiState.selectedParameters,
+                highlightedAvailable = uiState.highlightedAvailable,
+                highlightedSelected = uiState.highlightedSelected,
+                onHighlightAvailableToggle = {
+                    viewModel.onEvent(SyncEvent.ToggleHighlightAvailable(it))
+                },
+                onHighlightSelectedToggle = {
+                    viewModel.onEvent(SyncEvent.ToggleHighlightSelected(it))
+                },
+                onMoveRight = { viewModel.onEvent(SyncEvent.MoveRight) },
+                onMoveLeft = { viewModel.onEvent(SyncEvent.MoveLeft) },
                 onFilter = {
-                    viewModel.onApplyFilters()
+                    viewModel.onEvent(SyncEvent.ApplyFilters)
                     showPatientFilterDialog = false
                 })
-
         })
     }
 }
