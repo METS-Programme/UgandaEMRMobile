@@ -7,26 +7,24 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
 import com.lyecdevelopers.core.ui.components.BaseScreen
-import com.lyecdevelopers.worklist.domain.model.PatientFilters
-import com.lyecdevelopers.worklist.presentation.worklist.event.WorklistEvent
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorklistScreen(
     onPatientClick: (PatientEntity) -> Unit,
@@ -37,19 +35,9 @@ fun WorklistScreen(
     val uiState by viewModel.uiState.collectAsState()
     var isStartVisitDialogVisible by remember { mutableStateOf(false) }
 
-
     var isLoading by remember { mutableStateOf(false) }
 
-    var filters by rememberSaveable(stateSaver = PatientFilters.Saver) {
-        mutableStateOf(PatientFilters())
-    }
 
-    // Send filter changes to ViewModel
-    LaunchedEffect(filters) {
-        viewModel.onEvent(WorklistEvent.OnNameFilterChanged(filters.nameQuery))
-        viewModel.onEvent(WorklistEvent.OnGenderFilterChanged(filters.gender))
-        viewModel.onEvent(WorklistEvent.OnStatusFilterChanged(filters.visitStatus))
-    }
 
     BaseScreen(
         uiEventFlow = viewModel.uiEvent, isLoading = isLoading, showLoading = { isLoading = it }) {
@@ -72,16 +60,16 @@ fun WorklistScreen(
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                item {
-                    FilterSection(filters = filters, onFiltersChanged = { filters = it })
-                }
 
                 item {
                     WorklistSummary(patients = uiState.patients)
                 }
 
                 items(uiState.patients, key = { it.id }) { patient ->
-                    PatientCard(patient = patient, onStartVisit = {
+                    PatientCard(
+                        patient = patient,
+                        visitInfo = uiState.visits.find { it.patientId == patient.id },
+                        onStartVisit = {
                         isStartVisitDialogVisible = true
                     }, onViewDetails = { onPatientClick(patient) })
 
@@ -89,6 +77,7 @@ fun WorklistScreen(
             }
 
         }
+
 
         StartVisitDialog(
             isVisible = isStartVisitDialogVisible,
