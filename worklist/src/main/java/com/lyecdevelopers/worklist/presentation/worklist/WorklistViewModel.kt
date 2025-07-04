@@ -7,7 +7,9 @@ import androidx.paging.cachedIn
 import com.lyecdevelopers.core._base.BaseViewModel
 import com.lyecdevelopers.core.common.scheduler.SchedulerProvider
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
+import com.lyecdevelopers.core.data.local.entity.VisitEntity
 import com.lyecdevelopers.core.model.Result
+import com.lyecdevelopers.core.model.VisitStatus
 import com.lyecdevelopers.core.ui.event.UiEvent.Navigate
 import com.lyecdevelopers.form.domain.usecase.PatientsUseCase
 import com.lyecdevelopers.worklist.domain.usecase.VisitUseCases
@@ -23,6 +25,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.UUID
 import javax.inject.Inject
 
 
@@ -38,13 +41,11 @@ class WorklistViewModel @Inject constructor(
     val uiState: StateFlow<WorklistUiState> = _uiState.asStateFlow()
 
     // paging
-
     private val _pagingData = MutableStateFlow<PagingData<PatientEntity>>(PagingData.empty())
     val pagingData: StateFlow<PagingData<PatientEntity>> = _pagingData.asStateFlow()
 
     // search
     private var searchJob: Job? = null
-
 
     // Filters stored as state variables
     private var nameFilter: String? = null
@@ -57,12 +58,10 @@ class WorklistViewModel @Inject constructor(
         val patientId = savedStateHandle.get<String>("patientId")
         if (patientId != null) {
             loadPatient(patientId)
-//            loadVisitSummary(patientId)
         } else {
             _uiState.update { it.copy(error = "Patient ID not provided") }
         }
     }
-
 
     fun onEvent(event: WorklistEvent) {
         when (event) {
@@ -76,23 +75,58 @@ class WorklistViewModel @Inject constructor(
                 debounceLoadPatients()
             }
 
+            is WorklistEvent.OnStatusFilterChanged -> {
+                statusFilter = event.status?.name
+                debounceLoadPatients()
+            }
 
             is WorklistEvent.OnClearFilters -> {
                 nameFilter = null
                 genderFilter = null
                 statusFilter = null
                 debounceLoadPatients()
+            }
 
+            is WorklistEvent.OnPatientSelected -> {
+                emitUiEvent(Navigate("patient_details/${event.patientId}"))
             }
 
             is WorklistEvent.OnRefresh -> debounceLoadPatients()
-            is WorklistEvent.OnPatientSelected -> {
-                emitUiEvent(Navigate("patient_details/${event.patientId}"))
 
+            is WorklistEvent.OnVisitTypeChanged -> {
+                _uiState.update { it.copy(visitType = event.type) }
             }
 
-            is WorklistEvent.OnStatusFilterChanged -> {
-                statusFilter = event.status?.name
+            is WorklistEvent.OnVisitLocationChanged -> {
+                _uiState.update { it.copy(visitLocation = event.location) }
+            }
+
+            is WorklistEvent.OnVisitStatusChanged -> {
+                _uiState.update { it.copy(visitStatus = event.status) }
+            }
+
+            is WorklistEvent.OnStartDateChanged -> {
+                _uiState.update { it.copy(startDate = event.date) }
+            }
+
+            is WorklistEvent.OnStartTimeChanged -> {
+                _uiState.update { it.copy(startTime = event.time) }
+            }
+
+            is WorklistEvent.OnAmPmChanged -> {
+                _uiState.update { it.copy(amPm = event.amPm) }
+            }
+
+            is WorklistEvent.OnVisitNotesChanged -> {
+                _uiState.update { it.copy(visitNotes = event.notes) }
+            }
+
+            is WorklistEvent.OnLocationMenuExpandedChanged -> {
+                _uiState.update { it.copy(locationMenuExpanded = event.expanded) }
+            }
+
+            is WorklistEvent.OnAmPmMenuExpandedChanged -> {
+                _uiState.update { it.copy(amPmMenuExpanded = event.expanded) }
             }
 
             WorklistEvent.StartVisit -> startPatientVisit()
@@ -126,7 +160,6 @@ class WorklistViewModel @Inject constructor(
         }
     }
 
-
     private fun loadPatient(patientId: String) {
         viewModelScope.launch(schedulerProvider.io) {
             withContext(schedulerProvider.main) { showLoading() }
@@ -147,33 +180,51 @@ class WorklistViewModel @Inject constructor(
         }
     }
 
-    private fun loadVisitSummary(patientId: String) {
-        viewModelScope.launch(schedulerProvider.io) {
-            withContext(schedulerProvider.main) {
-                showLoading()
-            }
-//            visitSummaryUseCase.getVisitSummariesForPatient(patientId).collect { result ->
-//                withContext(schedulerProvider.main) {
-//                    handleResult(
-//                        result = result, onSuccess = {
-//
-//                        }, successMessage = "", errorMessage = (result as? Result.Error)?.message
-//                    )
-//                    withContext(schedulerProvider.main) {
-//                        showLoading()
-//                    }
-//                }
-//            }
-        }
-    }
-
     private fun startPatientVisit() {
         viewModelScope.launch(schedulerProvider.io) {
-            withContext(schedulerProvider.main) {}
+            val state = _uiState.value
+
+            val patientId = state.selectedPatient?.id
+            if (patientId == null) {
+                _uiState.update { it.copy(error = "No patient selected") }
+                return@launch
+            }
+
+            val visitId = UUID.randomUUID().toString()
+            val status = when (state.visitStatus) {
+                "New" -> VisitStatus.PENDING
+                "Ongoing" -> VisitStatus.IN_PROGRESS
+                "In the past" -> VisitStatus.COMPLETED
+                else -> VisitStatus.PENDING
+            }
+
+            val visit = VisitEntity(
+                id = visitId,
+                patientId = patientId,
+                status = status,
+                scheduledTime = "${state.startDate} ${state.startTime} ${state.amPm}",
+                type = state.visitType,
+                date = state.startDate,
+                notes = state.visitNotes
+            )
+
+            visitUseCases.saveVisit(visit).collect { result ->
+                withContext(schedulerProvider.main) {
+                    handleResult(
+                        result = result,
+                        onSuccess = {
+                            loadPatients()
+                        },
+                        successMessage = "Saved visit successfully",
+                        errorMessage = (result as? Result.Error)?.message
+                    )
+                }
+
+            }
+
+
         }
     }
-
-
 
     private fun debounceLoadPatients(delayMillis: Long = 300L) {
         searchJob?.cancel()
@@ -183,7 +234,6 @@ class WorklistViewModel @Inject constructor(
         }
     }
 
-
     fun loadPagedPatients() {
         viewModelScope.launch {
             patientsUseCase.getPagedPatients(nameFilter, genderFilter, statusFilter)
@@ -192,7 +242,6 @@ class WorklistViewModel @Inject constructor(
                 }
         }
     }
-
-
 }
+
 

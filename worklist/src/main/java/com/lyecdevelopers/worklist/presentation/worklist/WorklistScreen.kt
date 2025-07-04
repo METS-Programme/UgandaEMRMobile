@@ -30,12 +30,13 @@ import com.lyecdevelopers.worklist.presentation.worklist.event.WorklistEvent
 @Composable
 fun WorklistScreen(
     onPatientClick: (PatientEntity) -> Unit,
-    onStartVisit: (PatientEntity) -> Unit,
     onRegisterPatient: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: WorklistViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var isStartVisitDialogVisible by remember { mutableStateOf(false) }
+
 
     var isLoading by remember { mutableStateOf(false) }
 
@@ -80,18 +81,30 @@ fun WorklistScreen(
                 }
 
                 items(uiState.patients, key = { it.id }) { patient ->
-                    PatientCard(
-                        patient = patient,
-                        onStartVisit = { onStartVisit(patient) },
-                        onViewDetails = { onPatientClick(patient) })
+                    PatientCard(patient = patient, onStartVisit = {
+                        isStartVisitDialogVisible = true
+                    }, onViewDetails = { onPatientClick(patient) })
+
                 }
             }
 
         }
+
+        StartVisitDialog(
+            isVisible = isStartVisitDialogVisible,
+            onDismissRequest = { isStartVisitDialogVisible = false },
+            onStartVisit = {
+                isStartVisitDialogVisible = false
+            },
+            viewModel = viewModel
+        )
+
     }
 
 
 }
+
+
 
 
 

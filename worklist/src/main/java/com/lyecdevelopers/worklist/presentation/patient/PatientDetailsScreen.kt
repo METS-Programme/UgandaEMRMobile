@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,7 +25,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -51,6 +49,7 @@ import com.lyecdevelopers.core.ui.components.EmptyStateView
 import com.lyecdevelopers.worklist.domain.model.Vitals
 import com.lyecdevelopers.worklist.presentation.visit.VisitCard
 import com.lyecdevelopers.worklist.presentation.visit.VisitDetailsDialog
+import com.lyecdevelopers.worklist.presentation.worklist.StartVisitDialog
 import com.lyecdevelopers.worklist.presentation.worklist.WorklistViewModel
 import java.time.LocalDate
 import java.time.Period
@@ -59,23 +58,18 @@ import java.time.Period
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PatientDetailsScreen(
-    patientId: String,
-    onStartVisit: (PatientEntity) -> Unit,
     onStartEncounter: (PatientEntity?, Any?) -> Unit,
     onAddVitals: (PatientEntity) -> Unit,
     viewModel: WorklistViewModel = hiltViewModel(),
     navController: NavController,
-
-    ) {
-
+) {
     var isLoading by remember { mutableStateOf(false) }
     val state by viewModel.uiState.collectAsState()
-
 
     var selectedVisit by remember { mutableStateOf<VisitEntity?>(null) }
     var fabExpanded by remember { mutableStateOf(false) }
 
-
+    var isStartVisitDialogVisible by remember { mutableStateOf(false) }
 
     BaseScreen(
         uiEventFlow = viewModel.uiEvent,
@@ -91,11 +85,11 @@ fun PatientDetailsScreen(
                 Column(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     horizontalAlignment = Alignment.End,
-                    modifier = Modifier.padding(bottom = 72.dp, end = 0.dp)
+                    modifier = Modifier.padding(bottom = 72.dp)
                 ) {
                     AnimatedVisibility(visible = fabExpanded) {
                         SmallFabButton(
-                            icon = Icons.Outlined.MonitorHeart, // or any medical icon
+                            icon = Icons.Outlined.MonitorHeart,
                             label = "New Vitals",
                             onClick = {
                                 fabExpanded = false
@@ -106,7 +100,8 @@ fun PatientDetailsScreen(
 
                     AnimatedVisibility(visible = fabExpanded) {
                         SmallFabButton(
-                            icon = Icons.Default.Info, label = "New Encounter",
+                            icon = Icons.Default.Info,
+                            label = "New Encounter",
                             onClick = {
                                 fabExpanded = false
                                 onStartEncounter(state.selectedPatient, null)
@@ -116,10 +111,11 @@ fun PatientDetailsScreen(
 
                     AnimatedVisibility(visible = fabExpanded) {
                         SmallFabButton(
-                            icon = Icons.Default.Add, label = "New Visit",
+                            icon = Icons.Default.Add,
+                            label = "New Visit",
                             onClick = {
                                 fabExpanded = false
-                                state.selectedPatient?.let(onStartVisit)
+                                isStartVisitDialogVisible = true
                             },
                         )
                     }
@@ -140,7 +136,6 @@ fun PatientDetailsScreen(
                 }
             }
         }
-
         ) { padding ->
             LazyColumn(
                 contentPadding = padding,
@@ -149,7 +144,7 @@ fun PatientDetailsScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Patient Info and Vitals
+                // Patient Info & Vitals
                 item {
                     val patient = state.selectedPatient
 
@@ -158,22 +153,13 @@ fun PatientDetailsScreen(
                         val ageText = if (age >= 0) "$age years" else "Unknown age"
                         val demographics = "$ageText • ${patient.gender}"
 
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            // Patient name
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(
-                                text = "${patient.firstName} • ${patient.lastName}",
+                                text = "${patient.firstName} ${patient.lastName}",
                                 style = MaterialTheme.typography.titleMedium
                             )
+                            Text(demographics, style = MaterialTheme.typography.bodyMedium)
 
-                            // Age and gender
-                            Text(
-                                text = demographics, style = MaterialTheme.typography.bodyMedium
-                            )
-
-                            // Vitals or Empty State
                             if (state.vitals != null) {
                                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                     Text(
@@ -184,19 +170,18 @@ fun PatientDetailsScreen(
                                     VitalsInfo(vitals = state.vitals!!)
                                 }
                             } else {
-                                EmptyStateView(message = "No vitals recorded.")
+                                EmptyStateView("No vitals recorded.")
                             }
                         }
                     } else {
-                        EmptyStateView(message = "No patient selected.")
+                        EmptyStateView("No patient selected.")
                     }
                 }
 
-
-                // Current Visit Section
+                // Visits
                 item {
                     Text("Current Visit", style = MaterialTheme.typography.titleMedium)
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                    HorizontalDivider(Modifier.padding(vertical = 8.dp))
 
                     if (state.visits.isNotEmpty()) {
                         val currentVisit = state.visits.first()
@@ -207,23 +192,20 @@ fun PatientDetailsScreen(
                     } else {
                         EmptyStateView("No ongoing visit.")
                     }
-
                 }
 
-                // Visit History
                 val pastVisits = if (state.visits.size > 1) state.visits.drop(1) else emptyList()
                 if (pastVisits.isNotEmpty()) {
                     item {
                         Text("Visit History", style = MaterialTheme.typography.titleMedium)
                         HorizontalDivider()
                     }
-
                     items(pastVisits, key = { it.id }) { visit ->
                         VisitCard(visit = visit, onClick = { /* Handle */ })
                     }
                 }
 
-                // Encounter Section
+                // Encounters
                 item {
                     Text("Encounters", style = MaterialTheme.typography.titleMedium)
                     HorizontalDivider()
@@ -235,7 +217,6 @@ fun PatientDetailsScreen(
                             title = "Current Encounter", encounters = state.encounters
                         )
                     }
-
                     item {
                         EncounterSection(
                             title = "Previous Encounters", encounters = state.encounters
@@ -245,22 +226,28 @@ fun PatientDetailsScreen(
                     item {
                         Column {
                             EmptyStateView("No encounters available.")
-                            Spacer(modifier = Modifier.height(8.dp))
-
+                            Spacer(Modifier.height(8.dp))
                         }
                     }
                 }
             }
 
             selectedVisit?.let {
-                VisitDetailsDialog(visit = it, onDismiss = { selectedVisit = null })
+                VisitDetailsDialog(
+                    visit = it, onDismiss = { selectedVisit = null })
             }
         }
 
-
-
+        StartVisitDialog(
+            isVisible = isStartVisitDialogVisible,
+            onDismissRequest = { isStartVisitDialogVisible = false },
+            onStartVisit = {
+                isStartVisitDialogVisible = false
+                // Optionally: call a ViewModel event here
+            },
+            viewModel = viewModel
+        )
     }
-
 }
 
 
@@ -290,35 +277,6 @@ fun VitalsInfo(vitals: Vitals) {
     }
 }
 
-
-@Composable
-fun VisitActionButtons(
-    onStartVisit: () -> Unit,
-    onStartEncounter: () -> Unit,
-) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp)
-    ) {
-        OutlinedButton(
-            onClick = onStartVisit, modifier = Modifier.weight(1f)
-        ) {
-            Icon(Icons.Default.Add, contentDescription = null)
-            Spacer(Modifier.width(4.dp))
-            Text("New Visit")
-        }
-
-        OutlinedButton(
-            onClick = onStartEncounter, modifier = Modifier.weight(1f)
-        ) {
-            Icon(Icons.Default.Info, contentDescription = null)
-            Spacer(Modifier.width(4.dp))
-            Text("New Encounter")
-        }
-    }
-}
 
 
 @Composable
