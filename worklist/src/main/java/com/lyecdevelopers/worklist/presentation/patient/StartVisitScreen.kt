@@ -23,18 +23,6 @@ import androidx.compose.ui.unit.sp
 import java.text.SimpleDateFormat
 import java.util.*
 
-class StartVisitActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            UgandaEMRMobileTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    StartVisitScreen()
-                }
-            }
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
