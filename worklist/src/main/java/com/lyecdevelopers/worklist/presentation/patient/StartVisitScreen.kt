@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,7 +35,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.lyecdevelopers.core.data.local.entity.VisitEntity
 import com.lyecdevelopers.core.ui.components.BaseScreen
 import com.lyecdevelopers.worklist.presentation.worklist.WorklistViewModel
 import com.lyecdevelopers.worklist.presentation.worklist.event.WorklistEvent
@@ -48,8 +46,6 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StartVisitScreen(
-    onStartVisit: (VisitEntity) -> Unit,
-    onDiscard: () -> Unit = {},
     viewModel: WorklistViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
@@ -229,20 +225,7 @@ fun StartVisitScreen(
             }
 
             Spacer(Modifier.weight(1f))
-            Row(
-                Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                OutlinedButton(onClick = onDiscard) {
-                    Text("Discard")
-                }
-                Button(
-                    onClick = {
-                        viewModel.onEvent(WorklistEvent.StartVisit)
-                    }, enabled = uiState.visitType.isNotEmpty()
-                ) {
-                    Text("Start Visit")
-                }
-            }
+
         }
     }
 }

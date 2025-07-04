@@ -241,10 +241,6 @@ fun PatientDetailsScreen(
         StartVisitDialog(
             isVisible = isStartVisitDialogVisible,
             onDismissRequest = { isStartVisitDialogVisible = false },
-            onStartVisit = {
-                isStartVisitDialogVisible = false
-                // Optionally: call a ViewModel event here
-            },
             viewModel = viewModel
         )
     }

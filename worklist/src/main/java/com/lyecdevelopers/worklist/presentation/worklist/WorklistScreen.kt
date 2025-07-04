@@ -93,9 +93,6 @@ fun WorklistScreen(
         StartVisitDialog(
             isVisible = isStartVisitDialogVisible,
             onDismissRequest = { isStartVisitDialogVisible = false },
-            onStartVisit = {
-                isStartVisitDialogVisible = false
-            },
             viewModel = viewModel
         )
 

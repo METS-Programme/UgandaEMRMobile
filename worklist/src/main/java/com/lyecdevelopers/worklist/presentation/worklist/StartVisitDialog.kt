@@ -1,39 +1,44 @@
 package com.lyecdevelopers.worklist.presentation.worklist
 
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Surface
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lyecdevelopers.worklist.presentation.patient.StartVisitScreen
+import com.lyecdevelopers.worklist.presentation.worklist.event.WorklistEvent
 
 @Composable
 fun StartVisitDialog(
     isVisible: Boolean,
     onDismissRequest: () -> Unit,
-    onStartVisit: () -> Unit,
     viewModel: WorklistViewModel = hiltViewModel(),
 ) {
-    if (isVisible) {
-        Dialog(onDismissRequest = onDismissRequest) {
-            Surface(
-                shape = RoundedCornerShape(12.dp),
-                tonalElevation = 4.dp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                StartVisitScreen(
-                    onStartVisit = { onStartVisit() },
-                    onDiscard = {/**/ },
-                    viewModel = viewModel
-                )
-            }
-        }
+    if (!isVisible) return
 
-    }
+    val uiState by viewModel.uiState.collectAsState()
+
+    AlertDialog(onDismissRequest = onDismissRequest, confirmButton = {
+        Button(
+            onClick = {
+                viewModel.onEvent(WorklistEvent.StartVisit)
+                onDismissRequest()
+            }, enabled = uiState.visitType.isNotEmpty()
+            ) {
+            Text("Start Visit")
+            }
+    }, dismissButton = {
+        OutlinedButton(onClick = onDismissRequest) {
+            Text("Cancel")
+        }
+    }, text = {
+        StartVisitScreen(
+            viewModel = viewModel
+        )
+    })
 }
+
+

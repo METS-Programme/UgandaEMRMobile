@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Schedule
@@ -146,22 +147,31 @@ fun SettingsScreen(
                                 )
                         ) {
                             SettingsItem(
-                                icon = Icons.Default.Cloud, // Example icon for server
+                                icon = Icons.Default.Cloud,
                                 title = "Server URL",
-                                subtitle = state.serverUrl,
-                                onClick = { showServerDialog = true })
+                                subtitle = state.serverUrl, onClick = { showServerDialog = true })
                             Divider(Modifier.padding(horizontal = 16.dp))
+
                             SettingsItem(
-                                icon = Icons.Default.Schedule, // Example icon for interval
+                                icon = Icons.Default.Schedule,
                                 title = "Sync Interval",
                                 subtitle = "${state.syncIntervalInMinutes} mins",
                                 onClick = {
                                     showServerDialog = true
-                                } // Use separate dialog if needed
+                                } // Or separate dialog if needed
+                            )
+                            Divider(Modifier.padding(horizontal = 16.dp))
+
+                            SettingsItem(
+                                icon = Icons.Default.Info,
+                                title = "Server Version",
+                                subtitle = state.serverVersion ?: "Unknown",
+                                onClick = { /* Optional: maybe show changelog */ }
                             )
                         }
                     }
                 }
+
 
 
                 item {
