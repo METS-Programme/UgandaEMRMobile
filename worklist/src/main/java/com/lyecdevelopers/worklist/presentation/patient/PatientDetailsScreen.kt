@@ -45,9 +45,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
+import com.lyecdevelopers.core.data.local.entity.VisitEntity
 import com.lyecdevelopers.core.ui.components.BaseScreen
 import com.lyecdevelopers.core.ui.components.EmptyStateView
-import com.lyecdevelopers.worklist.domain.model.VisitSummary
 import com.lyecdevelopers.worklist.domain.model.Vitals
 import com.lyecdevelopers.worklist.presentation.visit.VisitCard
 import com.lyecdevelopers.worklist.presentation.visit.VisitDetailsDialog
@@ -72,10 +72,8 @@ fun PatientDetailsScreen(
     val state by viewModel.uiState.collectAsState()
 
 
-    var selectedVisit by remember { mutableStateOf<VisitSummary?>(null) }
+    var selectedVisit by remember { mutableStateOf<VisitEntity?>(null) }
     var fabExpanded by remember { mutableStateOf(false) }
-
-    var dropdownExpanded by remember { mutableStateOf(false) }
 
 
 

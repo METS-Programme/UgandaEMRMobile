@@ -34,7 +34,6 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType.Companion.PrimaryEditable
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
@@ -241,35 +240,37 @@ fun SettingsServerConfigurationDialog(
 ) {
     var url by remember { mutableStateOf(currentUrl) }
     var selectedInterval by remember { mutableIntStateOf(currentInterval) }
+    var expanded by remember { mutableStateOf(false) }
 
     val intervalOptions = listOf(5, 15, 30, 60)
-    var expanded by remember { mutableStateOf(false) }
+    MaterialTheme.colorScheme
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(onClick = { onSave(url, selectedInterval) }) {
-                Text("Save")
-            }
+        title = {
+            Text(
+                text = "Server Settings",
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)
+            )
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-        }
-        },
-        title = { Text("Server Settings") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(20.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 OutlinedTextField(
                     value = url,
                     onValueChange = { url = it },
                     label = { Text("Server URL") },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("https://example.org/api/") }
                 )
 
                 ExposedDropdownMenuBox(
-                    expanded = expanded, onExpandedChange = { expanded = !expanded }) {
+                    expanded = expanded,
+                    onExpandedChange = { expanded = !expanded },
+                ) {
                     OutlinedTextField(
                         readOnly = true,
                         value = "$selectedInterval mins",
@@ -277,22 +278,41 @@ fun SettingsServerConfigurationDialog(
                         label = { Text("Sync Interval") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
                         modifier = Modifier
-                            .menuAnchor(type = PrimaryEditable, enabled = true)
+                            .menuAnchor()
                             .fillMaxWidth()
                     )
+
                     ExposedDropdownMenu(
-                        expanded = expanded, onDismissRequest = { expanded = false }) {
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
                         intervalOptions.forEach { interval ->
-                            DropdownMenuItem(text = { Text("$interval mins") }, onClick = {
-                                selectedInterval = interval
-                                expanded = false
-                            })
+                            DropdownMenuItem(
+                                text = { Text("$interval mins") },
+                                onClick = {
+                                    selectedInterval = interval
+                                    expanded = false
+                                }
+                            )
                         }
                     }
                 }
             }
         },
-        shape = RoundedCornerShape(12.dp),
+        confirmButton = {
+            TextButton(
+                onClick = { onSave(url.trim(), selectedInterval) },
+                enabled = url.isNotBlank()
+            ) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        },
+        shape = RoundedCornerShape(12.dp)
     )
 }
 

@@ -7,12 +7,14 @@ import androidx.room.PrimaryKey
 import java.util.UUID
 
 @Entity(
-    tableName = "vitals", foreignKeys = [ForeignKey(
-        entity = VisitSummaryEntity::class,
+    tableName = "vitals",
+    foreignKeys = [ForeignKey(
+        entity = VisitEntity::class,
         parentColumns = ["id"],
         childColumns = ["visitUuid"],
         onDelete = ForeignKey.CASCADE
-    )], indices = [Index(value = ["visitUuid"])]
+    )],
+    indices = [Index(value = ["visitUuid"])]
 )
 data class VitalsEntity(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
@@ -21,3 +23,5 @@ data class VitalsEntity(
     val pulse: Int?,
     val bloodPressure: String?,
 )
+
+

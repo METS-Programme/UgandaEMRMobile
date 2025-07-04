@@ -1,6 +1,6 @@
 package com.lyecdevelopers.worklist.di
 
-import com.lyecdevelopers.core.data.local.dao.VisitSummaryDao
+import com.lyecdevelopers.core.data.local.dao.VisitDao
 import com.lyecdevelopers.worklist.data.repository.VisitRepositoryImpl
 import com.lyecdevelopers.worklist.domain.repository.VisitRepository
 import dagger.Module
@@ -17,10 +17,10 @@ object WorklistModule {
     @Provides
     @Singleton
     fun provideVisitSummaryRepository(
-        visitSummaryDao: VisitSummaryDao,
+        visitDao: VisitDao,
     ): VisitRepository {
         return VisitRepositoryImpl(
-            visitSummaryDao = visitSummaryDao,
+            visitDao = visitDao,
         )
     }
 }

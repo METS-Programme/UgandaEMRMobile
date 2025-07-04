@@ -12,10 +12,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.lyecdevelopers.worklist.domain.model.Encounter
+import com.lyecdevelopers.core.data.local.entity.EncounterEntity
 
 @Composable
-fun EncounterCard(encounter: Encounter) {
+fun EncounterCard(encounter: EncounterEntity) {
     Surface(
         shape = RoundedCornerShape(8.dp),
         tonalElevation = 2.dp,

@@ -7,8 +7,7 @@ import java.util.UUID
 
 @Entity(tableName = "patients")
 data class PatientEntity(
-    @PrimaryKey val id: String = UUID.randomUUID()
-        .toString(),  // auto-generate UUID if none provided
+    @PrimaryKey val id: String = UUID.randomUUID().toString(),
     val patientIdentifier: String,
     val firstName: String,
     val lastName: String,

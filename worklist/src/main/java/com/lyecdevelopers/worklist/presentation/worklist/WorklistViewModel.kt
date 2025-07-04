@@ -8,9 +8,9 @@ import com.lyecdevelopers.core._base.BaseViewModel
 import com.lyecdevelopers.core.common.scheduler.SchedulerProvider
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
 import com.lyecdevelopers.core.model.Result
-import com.lyecdevelopers.core.ui.event.UiEvent
+import com.lyecdevelopers.core.ui.event.UiEvent.Navigate
 import com.lyecdevelopers.form.domain.usecase.PatientsUseCase
-import com.lyecdevelopers.worklist.domain.usecase.VisitSummaryUseCase
+import com.lyecdevelopers.worklist.domain.usecase.VisitUseCases
 import com.lyecdevelopers.worklist.presentation.worklist.event.WorklistEvent
 import com.lyecdevelopers.worklist.presentation.worklist.state.WorklistUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,9 +29,9 @@ import javax.inject.Inject
 @HiltViewModel
 class WorklistViewModel @Inject constructor(
     private val patientsUseCase: PatientsUseCase,
+    private val visitUseCases: VisitUseCases,
     private val schedulerProvider: SchedulerProvider,
     savedStateHandle: SavedStateHandle,
-    private val visitSummaryUseCase: VisitSummaryUseCase,
 ) : BaseViewModel() {
 
     private val _uiState = MutableStateFlow(WorklistUiState())
@@ -57,7 +57,7 @@ class WorklistViewModel @Inject constructor(
         val patientId = savedStateHandle.get<String>("patientId")
         if (patientId != null) {
             loadPatient(patientId)
-            loadVisitSummary(patientId)
+//            loadVisitSummary(patientId)
         } else {
             _uiState.update { it.copy(error = "Patient ID not provided") }
         }
@@ -87,13 +87,15 @@ class WorklistViewModel @Inject constructor(
 
             is WorklistEvent.OnRefresh -> debounceLoadPatients()
             is WorklistEvent.OnPatientSelected -> {
-                emitUiEvent(UiEvent.Navigate("patient_details/${event.patientId}"))
+                emitUiEvent(Navigate("patient_details/${event.patientId}"))
 
             }
 
             is WorklistEvent.OnStatusFilterChanged -> {
                 statusFilter = event.status?.name
             }
+
+            WorklistEvent.StartVisit -> startPatientVisit()
         }
     }
 
@@ -150,18 +152,24 @@ class WorklistViewModel @Inject constructor(
             withContext(schedulerProvider.main) {
                 showLoading()
             }
-            visitSummaryUseCase.getVisitSummariesForPatient(patientId).collect { result ->
-                withContext(schedulerProvider.main) {
-                    handleResult(
-                        result = result, onSuccess = {
+//            visitSummaryUseCase.getVisitSummariesForPatient(patientId).collect { result ->
+//                withContext(schedulerProvider.main) {
+//                    handleResult(
+//                        result = result, onSuccess = {
+//
+//                        }, successMessage = "", errorMessage = (result as? Result.Error)?.message
+//                    )
+//                    withContext(schedulerProvider.main) {
+//                        showLoading()
+//                    }
+//                }
+//            }
+        }
+    }
 
-                        }, successMessage = "", errorMessage = (result as? Result.Error)?.message
-                    )
-                    withContext(schedulerProvider.main) {
-                        showLoading()
-                    }
-                }
-            }
+    private fun startPatientVisit() {
+        viewModelScope.launch(schedulerProvider.io) {
+            withContext(schedulerProvider.main) {}
         }
     }
 

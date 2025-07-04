@@ -6,17 +6,20 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.lyecdevelopers.core.model.OpenmrsObs
 import com.lyecdevelopers.core.model.encounter.Order
+import java.util.UUID
 
 @Entity(
-    tableName = "encounters", foreignKeys = [ForeignKey(
-        entity = VisitSummaryEntity::class,
-        parentColumns = ["id"], childColumns = ["visitUuid"],
+    tableName = "encounters",
+    foreignKeys = [ForeignKey(
+        entity = VisitEntity::class,
+        parentColumns = ["id"],
+        childColumns = ["visitUuid"],
         onDelete = ForeignKey.CASCADE
     )], indices = [Index(value = ["visitUuid"])]
 )
 
 data class EncounterEntity(
-    @PrimaryKey val id: String,
+    @PrimaryKey val id: String = UUID.randomUUID().toString(),
     val encounterTypeUuid: String,
     val encounterDatetime: String,
     val patientUuid: String,
