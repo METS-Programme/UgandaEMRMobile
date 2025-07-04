@@ -57,12 +57,17 @@ android {
 
             println("🔑 [Signing] Using keystore at: $storeFilePath")
 
-            storeFile = rootProject.file(storeFilePath)
-            storePassword = storePasswordProp
-            keyAlias = keyAliasProp
-            keyPassword = keyPasswordProp
+            if (storeFilePath.isNotBlank()) {
+                storeFile = rootProject.file(storeFilePath)
+                storePassword = storePasswordProp
+                keyAlias = keyAliasProp
+                keyPassword = keyPasswordProp
+            } else {
+                println("⚠️  Skipping release signing config because keystore path is missing.")
+            }
         }
     }
+
 
     buildTypes {
         release {
