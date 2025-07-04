@@ -58,6 +58,8 @@ class SyncViewModel @Inject constructor(
         restoreSelectedForms()
         loadReportIndicators()
         updateFormCount()
+        updatePatientCount()
+        updateEncounterCount()
     }
 
     fun onEvent(event: SyncEvent) {
@@ -70,7 +72,6 @@ class SyncViewModel @Inject constructor(
 
             is SyncEvent.SelectedCohortChanged -> updateUi { copy(selectedCohort = event.cohort) }
             is SyncEvent.IndicatorSelected -> onIndicatorSelected(event.indicator)
-            is SyncEvent.DateRangeSelected -> updateUi { copy(selectedDateRange = event.range) }
             SyncEvent.ApplyFilters -> onApplyFilters()
 
             is SyncEvent.ToggleHighlightAvailable -> toggleHighlightAvailable(event.item)
@@ -83,16 +84,18 @@ class SyncViewModel @Inject constructor(
     private fun loadForms() {
         viewModelScope.launch(schedulerProvider.io) {
             syncUseCase.loadForms().collect { result ->
-                collectResult(result) { forms ->
-                    updateUi {
-                        copy(
-                            isLoading = false,
-                            formItems = forms,
-                            selectedFormIds = emptySet(),
-                            searchQuery = ""
-                        )
-                    }
-                }
+                handleResult(
+                    result = result, onSuccess = { forms ->
+                        updateUi {
+                            copy(
+                                isLoading = false,
+                                formItems = forms,
+                                selectedFormIds = emptySet(),
+                                searchQuery = ""
+                            )
+                        }
+                    }, successMessage = "", errorMessage = (result as? Result.Error)?.message
+                )
             }
         }
     }
@@ -101,11 +104,14 @@ class SyncViewModel @Inject constructor(
         updateUi { copy(searchQuery = query) }
         viewModelScope.launch(schedulerProvider.io) {
             syncUseCase.filterForms(query).collect { result ->
-                collectResult(result) { forms ->
-                    updateUi {
-                        copy(formItems = forms, selectedFormIds = emptySet())
-                    }
-                }
+                handleResult(
+                    result = result, onSuccess = { forms ->
+                        updateUi {
+                            copy(formItems = forms, selectedFormIds = emptySet())
+                        }
+                    }, successMessage = "", errorMessage = (result as? Result.Error)?.message
+                )
+
             }
         }
     }
@@ -156,10 +162,17 @@ class SyncViewModel @Inject constructor(
             }
 
             syncUseCase.saveFormsLocally(loadedForms).collect { saveResult ->
-                collectResult(saveResult) {
-//                    emitUiEvent(SyncEvent.FormsDownloaded(loadedForms))
-//                    isSheetVisible = false
-                    clearSelection()
+                withContext(schedulerProvider.main) {
+                    handleResult(
+                        result = saveResult,
+                        onSuccess = { data ->
+                            AppLogger.d("Data$data")
+//                                                isSheetVisible = false
+                            clearSelection()
+                        },
+                        successMessage = "Successfully created data definition",
+                        errorMessage = (saveResult as? Result.Error)?.message
+                    )
                 }
             }
         }
@@ -171,9 +184,11 @@ class SyncViewModel @Inject constructor(
     private fun loadCohorts() {
         viewModelScope.launch(schedulerProvider.io) {
             syncUseCase.getCohorts().collect { result ->
-                collectResult(result) { cohorts ->
-                    updateUi { copy(cohorts = cohorts) }
-                }
+                handleResult(
+                    result = result, onSuccess = { cohorts ->
+                        updateUi { copy(cohorts = cohorts) }
+                    }, successMessage = "", errorMessage = (result as? Result.Error)?.message
+                )
             }
         }
     }
@@ -181,11 +196,11 @@ class SyncViewModel @Inject constructor(
     private fun loadEncounterTypes() {
         viewModelScope.launch(schedulerProvider.io) {
             syncUseCase.getEncounterTypes().collect { result ->
-                when (result) {
-                    is Result.Success -> updateUi { copy(encounterTypes = result.data) }
-                    is Result.Error -> updateUi { copy(error = result.message) }
-                    else -> {}
-                }
+                handleResult(
+                    result = result, onSuccess = { encounterTypes ->
+                        updateUi { copy(encounterTypes = encounterTypes) }
+                    }, successMessage = "", errorMessage = (result as? Result.Error)?.message
+                )
             }
         }
     }
@@ -193,11 +208,11 @@ class SyncViewModel @Inject constructor(
     private fun loadOrderTypes() {
         viewModelScope.launch(schedulerProvider.io) {
             syncUseCase.getOrderTypes().collect { result ->
-                when (result) {
-                    is Result.Success -> updateUi { copy(orderTypes = result.data) }
-                    is Result.Error -> updateUi { copy(error = result.message) }
-                    else -> {}
-                }
+                handleResult(
+                    result = result, onSuccess = { orderTypes ->
+                        updateUi { copy(orderTypes = orderTypes) }
+                    }, successMessage = "", errorMessage = (result as? Result.Error)?.message
+                )
             }
         }
     }
@@ -229,16 +244,14 @@ class SyncViewModel @Inject constructor(
             val payload = buildDataDefinitionPayload(reportRequest, indicator)
 
             syncUseCase.createDataDefinition(payload).collect { result ->
-                when (result) {
-                    is Result.Loading -> updateUi { copy(isLoading = true) }
-                    is Result.Success -> {
-                        updateUi { copy(isLoading = false) }
-                    }
-
-                    is Result.Error -> {
-                        updateUi { copy(isLoading = false) }
-                    }
-                }
+                handleResult(
+                    result = result,
+                    onSuccess = { data ->
+                        AppLogger.d("Data$data")
+                    },
+                    successMessage = "Successfully created data definition",
+                    errorMessage = (result as? Result.Error)?.message
+                )
             }
         }
     }
@@ -293,32 +306,54 @@ class SyncViewModel @Inject constructor(
         }
     }
 
-    private suspend fun <T> collectResult(
-        result: Result<T>,
-        onSuccess: suspend (T) -> Unit,
-    ) = withContext(schedulerProvider.main) {
-        when (result) {
-            is Result.Loading -> updateUi { copy(isLoading = true) }
-            is Result.Success -> {
-                updateUi { copy(isLoading = false) }
-                onSuccess(result.data)
-            }
-
-            is Result.Error -> updateUi { copy(isLoading = false, error = result.message) }
-        }
-    }
 
     private fun updateFormCount() {
         viewModelScope.launch(schedulerProvider.io) {
             syncUseCase.getFormCount().collect { result ->
-                when (result) {
-                    is Result.Success -> updateUi { copy(formCount = result.data) }
-                    is Result.Error -> AppLogger.e("Form count failed: ${result.message}")
-                    Result.Loading -> {}
+                withContext(schedulerProvider.main) {
+                    handleResult(
+                        result = result, onSuccess = { formCount ->
+                            updateUi { copy(formCount = formCount) }
+                        }, successMessage = "", errorMessage = (result as? Result.Error)?.message
+                    )
+                }
+
+            }
+        }
+    }
+
+    private fun updatePatientCount() {
+        viewModelScope.launch(schedulerProvider.io) {
+            syncUseCase.getPatientCount().collect { result ->
+                withContext(schedulerProvider.main) {
+                    handleResult(
+                        result = result, onSuccess = { patientCount ->
+                            updateUi { copy(patientCount = patientCount) }
+                        }, successMessage = "", errorMessage = (result as? Result.Error)?.message
+                    )
+
                 }
             }
         }
     }
+
+
+    private fun updateEncounterCount() {
+        viewModelScope.launch(schedulerProvider.io) {
+            syncUseCase.getEncounterCount().collect { result ->
+                withContext(schedulerProvider.main) {
+
+                    handleResult(
+                        result = result, onSuccess = { encounterCount ->
+                            updateUi { copy(encounterCount = encounterCount) }
+                        }, successMessage = "", errorMessage = (result as? Result.Error)?.message
+                    )
+
+                }
+            }
+        }
+    }
+
 
     private fun buildReportRequest(cohort: Cohort, start: LocalDate, end: LocalDate) =
         ReportRequest(

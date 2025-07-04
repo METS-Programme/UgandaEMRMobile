@@ -39,6 +39,14 @@ class SyncUseCase @Inject constructor(
         return repository.getFormCount()
     }
 
+    fun getPatientCount(): Flow<Result<Int>> {
+        return repository.getPatientsCount()
+    }
+
+    fun getEncounterCount(): Flow<Result<Int>> {
+        return repository.getEncountersCount()
+    }
+
     // cohorts
     fun getCohorts(): Flow<Result<List<Cohort>>> {
         return repository.loadCohorts()

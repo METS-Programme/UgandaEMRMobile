@@ -16,6 +16,8 @@ data class SyncUiState(
     val selectedFormIds: Set<String> = emptySet(),
     val searchQuery: String = "",
     val formCount: Int = 0,
+    val patientCount: Int = 0,
+    val encounterCount: Int = 0,
 
     val cohorts: List<Cohort> = emptyList(),
     val selectedCohort: Cohort? = null,

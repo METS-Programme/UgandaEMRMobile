@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.lyecdevelopers.core.data.local.entity.EncounterEntity
+import kotlinx.coroutines.flow.Flow
 
 
 @Dao
@@ -18,4 +19,7 @@ interface EncounterDao {
 
     @Update
     suspend fun update(encounter: EncounterEntity): Int
+
+    @Query("SELECT COUNT(*) FROM encounters")
+    fun getEncountersCount(): Flow<Int>
 }

@@ -8,21 +8,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
-import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,9 +28,6 @@ import com.lyecdevelopers.core.model.cohort.Attribute
 import com.lyecdevelopers.core.model.cohort.Cohort
 import com.lyecdevelopers.core.model.cohort.Indicator
 import com.lyecdevelopers.core.ui.components.IndicatorAttributesScreen
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,8 +38,6 @@ fun PatientFilterSectionContent(
     indicatorOptions: List<Indicator>,
     selectedIndicator: Indicator?,
     onIndicatorSelected: (Indicator) -> Unit,
-    selectedDateRange: Pair<LocalDate, LocalDate>?, // updated
-    onDateRangeSelected: (LocalDate, LocalDate) -> Unit, // updated
     availableParameters: List<Attribute>,
     selectedParameters: List<Attribute>,
     highlightedAvailable: List<Attribute>,
@@ -61,14 +50,7 @@ fun PatientFilterSectionContent(
 ) {
     var expandedCohort by remember { mutableStateOf(false) }
     var expandedIndicator by remember { mutableStateOf(false) }
-    var showDatePicker by remember { mutableStateOf(false) }
 
-    val dateRangePickerState = rememberDateRangePickerState(
-        initialSelectedStartDateMillis = selectedDateRange?.first?.atStartOfDay(ZoneId.systemDefault())
-            ?.toInstant()?.toEpochMilli(),
-        initialSelectedEndDateMillis = selectedDateRange?.second?.atStartOfDay(ZoneId.systemDefault())
-            ?.toInstant()?.toEpochMilli()
-    )
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(16.dp)) {
 
@@ -127,43 +109,6 @@ fun PatientFilterSectionContent(
             }
         }
 
-        // --- Date Range Picker ---
-        OutlinedButton(
-            onClick = { showDatePicker = true }, modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(Icons.Default.DateRange, contentDescription = null)
-            Spacer(Modifier.width(8.dp))
-            Text(selectedDateRange?.let { "${it.first} - ${it.second}" } ?: "Select Date Range")
-        }
-
-        if (showDatePicker) {
-            DatePickerDialog(onDismissRequest = { showDatePicker = false }, confirmButton = {
-                TextButton(onClick = {
-                    val startMillis = dateRangePickerState.selectedStartDateMillis
-                    val endMillis = dateRangePickerState.selectedEndDateMillis
-
-                    if (startMillis != null && endMillis != null) {
-                        val startDate =
-                            Instant.ofEpochMilli(startMillis).atZone(ZoneId.systemDefault())
-                                .toLocalDate()
-                        val endDate = Instant.ofEpochMilli(endMillis).atZone(ZoneId.systemDefault())
-                            .toLocalDate()
-
-                        onDateRangeSelected(startDate, endDate)
-                    }
-
-                    showDatePicker = false
-                }) {
-                    Text("OK")
-                }
-            }, dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) {
-                    Text("Cancel")
-                }
-            }) {
-                DateRangePicker(state = dateRangePickerState)
-            }
-        }
 
         // --- Parameter Transfer Box (Custom Logic) ---
         IndicatorAttributesScreen(

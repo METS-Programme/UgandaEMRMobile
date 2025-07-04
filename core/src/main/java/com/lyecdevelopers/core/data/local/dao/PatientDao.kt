@@ -91,6 +91,8 @@ interface PatientDao {
     @Query("SELECT * FROM patients WHERE synced = 0")
     suspend fun getUnsyncedPatients(): List<PatientEntity>
 
+    @Query("SELECT COUNT(*) FROM patients")
+    fun getPatientsCount(): Flow<Int>
 
 }
 

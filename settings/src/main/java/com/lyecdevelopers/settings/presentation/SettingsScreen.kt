@@ -1,24 +1,43 @@
 package com.lyecdevelopers.settings.presentation
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType.Companion.PrimaryEditable
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -28,12 +47,14 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.lyecdevelopers.core.ui.components.BaseScreen
-import com.lyecdevelopers.core.ui.components.SettingsItem
 import com.lyecdevelopers.settings.presentation.event.SettingsEvent
 
 @Composable
@@ -61,52 +82,115 @@ fun SettingsScreen(
             ) {
                 item {
                     SettingsSection(title = "Account") {
-                        SettingsItem(
-                            title = "Username",
-                            subtitle = state.username,
-                            onClick = { /* Optional: open editable dialog */ })
-                        SettingsItem(
-                            title = "Facility", subtitle = "Kampala Health Center", onClick = {})
+                        Column(
+                            Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    MaterialTheme.colorScheme.surfaceVariant,
+                                    RoundedCornerShape(8.dp)
+                                )
+                        ) {
+                            SettingsItem(
+                                icon = Icons.Default.Person,
+                                title = "Username",
+                                subtitle = state.username,
+                                onClick = { /* Open editable username dialog */ },
+                                trailingIcon = Icons.Default.Edit
+                            )
+                            Divider(Modifier.padding(horizontal = 16.dp))
+                            SettingsItem(
+                                icon = Icons.Default.Business,
+                                title = "Facility",
+                                subtitle = "Kampala Health Center",
+                                onClick = { /* Maybe show facility info */ })
+                        }
                     }
                 }
+
 
                 item {
                     SettingsSection(title = "Preferences") {
-                        SettingsItem(
-                            title = "Language", subtitle = "English", onClick = { /* TODO */ })
-                        SettingsItem(
-                            title = "Dark Mode",
-                            subtitle = if (state.isDarkMode) "On" else "Off",
-                            onClick = {
-                                viewModel.onEvent(SettingsEvent.ToggleDarkMode(!state.isDarkMode))
-                            })
+                        Column(
+                            Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    MaterialTheme.colorScheme.surfaceVariant,
+                                    RoundedCornerShape(8.dp)
+                                )
+                        ) {
+                            SettingsItem(
+                                icon = Icons.Default.Language,
+                                title = "Language",
+                                subtitle = "English",
+                                onClick = { /* Open language selector */ })
+                            Divider(Modifier.padding(horizontal = 16.dp))
+                            SettingsItemSwitch(
+                                icon = Icons.Default.DarkMode,
+                                title = "Dark Mode",
+                                checked = state.isDarkMode,
+                                onCheckedChange = {
+                                    viewModel.onEvent(SettingsEvent.ToggleDarkMode(it))
+                                })
+                        }
                     }
                 }
 
+
                 item {
                     SettingsSection(title = "Server") {
-                        SettingsItem(
-                            title = "Server URL",
-                            subtitle = state.serverUrl,
-                            onClick = { showServerDialog = true })
-                        SettingsItem(
-                            title = "Sync Interval",
-                            subtitle = "${state.syncIntervalInMinutes} mins",
-                            onClick = { showServerDialog = true })
+                        Column(
+                            Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    MaterialTheme.colorScheme.surfaceVariant,
+                                    RoundedCornerShape(8.dp)
+                                )
+                        ) {
+                            SettingsItem(
+                                icon = Icons.Default.Cloud, // Example icon for server
+                                title = "Server URL",
+                                subtitle = state.serverUrl,
+                                onClick = { showServerDialog = true })
+                            Divider(Modifier.padding(horizontal = 16.dp))
+                            SettingsItem(
+                                icon = Icons.Default.Schedule, // Example icon for interval
+                                title = "Sync Interval",
+                                subtitle = "${state.syncIntervalInMinutes} mins",
+                                onClick = {
+                                    showServerDialog = true
+                                } // Use separate dialog if needed
+                            )
+                        }
                     }
                 }
+
 
                 item {
                     Button(
                         onClick = { viewModel.onEvent(SettingsEvent.Logout) },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError
+                        ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp)
+                            .padding(vertical = 12.dp)
+                            .height(52.dp),
+                        shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("Logout", color = MaterialTheme.colorScheme.onError)
+                        Icon(
+                            imageVector = Icons.Default.ExitToApp,
+                            contentDescription = "Logout",
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = "Logout",
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
+                        )
                     }
                 }
+
             }
         }
 
@@ -213,3 +297,75 @@ fun SettingsServerConfigurationDialog(
 }
 
 
+@Composable
+fun SettingsItem(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    trailingIcon: ImageVector? = null,
+) {
+    val colors = MaterialTheme.colorScheme
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            icon, contentDescription = null, tint = colors.primary, modifier = Modifier.size(24.dp)
+        )
+        Spacer(Modifier.width(16.dp))
+        Column(Modifier.weight(1f)) {
+            Text(
+                text = title, style = MaterialTheme.typography.bodyMedium, color = colors.onSurface
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.onSurfaceVariant
+            )
+        }
+        if (trailingIcon != null) {
+            Icon(
+                trailingIcon,
+                contentDescription = null,
+                tint = colors.outline,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+    }
+}
+
+
+@Composable
+fun SettingsItemSwitch(
+    icon: ImageVector,
+    title: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    val colors = MaterialTheme.colorScheme
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCheckedChange(!checked) }
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            icon, contentDescription = null, tint = colors.primary, modifier = Modifier.size(24.dp)
+        )
+        Spacer(Modifier.width(16.dp))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyMedium,
+            color = colors.onSurface,
+            modifier = Modifier.weight(1f)
+        )
+        Switch(
+            checked = checked, onCheckedChange = onCheckedChange
+        )
+    }
+}

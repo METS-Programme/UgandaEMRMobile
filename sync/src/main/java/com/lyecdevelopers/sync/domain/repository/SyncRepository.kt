@@ -25,6 +25,19 @@ interface SyncRepository {
     // local db
     fun saveFormsLocally(forms: List<o3Form>): Flow<Result<List<o3Form>>>
     fun getFormCount(): Flow<Result<Int>>
+    fun getPatientsCount(): Flow<Result<Int>>
+
+    fun getEncountersCount(): Flow<Result<Int>>
+
+    // sync
+    // encounters
+    fun getUnsynced(): Flow<List<EncounterEntity>>
+    fun markSynced(encounter: EncounterEntity): Flow<Unit>
+
+    // patients
+    fun getUnsyncedPatients(): Flow<List<PatientEntity>>
+
+    fun markSyncedPatient(patient: PatientEntity): Flow<Unit>
 
 
     // cohorts
@@ -53,14 +66,6 @@ interface SyncRepository {
     fun createDataDefinition(payload: DataDefinition): Flow<Result<Any>>
 
 
-    // sync
-    // encounters
-    fun getUnsynced(): Flow<List<EncounterEntity>>
-    fun markSynced(encounter: EncounterEntity): Flow<Unit>
 
-    // patients
-    fun getUnsyncedPatients(): Flow<List<PatientEntity>>
-
-    fun markSyncedPatient(patient: PatientEntity): Flow<Unit>
 
 }
