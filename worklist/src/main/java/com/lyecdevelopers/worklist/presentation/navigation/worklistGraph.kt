@@ -1,6 +1,5 @@
 package com.lyecdevelopers.worklist.presentation.navigation
 
-import androidx.compose.material3.Text
 import androidx.fragment.app.FragmentManager
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -77,19 +76,13 @@ fun NavGraphBuilder.worklistGraph(fragmentManager: FragmentManager, navControlle
             arguments = listOf(
                 navArgument("patientId") { type = NavType.StringType },
                 navArgument("formId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val patientId = backStackEntry.arguments?.getString("patientId")
-            val formId = backStackEntry.arguments?.getString("formId")
-
-            if (patientId != null && formId != null) {
-                QuestionnaireScreen(
-                    navController = navController,
-                    fragmentManager = fragmentManager,
-                    formId = formId,
-                )
-            } else {
-                Text("Missing patient or form ID")
-            }
+        ) { it ->
+            QuestionnaireScreen(
+                navController = navController,
+                fragmentManager = fragmentManager,
+                formId = it.arguments?.getString("formId")!!,
+                patientId = it.arguments?.getString("patientId")!!
+            )
         }
 
 

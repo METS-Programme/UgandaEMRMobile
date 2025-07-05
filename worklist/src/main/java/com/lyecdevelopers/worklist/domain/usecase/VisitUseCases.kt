@@ -1,6 +1,7 @@
 package com.lyecdevelopers.worklist.domain.usecase
 
 import com.lyecdevelopers.core.data.local.entity.EncounterEntity
+import com.lyecdevelopers.core.data.local.entity.FormEntity
 import com.lyecdevelopers.core.data.local.entity.VisitEntity
 import com.lyecdevelopers.core.model.Result
 import com.lyecdevelopers.core.model.VisitWithDetails
@@ -11,7 +12,7 @@ import javax.inject.Inject
 
 class VisitUseCases @Inject constructor(private val visitRepository: VisitRepository) {
 
-    suspend fun getVisitSummariesForPatient(patientId: String): Flow<Result<List<VisitWithDetails>>> {
+    fun getVisitSummariesForPatient(patientId: String): Flow<Result<List<VisitWithDetails>>> {
         return visitRepository.getVisitSummariesForPatient(patientId)
     }
 
@@ -29,6 +30,11 @@ class VisitUseCases @Inject constructor(private val visitRepository: VisitReposi
         visitId: String,
     ): Flow<Result<List<EncounterEntity>>> {
         return visitRepository.getEncountersByPatientIdAndVisitId(patientId, visitId)
+    }
+
+    // get forms
+    fun getForms(): Flow<Result<List<FormEntity>>> {
+        return visitRepository.getForms()
     }
 
 

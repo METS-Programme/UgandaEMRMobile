@@ -2,8 +2,10 @@ package com.lyecdevelopers.worklist.data.repository
 
 import android.database.sqlite.SQLiteConstraintException
 import android.database.sqlite.SQLiteException
+import com.lyecdevelopers.core.data.local.dao.FormDao
 import com.lyecdevelopers.core.data.local.dao.VisitDao
 import com.lyecdevelopers.core.data.local.entity.EncounterEntity
+import com.lyecdevelopers.core.data.local.entity.FormEntity
 import com.lyecdevelopers.core.data.local.entity.VisitEntity
 import com.lyecdevelopers.core.model.Result
 import com.lyecdevelopers.core.model.VisitWithDetails
@@ -16,6 +18,7 @@ import javax.inject.Inject
 
 class VisitRepositoryImpl @Inject constructor(
     private val visitDao: VisitDao,
+    private val formDao: FormDao,
 ) : VisitRepository {
 
 
@@ -77,6 +80,25 @@ class VisitRepositoryImpl @Inject constructor(
         try {
             val encounters = visitDao.getEncountersByPatientIdAndVisitId(patientId, visitId)
             emit(Result.Success(encounters))
+        } catch (e: SQLiteConstraintException) {
+            emit(Result.Error("Database constraint failed: ${e.localizedMessage ?: "Foreign key violation or unique index error"}"))
+        } catch (e: SQLiteException) {
+            emit(Result.Error("Database error: ${e.localizedMessage ?: "SQLite exception"}"))
+        } catch (e: java.sql.SQLException) {
+            emit(Result.Error("SQL error: ${e.localizedMessage ?: "SQL execution failed"}"))
+
+        } catch (e: IllegalStateException) {
+            emit(Result.Error("Illegal state: ${e.localizedMessage ?: "Unexpected Room state"}"))
+        } catch (e: Exception) {
+            emit(Result.Error("Unexpected error: ${e.localizedMessage ?: "Unknown error"}"))
+        }
+
+    }.flowOn(Dispatchers.IO)
+
+    override fun getForms(): Flow<Result<List<FormEntity>>> = flow {
+        try {
+            val forms = formDao.getAllForms()
+            emit(Result.Success(forms))
         } catch (e: SQLiteConstraintException) {
             emit(Result.Error("Database constraint failed: ${e.localizedMessage ?: "Foreign key violation or unique index error"}"))
         } catch (e: SQLiteException) {

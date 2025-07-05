@@ -54,6 +54,7 @@ class WorklistViewModel @Inject constructor(
 
     init {
         loadPatients()
+        getForms()
 
         val patientId = savedStateHandle.get<String>("patientId")
         if (patientId != null) {
@@ -167,8 +168,6 @@ class WorklistViewModel @Inject constructor(
 
     private fun loadPatient(patientId: String) {
         viewModelScope.launch(schedulerProvider.io) {
-            withContext(schedulerProvider.main) { showLoading() }
-
             patientsUseCase.getPatientById(patientId).collect { result ->
                 withContext(schedulerProvider.main) {
                     handleResult(
@@ -254,7 +253,13 @@ class WorklistViewModel @Inject constructor(
                 withContext(schedulerProvider.main) {
                     handleResult(
                         result = result, onSuccess = { visits ->
-                            _uiState.update { it.copy(visits = visits) }
+                            _uiState.update {
+                                it.copy(
+                                    visits = visits,
+                                    encounters = visits.firstOrNull()?.encounters ?: emptyList(),
+
+                                    )
+                            }
                         },
 
                         errorMessage = (result as? Result.Error)?.message
@@ -286,7 +291,20 @@ class WorklistViewModel @Inject constructor(
                 withContext(schedulerProvider.main) {
                     handleResult(
                         result = result, onSuccess = { encounters ->
-                            _uiState.update { it.copy(encounters = encounters) }
+                        }, errorMessage = (result as? Result.Error)?.message
+                    )
+                }
+            }
+        }
+    }
+
+    private fun getForms() {
+        viewModelScope.launch(schedulerProvider.io) {
+            visitUseCases.getForms().collect { result ->
+                withContext(schedulerProvider.main) {
+                    handleResult(
+                        result = result, onSuccess = { forms ->
+                            _uiState.update { it.copy(forms = forms) }
                         }, errorMessage = (result as? Result.Error)?.message
                     )
                 }

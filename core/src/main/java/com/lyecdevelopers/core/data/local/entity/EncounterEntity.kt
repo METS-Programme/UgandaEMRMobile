@@ -27,7 +27,7 @@ data class EncounterEntity(
     val providerUuid: String?,
     val obs: List<OpenmrsObs> = emptyList(),
     val orders: List<Order> = emptyList(),
-    val formUuid: String? = null,
+    val formUuid: String,
     val visitUuid: String,
     val voided: Boolean = false,
     val synced: Boolean = false,

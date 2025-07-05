@@ -1,10 +1,13 @@
 package com.lyecdevelopers.form.presentation.questionnaire
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import ca.uhn.fhir.context.FhirContext
 import com.lyecdevelopers.core._base.BaseViewModel
 import com.lyecdevelopers.core.common.scheduler.SchedulerProvider
+import com.lyecdevelopers.core.data.local.entity.VisitEntity
 import com.lyecdevelopers.core.model.Result
+import com.lyecdevelopers.core.model.VisitStatus
 import com.lyecdevelopers.core.utils.AppLogger
 import com.lyecdevelopers.form.domain.mapper.FormMapper
 import com.lyecdevelopers.form.domain.usecase.FormsUseCase
@@ -23,6 +26,7 @@ import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 import javax.inject.Inject
 
@@ -30,17 +34,25 @@ import javax.inject.Inject
 class QuestionnaireViewModel @Inject constructor(
     private val formsUseCase: FormsUseCase,
     private val schedulerProvider: SchedulerProvider,
+    savedStateHandle: SavedStateHandle,
 ) : BaseViewModel() {
 
     private val _state = MutableStateFlow(QuestionnaireState(isLoading = true))
     val state: StateFlow<QuestionnaireState> = _state.asStateFlow()
 
+    private val formId: String = checkNotNull(savedStateHandle["formId"])
+    private val patientId: String = checkNotNull(savedStateHandle["patientId"])
+
     private var questionnaireResponse: QuestionnaireResponse? = null
+
+    init {
+        getMostRecentVisitForPatient(patientId)
+    }
 
 
     fun onEvent(event: QuestionnaireEvent) {
         when (event) {
-            is QuestionnaireEvent.Load -> loadQuestionnaireByUuid("")
+            is QuestionnaireEvent.Load -> loadQuestionnaireByUuid(formId)
             is QuestionnaireEvent.LoadForEdit -> loadPatientForEdit(event.questionnaire)
             is QuestionnaireEvent.UpdateAnswer -> updateAnswer(event.linkId, event.answer)
             is QuestionnaireEvent.Reset -> reset()
@@ -126,9 +138,7 @@ class QuestionnaireViewModel @Inject constructor(
      */
     private fun handleSubmitWithResponse(responseJson: String) {
         viewModelScope.launch(schedulerProvider.io) {
-            // ✅ Show loading on Main
             withContext(schedulerProvider.main) { showLoading() }
-
             _state.update { it.copy(isLoading = true) }
 
             try {
@@ -140,9 +150,9 @@ class QuestionnaireViewModel @Inject constructor(
                 val questionnaire = state.questionnaire
 
                 if (questionnaire != null) {
-                    val patientUuid = "test-patient" // TODO: inject real patientUuid
-                    val encounterTypeUuid = "test-encounter" // TODO: inject real type
-                    val locationUuid = "tests-location" // TODO: inject real location
+                    val patientUuid = patientId
+                    val encounterTypeUuid = "test-encounter"
+                    val locationUuid = "tests-location"
 
                     val toSubmit = response.toOpenmrsEncounter(
                         questionnaireItems = questionnaire.item,
@@ -153,15 +163,33 @@ class QuestionnaireViewModel @Inject constructor(
 
                     AppLogger.d("Mapped OpenMRS Encounter: $toSubmit")
 
-                    val visitUuid = UUID.randomUUID().toString()
                     val createdAt = Instant.now().toString()
+
+                    // ✅ Get or create visit
+                    val visitUuid: String = if (state.visitId != null) {
+                        state.visitId
+                    } else {
+                        val newVisit = VisitEntity(
+                            id = UUID.randomUUID().toString(),
+                            patientId = patientUuid,
+                            type = "Community Visit",
+                            date = LocalDate.now().toString(),
+                            status = VisitStatus.PENDING,
+                        )
+                        formsUseCase.createADefault(newVisit)
+                        newVisit.id
+                    }
 
                     val encounterEntity = toSubmit.toEncounterEntity(
                         visitUuid = visitUuid, synced = false, createdAt = createdAt
                     )
 
                     formsUseCase.saveEncounterLocally(encounterEntity)
+
                     AppLogger.d("Encounter saved locally: $encounterEntity")
+
+                    _state.update { it.copy(isLoading = false, isSubmitted = true) }
+
                     withContext(schedulerProvider.main) {
                         hideLoading()
                         navigate("worklist_main")
@@ -178,13 +206,6 @@ class QuestionnaireViewModel @Inject constructor(
                     return@launch
                 }
 
-                _state.update { it.copy(isLoading = false, isSubmitted = true) }
-
-                withContext(schedulerProvider.main) {
-                    hideLoading()
-                    navigate("worklist_main")
-                }
-
             } catch (e: Exception) {
                 AppLogger.e("Submit failed: ${e.localizedMessage}", e.stackTraceToString())
                 _state.update {
@@ -195,7 +216,24 @@ class QuestionnaireViewModel @Inject constructor(
         }
     }
 
+    private fun getMostRecentVisitForPatient(patientId: String) {
+        viewModelScope.launch(schedulerProvider.io) {
+            formsUseCase.getMostRecentForVisitPatient(patientId).collect { result ->
+                withContext(schedulerProvider.main) {
+                    handleResult(
+                        result = result, onSuccess = { visit ->
+                            _state.update {
+                                it.copy(
+                                    isLoading = false, visitId = visit.visit.id, error = null
+                                )
+                            }
+                        }, successMessage = "", errorMessage = (result as? Result.Error)?.message
+                    )
+                }
+            }
+        }
 
+    }
     private fun reset() {
         _state.value = QuestionnaireState()
     }

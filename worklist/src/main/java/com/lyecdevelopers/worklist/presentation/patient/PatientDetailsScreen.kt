@@ -178,15 +178,44 @@ fun PatientDetailsScreen(
                     }
                 }
 
-                // Visits
                 item {
-                    Text("Current Visit", style = MaterialTheme.typography.titleMedium)
-                    HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                    VisitCard(
-                        visit = state.mostRecentVisit,
-                        isCurrent = true,
-                        onClick = { selectedVisit = state.mostRecentVisit })
+                    state.mostRecentVisit?.let { visit ->
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                        ) {
+                            Text(
+                                text = "Current Visit",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                            VisitCard(
+                                visit = visit,
+                                isCurrent = true,
+                                onClick = { selectedVisit = visit }
+                            )
+                        }
+                    } ?: run {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                        ) {
+                            Text(
+                                text = "Current Visit",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                            Text(
+                                text = "No active visit found.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
+
 
                 val pastVisits = state.visits?.let { visits ->
                     if (visits.size > 1) visits.drop(1) else emptyList()
