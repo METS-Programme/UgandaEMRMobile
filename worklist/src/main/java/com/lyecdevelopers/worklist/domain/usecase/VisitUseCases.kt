@@ -1,5 +1,6 @@
 package com.lyecdevelopers.worklist.domain.usecase
 
+import com.lyecdevelopers.core.data.local.entity.EncounterEntity
 import com.lyecdevelopers.core.data.local.entity.VisitEntity
 import com.lyecdevelopers.core.model.Result
 import com.lyecdevelopers.core.model.VisitWithDetails
@@ -21,5 +22,14 @@ class VisitUseCases @Inject constructor(private val visitRepository: VisitReposi
     fun getMostRecentVisitForPatient(patientId: String): Flow<Result<VisitWithDetails>> {
         return visitRepository.getMostRecentForVisitPatient(patientId)
     }
+
+    // get patient by id and visit id
+    fun getEncountersByPatientIdAndVisitId(
+        patientId: String,
+        visitId: String,
+    ): Flow<Result<List<EncounterEntity>>> {
+        return visitRepository.getEncountersByPatientIdAndVisitId(patientId, visitId)
+    }
+
 
 }

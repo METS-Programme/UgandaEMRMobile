@@ -3,6 +3,7 @@ package com.lyecdevelopers.worklist.data.repository
 import android.database.sqlite.SQLiteConstraintException
 import android.database.sqlite.SQLiteException
 import com.lyecdevelopers.core.data.local.dao.VisitDao
+import com.lyecdevelopers.core.data.local.entity.EncounterEntity
 import com.lyecdevelopers.core.data.local.entity.VisitEntity
 import com.lyecdevelopers.core.model.Result
 import com.lyecdevelopers.core.model.VisitWithDetails
@@ -67,6 +68,28 @@ class VisitRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             emit(Result.Error("Unexpected error: ${e.localizedMessage ?: "Unknown error"}"))
         }
+    }.flowOn(Dispatchers.IO)
+
+    override fun getEncountersByPatientIdAndVisitId(
+        patientId: String,
+        visitId: String,
+    ): Flow<Result<List<EncounterEntity>>> = flow {
+        try {
+            val encounters = visitDao.getEncountersByPatientIdAndVisitId(patientId, visitId)
+            emit(Result.Success(encounters))
+        } catch (e: SQLiteConstraintException) {
+            emit(Result.Error("Database constraint failed: ${e.localizedMessage ?: "Foreign key violation or unique index error"}"))
+        } catch (e: SQLiteException) {
+            emit(Result.Error("Database error: ${e.localizedMessage ?: "SQLite exception"}"))
+        } catch (e: java.sql.SQLException) {
+            emit(Result.Error("SQL error: ${e.localizedMessage ?: "SQL execution failed"}"))
+
+        } catch (e: IllegalStateException) {
+            emit(Result.Error("Illegal state: ${e.localizedMessage ?: "Unexpected Room state"}"))
+        } catch (e: Exception) {
+            emit(Result.Error("Unexpected error: ${e.localizedMessage ?: "Unknown error"}"))
+        }
+
     }.flowOn(Dispatchers.IO)
 
 

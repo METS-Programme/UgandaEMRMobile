@@ -115,7 +115,7 @@ fun PatientCard(
                             })
                         DropdownMenuItem(
 
-                            text = { Text("Open Details") }, onClick = {
+                            text = { Text("View Details") }, onClick = {
                                 expanded = false
                                 onViewDetails()
                             })
