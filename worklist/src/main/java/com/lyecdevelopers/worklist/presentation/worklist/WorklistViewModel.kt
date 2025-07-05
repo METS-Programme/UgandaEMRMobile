@@ -12,6 +12,7 @@ import com.lyecdevelopers.core.model.Result
 import com.lyecdevelopers.core.model.VisitStatus
 import com.lyecdevelopers.core.ui.event.UiEvent.Navigate
 import com.lyecdevelopers.form.domain.usecase.PatientsUseCase
+import com.lyecdevelopers.worklist.domain.model.Vitals
 import com.lyecdevelopers.worklist.domain.usecase.VisitUseCases
 import com.lyecdevelopers.worklist.presentation.worklist.event.WorklistEvent
 import com.lyecdevelopers.worklist.presentation.worklist.state.WorklistUiState
@@ -311,6 +312,11 @@ class WorklistViewModel @Inject constructor(
             }
         }
     }
+
+    fun updateVitals(newVitals: Vitals) {
+        _uiState.update { it.copy(vitals = newVitals) }
+    }
+
 }
 
 

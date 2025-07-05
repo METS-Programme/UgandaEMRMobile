@@ -181,7 +181,10 @@ class QuestionnaireViewModel @Inject constructor(
                     }
 
                     val encounterEntity = toSubmit.toEncounterEntity(
-                        visitUuid = visitUuid, synced = false, createdAt = createdAt
+                        visitUuid = visitUuid,
+                        synced = false,
+                        formUuid = questionnaire.id,
+                        createdAt = createdAt
                     )
 
                     formsUseCase.saveEncounterLocally(encounterEntity)

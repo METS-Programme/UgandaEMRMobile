@@ -5,7 +5,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -277,29 +277,92 @@ fun PatientDetailsScreen(
 @Composable
 fun VitalsInfo(vitals: Vitals) {
     Column {
-        Text("Vitals", style = MaterialTheme.typography.labelMedium, color = Color.Gray)
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()
+        Text(
+            "Vitals",
+            style = MaterialTheme.typography.labelMedium,
+            color = Color.Gray
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            vitals.bloodPressure?.let {
+            if (vitals.bloodPressureSystolic.isNotBlank() && vitals.bloodPressureDiastolic.isNotBlank()) {
                 Text(
-                    "BP: $it", style = MaterialTheme.typography.bodySmall
+                    "BP: ${vitals.bloodPressureSystolic}/${vitals.bloodPressureDiastolic} mmHg",
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
-            vitals.heartRate?.let {
+
+            if (vitals.heartRate.isNotBlank()) {
                 Text(
-                    "HR: $it bpm", style = MaterialTheme.typography.bodySmall
+                    "HR: ${vitals.heartRate} bpm",
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
-            vitals.temperature?.let {
+
+            if (vitals.temperature.isNotBlank()) {
                 Text(
-                    "Temp: $it °C", style = MaterialTheme.typography.bodySmall
+                    "Temp: ${vitals.temperature} °C",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            if (vitals.respirationRate.isNotBlank()) {
+                Text(
+                    "RR: ${vitals.respirationRate} breaths/min",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            if (vitals.spo2.isNotBlank()) {
+                Text(
+                    "SpO₂: ${vitals.spo2}%",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            if (vitals.weight.isNotBlank()) {
+                Text(
+                    "Weight: ${vitals.weight} kg",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            if (vitals.height.isNotBlank()) {
+                Text(
+                    "Height: ${vitals.height} cm",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            if (vitals.bmi.isNotBlank()) {
+                Text(
+                    "BMI: ${vitals.bmi}",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            if (vitals.muac.isNotBlank()) {
+                Text(
+                    "MUAC: ${vitals.muac} cm",
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
         }
+
+        if (vitals.notes.isNotBlank()) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                "Notes: ${vitals.notes}",
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
     }
 }
-
 
 
 @Composable

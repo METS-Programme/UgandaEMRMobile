@@ -43,7 +43,7 @@ fun EncounterCard(
 
     var expanded by remember { mutableStateOf(false) }
 
-    val formName = uiState.forms.find { it.uuid == encounter.encounterTypeUuid }?.name
+    val formName = uiState.forms.find { it.uuid == encounter.formUuid }?.name
         ?: encounter.encounterTypeUuid
 
     Surface(

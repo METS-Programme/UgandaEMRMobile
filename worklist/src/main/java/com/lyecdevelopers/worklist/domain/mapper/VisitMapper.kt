@@ -43,8 +43,36 @@ fun Encounter.toEntity(): EncounterEntity = EncounterEntity(
 
 
 // Vitals
-fun VitalsEntity.toDomain(): Vitals = Vitals(bloodPressure, pulse, temperature)
+fun VitalsEntity.toDomain(): Vitals {
+    return Vitals(
+        temperature = temperature?.toString() ?: "",
+        bloodPressureSystolic = bloodPressureSystolic?.toString() ?: "",
+        bloodPressureDiastolic = bloodPressureDiastolic?.toString() ?: "",
+        heartRate = heartRate?.toString() ?: "",
+        respirationRate = respirationRate?.toString() ?: "",
+        spo2 = spo2?.toString() ?: "",
+        notes = notes ?: "",
+        weight = weight?.toString() ?: "",
+        height = height?.toString() ?: "",
+        bmi = bmi?.toString() ?: "",
+        muac = muac?.toString() ?: ""
+    )
+}
 
-fun Vitals.toEntity(visitUuid: String): VitalsEntity = VitalsEntity(
-    visitUuid = visitUuid, temperature = temperature, pulse = 0, bloodPressure = bloodPressure
-)
+fun Vitals.toEntity(visitUuid: String): VitalsEntity {
+    return VitalsEntity(
+        visitUuid = visitUuid,
+        temperature = temperature.trim().toDoubleOrNull(),
+        bloodPressureSystolic = bloodPressureSystolic.trim().toIntOrNull(),
+        bloodPressureDiastolic = bloodPressureDiastolic.trim().toIntOrNull(),
+        heartRate = heartRate.trim().toIntOrNull(),
+        respirationRate = respirationRate.trim().toIntOrNull(),
+        spo2 = spo2.trim().toIntOrNull(),
+        notes = notes.takeIf { it.isNotBlank() },
+        weight = weight.trim().toDoubleOrNull(),
+        height = height.trim().toDoubleOrNull(),
+        bmi = bmi.trim().toDoubleOrNull(),
+        muac = muac.trim().toDoubleOrNull()
+    )
+}
+

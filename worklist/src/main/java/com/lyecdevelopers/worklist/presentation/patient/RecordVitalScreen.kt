@@ -2,126 +2,209 @@ package com.lyecdevelopers.worklist.presentation.patient
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Air
+import androidx.compose.material.icons.filled.Bloodtype
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Height
+import androidx.compose.material.icons.filled.MonitorWeight
+import androidx.compose.material.icons.filled.Straighten
+import androidx.compose.material.icons.filled.Thermostat
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.lyecdevelopers.core.ui.components.BaseScreen
 import com.lyecdevelopers.core.ui.components.SubmitButton
+import com.lyecdevelopers.worklist.domain.model.Vitals
+import com.lyecdevelopers.worklist.presentation.worklist.WorklistViewModel
 
 @Composable
 fun RecordVitalScreen(navController: NavController) {
+    val viewModel: WorklistViewModel = hiltViewModel()
+    val state by viewModel.uiState.collectAsState()
+    var isLoading by remember { mutableStateOf(false) }
 
-    var temperature by remember { mutableStateOf("") }
-    var bloodPressureSystolic by remember { mutableStateOf("") }
-    var bloodPressureDiastolic by remember { mutableStateOf("") }
-    var heartRate by remember { mutableStateOf("") }
-    var respirationRate by remember { mutableStateOf("") }
-    var spo2 by remember { mutableStateOf("") }
-    var notes by remember { mutableStateOf("") }
-    var weight by remember { mutableStateOf("") }
-    var height by remember { mutableStateOf("") }
-    var bmi by remember { mutableStateOf("") }
-    var muac by remember { mutableStateOf("") }
+    val vitals = state.vitals ?: Vitals()
 
-    LaunchedEffect(weight, height) {
-        bmi = calculateBmi(weight, height)
+    LaunchedEffect(vitals.weight, vitals.height) {
+        val bmi = calculateBmi(vitals.weight, vitals.height)
+        viewModel.updateVitals(vitals.copy(bmi = bmi))
     }
 
     var showValidationError by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState())
+    BaseScreen(
+        uiEventFlow = viewModel.uiEvent, isLoading = isLoading, showLoading = { isLoading = it }
     ) {
-        Text("Record Vitals and Biometrics", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(16.dp))
-
-        SectionHeader("Record vitals")
-        RowPair("Temperature", "DEG C", temperature) { temperature = it }
-        RowPairTwoFields(
-            label = "Blood Pressure",
-            unit = "mmHg",
-            first = bloodPressureSystolic,
-            second = bloodPressureDiastolic,
-            onFirstChange = { bloodPressureSystolic = it },
-            onSecondChange = { bloodPressureDiastolic = it }
-        )
-        RowPair("Heart rate", "beats/min", heartRate) { heartRate = it }
-        RowPair("Respiration rate", "breaths/min", respirationRate) { respirationRate = it }
-        RowPair("SpO2", "%", spo2) { spo2 = it }
-
-        Text("Notes", fontSize = 14.sp, fontWeight = FontWeight.Medium)
-        TextField(
-            value = notes,
-            onValueChange = { notes = it },
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(100.dp),
-            placeholder = { Text("Type any additional notes here") }
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-        SectionHeader("Record biometrics")
-        RowPair("Weight", "kg", weight) { weight = it }
-        RowPair("Height", "cm", height) { height = it }
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 6.dp)
+                .fillMaxSize()
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text("BMI (auto)", fontSize = 14.sp)
-                TextField(
-                    value = bmi,
-                    onValueChange = {},
-                    readOnly = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("---") },
-                    singleLine = true
+            Spacer(modifier = Modifier.height(16.dp))
+
+            SectionHeader("Record vitals")
+
+            RowPair(
+                label = "Temperature",
+                unit = "°C",
+                value = vitals.temperature,
+                onValueChange = { viewModel.updateVitals(vitals.copy(temperature = it)) },
+                icon = Icons.Default.Thermostat
+            )
+
+            RowPairTwoFields(
+                label = "Blood Pressure",
+                unit = "mmHg",
+                first = vitals.bloodPressureSystolic,
+                second = vitals.bloodPressureDiastolic,
+                onFirstChange = { viewModel.updateVitals(vitals.copy(bloodPressureSystolic = it)) },
+                onSecondChange = { viewModel.updateVitals(vitals.copy(bloodPressureDiastolic = it)) },
+                icon = Icons.Default.Favorite // Heart icon used for BP
+            )
+
+            RowPair(
+                label = "Heart rate",
+                unit = "beats/min",
+                value = vitals.heartRate,
+                onValueChange = { viewModel.updateVitals(vitals.copy(heartRate = it)) },
+                icon = Icons.Default.Favorite
+            )
+
+            RowPair(
+                label = "Respiration rate",
+                unit = "breaths/min",
+                value = vitals.respirationRate,
+                onValueChange = { viewModel.updateVitals(vitals.copy(respirationRate = it)) },
+                icon = Icons.Default.Air
+            )
+
+            RowPair(
+                label = "SpO₂",
+                unit = "%",
+                value = vitals.spo2,
+                onValueChange = { viewModel.updateVitals(vitals.copy(spo2 = it)) },
+                icon = Icons.Default.Bloodtype
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text("Notes", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            TextField(
+                value = vitals.notes,
+                onValueChange = { viewModel.updateVitals(vitals.copy(notes = it)) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp),
+                placeholder = { Text("Type any additional notes here") })
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            SectionHeader("Record biometrics")
+
+            RowPair(
+                label = "Weight",
+                unit = "kg",
+                value = vitals.weight,
+                onValueChange = { viewModel.updateVitals(vitals.copy(weight = it)) },
+                icon = Icons.Default.MonitorWeight
+            )
+
+            RowPair(
+                label = "Height",
+                unit = "cm",
+                value = vitals.height,
+                onValueChange = { viewModel.updateVitals(vitals.copy(height = it)) },
+                icon = Icons.Default.Height
+            )
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 6.dp)
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("BMI (auto)", fontSize = 14.sp)
+                    TextField(
+                        value = vitals.bmi,
+                        onValueChange = {},
+                        readOnly = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("---") },
+                        singleLine = true
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("kg/m²", fontSize = 12.sp)
+            }
+
+            RowPair(
+                label = "MUAC",
+                unit = "cm",
+                value = vitals.muac,
+                onValueChange = { viewModel.updateVitals(vitals.copy(muac = it)) },
+                icon = Icons.Default.Straighten
+            )
+
+            if (showValidationError) {
+                Text(
+                    text = "Temperature, Weight, and Height must not be empty.",
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 8.dp)
                 )
             }
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("kg / m²", fontSize = 12.sp)
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            ActionButtons(
+                navController = navController, onValidateAndSave = {
+                    if (vitals.temperature.isNotBlank() && vitals.weight.isNotBlank() && vitals.height.isNotBlank()) {
+                        showValidationError = false
+                        // TODO: Persist vitals here using your ViewModel logic
+                        navController.popBackStack()
+                    } else {
+                        showValidationError = true
+                    }
+                })
         }
-
-        MuacRow(muac = muac) { muac = it }
-
-        if (showValidationError) {
-            Text(
-                text = "Temperature, Weight, and Height must not be empty.",
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-        ActionButtons(
-            navController = navController,
-            onValidateAndSave = {
-                if (temperature.isNotBlank() && weight.isNotBlank() && height.isNotBlank()) {
-                    showValidationError = false
-                    // TODO: Persist data here
-                    navController.popBackStack()
-                } else {
-                    showValidationError = true
-                }
-            }
-        )
     }
+
+
 }
+
 
 @Composable
 fun MuacRow(muac: String, onValueChange: (String) -> Unit) {
@@ -136,7 +219,11 @@ fun MuacRow(muac: String, onValueChange: (String) -> Unit) {
         }
     }
 
-    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp)
+    ) {
         Text("MUAC", fontSize = 14.sp)
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -213,27 +300,42 @@ fun SectionHeader(title: String) {
 }
 
 @Composable
-fun RowPair(label: String, unit: String, value: String, onValueChange: (String) -> Unit) {
+fun RowPair(
+    label: String,
+    unit: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    icon: ImageVector? = null,
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp)
     ) {
+        if (icon != null) {
+            Icon(
+                imageVector = icon,
+                contentDescription = "$label icon",
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+        }
+
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = label, fontSize = 14.sp)
+            Text(label, fontSize = 14.sp)
             TextField(
                 value = value,
                 onValueChange = onValueChange,
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("---") },
-                singleLine = true
+                placeholder = { Text("---") }, singleLine = true, modifier = Modifier.fillMaxWidth()
             )
         }
+
         Spacer(modifier = Modifier.width(8.dp))
         Text(unit, fontSize = 12.sp)
     }
 }
+
 
 @Composable
 fun RowPairTwoFields(
@@ -242,34 +344,53 @@ fun RowPairTwoFields(
     first: String,
     second: String,
     onFirstChange: (String) -> Unit,
-    onSecondChange: (String) -> Unit
+    onSecondChange: (String) -> Unit,
+    icon: ImageVector? = null,
 ) {
-    Text(text = label, fontSize = 14.sp)
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp)
     ) {
-        TextField(
-            value = first,
-            onValueChange = onFirstChange,
-            placeholder = { Text("---") },
-            modifier = Modifier.weight(1f),
-            singleLine = true
-        )
-        Text("/", modifier = Modifier.padding(horizontal = 8.dp))
-        TextField(
-            value = second,
-            onValueChange = onSecondChange,
-            placeholder = { Text("---") },
-            modifier = Modifier.weight(1f),
-            singleLine = true
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(unit, fontSize = 12.sp)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = "$label icon",
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+            Text(label, fontSize = 14.sp)
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()
+        ) {
+            TextField(
+                value = first,
+                onValueChange = onFirstChange,
+                placeholder = { Text("---") },
+                singleLine = true,
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(unit, fontSize = 12.sp, modifier = Modifier.align(Alignment.CenterVertically))
+            Spacer(modifier = Modifier.width(8.dp))
+            TextField(
+                value = second,
+                onValueChange = onSecondChange,
+                placeholder = { Text("---") },
+                singleLine = true,
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(unit, fontSize = 12.sp, modifier = Modifier.align(Alignment.CenterVertically))
+        }
     }
 }
+
 
 @SuppressLint("DefaultLocale")
 fun calculateBmi(weightStr: String, heightStr: String): String {

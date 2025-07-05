@@ -44,6 +44,7 @@ object EncounterExtensions {
 
     fun OpenmrsEncounter.toEncounterEntity(
         visitUuid: String,
+        formUuid: String,
         synced: Boolean = false,
         createdAt: String,
     ): EncounterEntity {
@@ -59,7 +60,7 @@ object EncounterExtensions {
             synced = synced,
             providerUuid = "",
             orders = emptyList(),
-            formUuid = "",
+            formUuid = formUuid,
             voided = false,
         )
     }
