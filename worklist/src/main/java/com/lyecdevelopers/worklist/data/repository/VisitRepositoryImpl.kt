@@ -37,6 +37,25 @@ class VisitRepositoryImpl @Inject constructor(
         }.flowOn(Dispatchers.IO)
 
 
+    override fun getMostRecentForVisitPatient(patientId: String): Flow<Result<VisitWithDetails>> =
+        flow {
+            try {
+                val visits = visitDao.getMostRecentVisitForPatient(patientId)
+                emit(Result.Success(visits))
+            } catch (e: SQLiteConstraintException) {
+                emit(Result.Error("Database constraint failed: ${e.localizedMessage ?: "Foreign key violation or unique index error"}"))
+            } catch (e: SQLiteException) {
+                emit(Result.Error("Database error: ${e.localizedMessage ?: "SQLite exception"}"))
+            } catch (e: java.sql.SQLException) {
+                emit(Result.Error("SQL error: ${e.localizedMessage ?: "SQL execution failed"}"))
+            } catch (e: IllegalStateException) {
+                emit(Result.Error("Illegal state: ${e.localizedMessage ?: "Unexpected Room state"}"))
+            } catch (e: Exception) {
+                emit(Result.Error("Unexpected error: ${e.localizedMessage ?: "Unknown error"}"))
+            }
+        }.flowOn(Dispatchers.IO)
+
+
     override fun saveVisit(visit: VisitEntity): Flow<Result<Boolean>> = flow {
         try {
             visitDao.insertVisit(visit)

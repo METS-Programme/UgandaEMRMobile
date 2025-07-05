@@ -43,7 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
-import com.lyecdevelopers.core.data.local.entity.VisitEntity
+import com.lyecdevelopers.core.model.VisitWithDetails
 import com.lyecdevelopers.core.ui.components.BaseScreen
 import com.lyecdevelopers.core.ui.components.EmptyStateView
 import com.lyecdevelopers.worklist.domain.model.Vitals
@@ -66,7 +66,7 @@ fun PatientDetailsScreen(
     var isLoading by remember { mutableStateOf(false) }
     val state by viewModel.uiState.collectAsState()
 
-    var selectedVisit by remember { mutableStateOf<VisitEntity?>(null) }
+    var selectedVisit by remember { mutableStateOf<VisitWithDetails?>(null) }
     var fabExpanded by remember { mutableStateOf(false) }
 
     var isStartVisitDialogVisible by remember { mutableStateOf(false) }
@@ -182,28 +182,26 @@ fun PatientDetailsScreen(
                 item {
                     Text("Current Visit", style = MaterialTheme.typography.titleMedium)
                     HorizontalDivider(Modifier.padding(vertical = 8.dp))
-
-                    if (state.visits.isNotEmpty()) {
-                        val currentVisit = state.visits.first()
-                        VisitCard(
-                            visit = currentVisit,
-                            isCurrent = true,
-                            onClick = { selectedVisit = currentVisit })
-                    } else {
-                        EmptyStateView("No ongoing visit.")
-                    }
+                    VisitCard(
+                        visit = state.mostRecentVisit,
+                        isCurrent = true,
+                        onClick = { selectedVisit = state.mostRecentVisit })
                 }
 
-                val pastVisits = if (state.visits.size > 1) state.visits.drop(1) else emptyList()
+                val pastVisits = state.visits?.let { visits ->
+                    if (visits.size > 1) visits.drop(1) else emptyList()
+                } ?: emptyList()
+
                 if (pastVisits.isNotEmpty()) {
                     item {
                         Text("Visit History", style = MaterialTheme.typography.titleMedium)
                         HorizontalDivider()
                     }
-                    items(pastVisits, key = { it.id }) { visit ->
+                    items(pastVisits, key = { it.visit.id }) { visit ->
                         VisitCard(visit = visit, onClick = { /* Handle */ })
                     }
                 }
+
 
                 // Encounters
                 item {

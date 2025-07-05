@@ -2,7 +2,7 @@ package com.lyecdevelopers.worklist.presentation.worklist.state
 
 import com.lyecdevelopers.core.data.local.entity.EncounterEntity
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
-import com.lyecdevelopers.core.data.local.entity.VisitEntity
+import com.lyecdevelopers.core.model.VisitWithDetails
 import com.lyecdevelopers.worklist.domain.model.Vitals
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -14,8 +14,9 @@ data class WorklistUiState(
 
     val patients: List<PatientEntity> = emptyList(),
     val selectedPatient: PatientEntity? = null,
-    val visits: List<VisitEntity> = emptyList(),
+    val visits: List<VisitWithDetails>? = emptyList(),
     val encounters: List<EncounterEntity> = emptyList(),
+    val mostRecentVisit: VisitWithDetails? = null,
     val vitals: Vitals? = null,
 
     // ──────────────── Start Visit state ────────────────

@@ -7,5 +7,9 @@ import kotlinx.coroutines.flow.Flow
 
 interface VisitRepository {
     fun getVisitSummariesForPatient(patientId: String): Flow<Result<List<VisitWithDetails>>>
+
+    // most recent visit
+    fun getMostRecentForVisitPatient(patientId: String): Flow<Result<VisitWithDetails>>
+
     fun saveVisit(visit: VisitEntity): Flow<Result<Boolean>>
 }

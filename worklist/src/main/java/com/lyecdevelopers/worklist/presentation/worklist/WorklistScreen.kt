@@ -68,7 +68,7 @@ fun WorklistScreen(
                 items(uiState.patients, key = { it.id }) { patient ->
                     PatientCard(
                         patient = patient,
-                        visitInfo = uiState.visits.find { it.patientId == patient.id },
+                        visitInfo = uiState.mostRecentVisit,
                         onStartVisit = {
                         isStartVisitDialogVisible = true
                     }, onViewDetails = { onPatientClick(patient) })

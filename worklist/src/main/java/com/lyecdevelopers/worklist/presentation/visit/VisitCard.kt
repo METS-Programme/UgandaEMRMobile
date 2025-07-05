@@ -2,7 +2,9 @@ package com.lyecdevelopers.worklist.presentation.visit
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -11,11 +13,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.lyecdevelopers.core.data.local.entity.VisitEntity
+import com.lyecdevelopers.core.model.VisitWithDetails
 
 @Composable
 fun VisitCard(
-    visit: VisitEntity,
+    visit: VisitWithDetails?,
     isCurrent: Boolean = false,
     onClick: (() -> Unit)? = null,
 ) {
@@ -25,17 +27,18 @@ fun VisitCard(
         color = if (isCurrent) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
         modifier = Modifier
             .fillMaxWidth()
-            .then(
-                if (onClick != null) Modifier.clickable { onClick() } else Modifier
-            )
+            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
     ) {
         Column(Modifier.padding(16.dp)) {
-            Text("${visit.type} • ${visit.date}", style = MaterialTheme.typography.bodyLarge)
-            Text("Status: ${visit.status}", style = MaterialTheme.typography.bodyMedium)
-//            if (visit.notes.isNotBlank()) {
-//                Spacer(Modifier.height(8.dp))
-//                Text("Notes: ${visit.notes}", style = MaterialTheme.typography.bodySmall)
-//            }
+            Text(
+                "${visit?.visit?.type} • ${visit?.visit?.date}",
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Text("Status: ${visit?.visit?.status}", style = MaterialTheme.typography.bodyMedium)
+            visit?.visit?.notes?.takeIf { it.isNotBlank() }?.let { notesContent ->
+                Spacer(Modifier.height(8.dp))
+                Text("Notes: $notesContent", style = MaterialTheme.typography.bodySmall)
+            }
         }
     }
 }

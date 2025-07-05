@@ -57,6 +57,11 @@ interface VisitDao {
     suspend fun getVisitDetailsForPatient(patientId: String): List<VisitWithDetails>
 
 
+    // get most recent visit by date
+    @Query("SELECT * FROM visits WHERE patientId = :patientId ORDER BY scheduledTime DESC LIMIT 1")
+    suspend fun getMostRecentVisitForPatient(patientId: String): VisitWithDetails
+
+
 }
 
 

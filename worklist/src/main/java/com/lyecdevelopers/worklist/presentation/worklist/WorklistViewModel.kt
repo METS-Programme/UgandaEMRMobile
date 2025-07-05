@@ -58,6 +58,8 @@ class WorklistViewModel @Inject constructor(
         val patientId = savedStateHandle.get<String>("patientId")
         if (patientId != null) {
             loadPatient(patientId)
+            loadPatientVisits(patientId)
+            loadPatientMostRecentVisit(patientId)
         } else {
             _uiState.update { it.copy(error = "Patient ID not provided") }
         }
@@ -242,6 +244,39 @@ class WorklistViewModel @Inject constructor(
                 }
         }
     }
+
+    private fun loadPatientVisits(patientId: String) {
+        viewModelScope.launch(schedulerProvider.io) {
+            visitUseCases.getVisitSummariesForPatient(patientId).collect { result ->
+                withContext(schedulerProvider.main) {
+                    handleResult(
+                        result = result, onSuccess = { visits ->
+                            _uiState.update { it.copy(visits = visits) }
+                        },
+
+                        errorMessage = (result as? Result.Error)?.message
+                    )
+                }
+            }
+        }
+    }
+
+    private fun loadPatientMostRecentVisit(patientId: String) {
+        viewModelScope.launch(schedulerProvider.io) {
+            visitUseCases.getMostRecentVisitForPatient(patientId).collect { result ->
+                withContext(schedulerProvider.main) {
+                    handleResult(
+                        result = result, onSuccess = { visit ->
+                            _uiState.update { it.copy(mostRecentVisit = visit) }
+
+                        }, errorMessage = (result as? Result.Error)?.message
+                    )
+                }
+            }
+        }
+    }
 }
+
+
 
 

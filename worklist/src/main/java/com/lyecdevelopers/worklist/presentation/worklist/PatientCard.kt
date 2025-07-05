@@ -39,13 +39,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
-import com.lyecdevelopers.core.data.local.entity.VisitEntity
+import com.lyecdevelopers.core.model.VisitWithDetails
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PatientCard(
     patient: PatientEntity,
-    visitInfo: VisitEntity?,
+    visitInfo: VisitWithDetails?,
     onStartVisit: () -> Unit,
     onViewDetails: () -> Unit,
 ) {
@@ -141,7 +141,7 @@ fun PatientCard(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = visitInfo.type,
+                            text = visitInfo.visit.type,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -158,7 +158,7 @@ fun PatientCard(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = visitInfo.date,
+                            text = visitInfo.visit.date,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface
                         )

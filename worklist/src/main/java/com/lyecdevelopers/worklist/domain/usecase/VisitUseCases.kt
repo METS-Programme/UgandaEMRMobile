@@ -17,4 +17,9 @@ class VisitUseCases @Inject constructor(private val visitRepository: VisitReposi
     fun saveVisit(visit: VisitEntity): Flow<Result<Boolean>> {
         return visitRepository.saveVisit(visit)
     }
+
+    fun getMostRecentVisitForPatient(patientId: String): Flow<Result<VisitWithDetails>> {
+        return visitRepository.getMostRecentForVisitPatient(patientId)
+    }
+
 }
