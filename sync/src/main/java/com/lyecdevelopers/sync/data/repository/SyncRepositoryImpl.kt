@@ -1,6 +1,10 @@
 package com.lyecdevelopers.sync.data.repository
 
+import com.lyecdevelopers.core.data.local.dao.EncounterDao
 import com.lyecdevelopers.core.data.local.dao.FormDao
+import com.lyecdevelopers.core.data.local.dao.PatientDao
+import com.lyecdevelopers.core.data.local.entity.EncounterEntity
+import com.lyecdevelopers.core.data.local.entity.PatientEntity
 import com.lyecdevelopers.core.data.remote.FormApi
 import com.lyecdevelopers.core.model.Form
 import com.lyecdevelopers.core.model.Identifier
@@ -19,14 +23,15 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import java.io.IOException
-import java.sql.SQLException
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 
 class SyncRepositoryImpl @Inject constructor(
     private val formApi: FormApi,
     private val formDao: FormDao,
+    private val encounterDao: EncounterDao,
+    private val patientDao: PatientDao,
 ) : SyncRepository {
 
     override fun loadForms(): Flow<Result<List<Form>>> = flow {
@@ -109,34 +114,25 @@ class SyncRepositoryImpl @Inject constructor(
         }
     }.flowOn(Dispatchers.IO)
 
+    override fun getFormCount(): Flow<Result<Int>> =
+        formDao.getFormCount().map { Result.Success(it) }.catch { e ->
+            val errorMsg = "Error getting form count: ${e.localizedMessage ?: "Unknown error"}"
+            AppLogger.e("FormCountFlowCatch", errorMsg, e)
+        }.flowOn(Dispatchers.IO)
 
-    override fun getFormCount(): Flow<Result<Int>> = flow {
-        try {
-            val count = formDao.getFormCount()
-            emit(Result.Success(count))
-        } catch (e: IOException) {
-            val errorMsg =
-                "Network error while fetching form count: ${e.localizedMessage ?: "Unknown network error"}"
-            AppLogger.e("FormCountIOException", errorMsg, e)
-            emit(Result.Error(errorMsg))
-        } catch (e: SQLException) {
-            val errorMsg =
-                "Database error while fetching form count: ${e.localizedMessage ?: "Unknown DB error"}"
-            AppLogger.e("FormCountSQLException", errorMsg, e)
-            emit(Result.Error(errorMsg))
-        } catch (e: Exception) {
-            val errorMsg =
-                "Unexpected error while fetching form count: ${e.localizedMessage ?: "Unknown error"}"
-            AppLogger.e("FormCountUnknownException", errorMsg, e)
-            emit(Result.Error(errorMsg))
-            throw e // rethrow to allow .catch to process if needed
-        }
-    }.catch { e ->
-        val errorMsg =
-            "Unhandled exception in getFormCount(): ${e.localizedMessage ?: "Unknown error"}"
-        AppLogger.e("FormCountFlowCatch", errorMsg, e)
-        emit(Result.Error(errorMsg))
-    }.flowOn(Dispatchers.IO)
+
+    override fun getPatientsCount(): Flow<Result<Int>> =
+        patientDao.getPatientsCount().map { Result.Success(it) }.catch { e ->
+            val errorMsg = "Error getting patient count: ${e.localizedMessage ?: "Unknown error"}"
+            AppLogger.e("PatientCountFlowCatch", errorMsg, e)
+        }.flowOn(Dispatchers.IO)
+
+    override fun getEncountersCount(): Flow<Result<Int>> =
+        encounterDao.getEncountersCount().map { Result.Success(it) }.catch { e ->
+            val errorMsg = "Error getting encounter count: ${e.localizedMessage ?: "Unknown error"}"
+            AppLogger.e("EncounterCountFlowCatch", errorMsg, e)
+        }.flowOn(Dispatchers.IO)
+
 
     override fun loadPatientsByCohort(): Flow<Result<List<Any>>> {
         TODO("Not yet implemented")
@@ -184,8 +180,8 @@ class SyncRepositoryImpl @Inject constructor(
                 if (ordertypes != null) {
                     emit(Result.Success(ordertypes))
                 } else {
-                    emit(Result.Error(message = "No ordertypes available"))
-                    AppLogger.d(message = "No ordertypes available")
+                    emit(Result.Error(message = "No orderTypes available"))
+                    AppLogger.d(message = "No orderTypes available")
                 }
             } else {
                 emit(Result.Error("Error ${response.code()}: ${response.message()}"))
@@ -207,8 +203,8 @@ class SyncRepositoryImpl @Inject constructor(
                 if (encountertypes != null) {
                     emit(Result.Success(encountertypes))
                 } else {
-                    emit(Result.Error(message = "No encountertypes available"))
-                    AppLogger.d(message = "No encountertypes available")
+                    emit(Result.Error(message = "No encounterTypes available"))
+                    AppLogger.d(message = "No encounterTypes available")
                 }
             } else {
                 emit(Result.Error("Error ${response.code()}: ${response.message()}"))
@@ -231,8 +227,8 @@ class SyncRepositoryImpl @Inject constructor(
                 if (identifiers != null) {
                     emit(Result.Success(identifiers))
                 } else {
-                    emit(Result.Error(message = "No encountertypes available"))
-                    AppLogger.d(message = "No encountertypes available")
+                    emit(Result.Error(message = "No patient identifiers available"))
+                    AppLogger.d(message = "No patient identifiers available")
                 }
             } else {
                 emit(Result.Error("Error ${response.code()}: ${response.message()}"))
@@ -241,8 +237,8 @@ class SyncRepositoryImpl @Inject constructor(
                 )
             }
         } catch (e: Exception) {
-            emit(Result.Error(e.message ?: "Failed to load Indentifier types"))
-            AppLogger.e(e.message ?: "Failed to load Indentifier types")
+            emit(Result.Error(e.message ?: "Failed to load patient identifiers types"))
+            AppLogger.e(e.message ?: "Failed to load patient identifiers types")
         }
 
     }.flowOn(Dispatchers.IO)
@@ -301,6 +297,56 @@ class SyncRepositoryImpl @Inject constructor(
             AppLogger.e(e.message ?: "Failed to create  data definition")
         }
     }.flowOn(Dispatchers.IO)
+
+    override fun getUnsynced(): Flow<List<EncounterEntity>> = flow {
+        try {
+            val unsynced = encounterDao.getUnsynced()
+            emit(unsynced)
+        } catch (e: Exception) {
+            AppLogger.e("DB error when fetching unsynced encounters: ${e.message}")
+            throw e // ⚡ Let the caller handle it!
+        }
+    }
+
+    override fun markSynced(encounter: EncounterEntity): Flow<Unit> = flow {
+        try {
+            val rows = encounterDao.update(encounter.copy(synced = true))
+            if (rows > 0) {
+                emit(Unit)
+            } else {
+                throw IllegalStateException("No rows updated — does encounter exist?")
+            }
+        } catch (e: Exception) {
+            AppLogger.e("DB error marking encounter synced: ${e.message}")
+            throw e // ⚡ Let the caller handle it!
+        }
+    }
+
+    override fun getUnsyncedPatients(): Flow<List<PatientEntity>> = flow {
+        try {
+            val unsynced = patientDao.getUnsyncedPatients()
+            emit(unsynced)
+        } catch (e: Exception) {
+            AppLogger.e("DB error when fetching unsynced patients: ${e.message}")
+            throw e // ⚡ Let the caller handle it!
+        }
+    }
+
+
+    override fun markSyncedPatient(patient: PatientEntity): Flow<Unit> = flow {
+        try {
+            val rows = patientDao.updatePatient(patient.copy(synced = true))
+            if (rows > 0) {
+                emit(Unit)
+            } else {
+                throw IllegalStateException("No rows updated — does patient exist?")
+            }
+        } catch (e: Exception) {
+            AppLogger.e("DB error marking patient synced: ${e.message}")
+            throw e // ⚡ Let the caller handle it!
+        }
+    }
+
 }
 
 

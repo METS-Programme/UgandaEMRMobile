@@ -8,16 +8,37 @@ import java.util.UUID
 
 @Entity(
     tableName = "vitals", foreignKeys = [ForeignKey(
-        entity = VisitSummaryEntity::class,
+        entity = VisitEntity::class,
         parentColumns = ["id"],
-        childColumns = ["visitId"],
+        childColumns = ["visitUuid"],
         onDelete = ForeignKey.CASCADE
-    )], indices = [Index(value = ["visitId"])]
+    )],
+    indices = [Index(value = ["visitUuid"])]
 )
 data class VitalsEntity(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
-    val visitId: String,
-    val temperature: Double?,
-    val pulse: Int?,
-    val bloodPressure: String?,
+
+    val visitUuid: String,
+
+    val temperature: Double? = null,
+
+    val bloodPressureSystolic: Int? = null,
+    val bloodPressureDiastolic: Int? = null,
+
+    val heartRate: Int? = null,
+    val respirationRate: Int? = null,
+
+    val spo2: Int? = null,
+
+    val notes: String? = null,
+
+    val weight: Double? = null,
+    val height: Double? = null,
+
+    val bmi: Double? = null,
+
+    val muac: Double? = null,
 )
+
+
+

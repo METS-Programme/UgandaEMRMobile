@@ -2,10 +2,10 @@ package com.lyecdevelopers.core.di
 
 import android.content.Context
 import androidx.room.Room
+import com.lyecdevelopers.core.data.local.dao.EncounterDao
 import com.lyecdevelopers.core.data.local.dao.FormDao
 import com.lyecdevelopers.core.data.local.dao.PatientDao
 import com.lyecdevelopers.core.data.local.dao.VisitDao
-import com.lyecdevelopers.core.data.local.dao.VisitSummaryDao
 import com.lyecdevelopers.core.data.local.db.AppDatabase
 import dagger.Module
 import dagger.Provides
@@ -43,8 +43,9 @@ object DatabaseModule {
         return database.visitDao()
     }
 
+
     @Provides
-    fun provideVisitSummaryDao(database: AppDatabase): VisitSummaryDao {
-        return database.visitSummaryDao()
+    fun provideEncounterDao(database: AppDatabase): EncounterDao {
+        return database.encounterDao()
     }
 }

@@ -5,17 +5,21 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
+import com.lyecdevelopers.core.data.local.entity.EncounterEntity
 import com.lyecdevelopers.core.data.local.entity.VisitEntity
+import com.lyecdevelopers.core.data.local.entity.VitalsEntity
 import com.lyecdevelopers.core.model.VisitStatus
+import com.lyecdevelopers.core.model.VisitWithDetails
 
 @Dao
 interface VisitDao {
 
-    // ➕ Add a single visit
+    // ➕ Insert a single visit
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertVisit(visit: VisitEntity)
 
-    // ➕ Add multiple visits (e.g., from sync)
+    // ➕ Insert multiple visits (e.g., from sync)
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(visits: List<VisitEntity>)
 
@@ -38,5 +42,32 @@ interface VisitDao {
     // 🔍 Get unsynced or pending visits (for syncing)
     @Query("SELECT * FROM visits WHERE status = :status")
     suspend fun getVisitsByStatus(status: VisitStatus): List<VisitEntity>
+
+    // ➕ Insert vitals
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertVitals(vitals: VitalsEntity)
+
+    // ➕ Insert encounters
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertEncounters(encounters: List<EncounterEntity>)
+
+    // 🧩 Get visit WITH related details (encounters + vitals)
+    @Transaction
+    @Query("SELECT * FROM visits WHERE patientId = :patientId")
+    suspend fun getVisitDetailsForPatient(patientId: String): List<VisitWithDetails>
+
+
+    // get most recent visit by date
+    @Query("SELECT * FROM visits WHERE patientId = :patientId ORDER BY scheduledTime DESC LIMIT 1")
+    suspend fun getMostRecentVisitForPatient(patientId: String): VisitWithDetails
+
+    //  get encounter by patient id and visit id
+    @Query("SELECT * FROM encounters WHERE patientUuid = :patientId AND visitUuid = :visitId")
+    suspend fun getEncountersByPatientIdAndVisitId(
+        patientId: String,
+        visitId: String,
+    ): List<EncounterEntity>
+
 }
+
 

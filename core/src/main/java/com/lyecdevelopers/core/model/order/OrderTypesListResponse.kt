@@ -9,7 +9,7 @@ data class OrderTypeListResponse(
 
 data class OrderType(
     @Json(name = "uuid") val uuid: String,
-    @Json(name = "display") val display: String,
-    @Json(name = "name") val name: String,
+    @Json(name = "display") val display: String?,
+    @Json(name = "name") val name: String?,
 )
 

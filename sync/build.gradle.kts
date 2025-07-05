@@ -38,11 +38,17 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "11"
+    kotlin {
+        jvmToolchain(11)
     }
     hilt {
         enableAggregatingTask = false
+    }
+
+    configurations.all {
+        resolutionStrategy {
+            force("com.google.guava:guava:32.1.3-android")
+        }
     }
 }
 
@@ -60,8 +66,10 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)
 
-
-
+    // fhir
+    implementation(libs.android.fhir.engine)
+    implementation(libs.android.fhir.sdc)
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     // Hilt
     implementation(libs.hilt.android)
@@ -86,6 +94,16 @@ dependencies {
 
     // logging
     implementation(libs.timber)
+
+    // firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
+
+    // work
+    implementation(libs.hilt.work)
+    implementation(libs.hilt.work.compiler)
+    implementation(libs.work.runtime.ktx)
 
     // Optional: for previewing Composables
     implementation(libs.androidx.ui.tooling.preview)

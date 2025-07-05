@@ -15,7 +15,7 @@ class VisitStatusConverter {
         return try {
             VisitStatus.valueOf(value)
         } catch (e: IllegalArgumentException) {
-            VisitStatus.PENDING // Fallback to a default
+            VisitStatus.PENDING
         }
     }
 }

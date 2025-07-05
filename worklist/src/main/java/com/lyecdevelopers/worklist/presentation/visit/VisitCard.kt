@@ -13,11 +13,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.lyecdevelopers.worklist.domain.model.VisitSummary
+import com.lyecdevelopers.core.model.VisitWithDetails
 
 @Composable
 fun VisitCard(
-    visit: VisitSummary,
+    visit: VisitWithDetails?,
     isCurrent: Boolean = false,
     onClick: (() -> Unit)? = null,
 ) {
@@ -27,16 +27,17 @@ fun VisitCard(
         color = if (isCurrent) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
         modifier = Modifier
             .fillMaxWidth()
-            .then(
-                if (onClick != null) Modifier.clickable { onClick() } else Modifier
-            )
+            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
     ) {
         Column(Modifier.padding(16.dp)) {
-            Text("${visit.type} • ${visit.date}", style = MaterialTheme.typography.bodyLarge)
-            Text("Status: ${visit.status}", style = MaterialTheme.typography.bodyMedium)
-            if (visit.notes.isNotBlank()) {
+            Text(
+                "${visit?.visit?.type} • ${visit?.visit?.date}",
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Text("Status: ${visit?.visit?.status}", style = MaterialTheme.typography.bodyMedium)
+            visit?.visit?.notes?.takeIf { it.isNotBlank() }?.let { notesContent ->
                 Spacer(Modifier.height(8.dp))
-                Text("Notes: ${visit.notes}", style = MaterialTheme.typography.bodySmall)
+                Text("Notes: $notesContent", style = MaterialTheme.typography.bodySmall)
             }
         }
     }

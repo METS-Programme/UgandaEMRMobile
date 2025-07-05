@@ -4,8 +4,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -14,8 +16,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -23,7 +23,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -55,30 +54,24 @@ fun IndicatorAttributesScreen(
 ) {
     val colors = MaterialTheme.colorScheme
     val buttonSize = 48.dp
-    val cardElevation = 8.dp
     val sectionSpacing = 24.dp
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = selectedIndicator?.label ?: "Choose Indicator",
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.SemiBold
-                    )
-
+                    Column {
+                        Text(
+                            text = selectedIndicator?.label ?: "Choose Indicator",
+                            color = colors.onSurface,
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)
+                        )
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.surface),
-                actions = {
-                    IconButton(onClick = { /* TODO: Collapse logic */ }) {
-                        Icon(Icons.Default.KeyboardArrowUp, "Collapse", tint = colors.onSurface)
-                    }
-                    IconButton(onClick = { /* TODO: Expand logic */ }) {
-                        Icon(Icons.Default.KeyboardArrowDown, "Expand", tint = colors.onSurface)
-                    }
-                })
-        }, containerColor = colors.background
+            )
+        },
+        containerColor = colors.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -91,11 +84,10 @@ fun IndicatorAttributesScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 300.dp, max = 500.dp),
-                shape = RoundedCornerShape(8.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
+                shape = RoundedCornerShape(12.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
                 colors = CardDefaults.cardColors(containerColor = colors.surface)
             ) {
-                // ✅ Scrollable content inside the Card
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
@@ -106,36 +98,36 @@ fun IndicatorAttributesScreen(
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(sectionSpacing),
-                            verticalAlignment = Alignment.Top // Align items to top inside scroll
+                            verticalAlignment = Alignment.Top
                         ) {
                             // Left: Available Parameters
                             ParameterList(
-                                title = "Available parameters",
+                                title = "Available (${availableParameters.size})",
                                 parameters = availableParameters,
                                 highlighted = highlightedAvailable,
                                 onItemClick = toggleHighlightAvailable,
-                                labelSelector = { attribute -> attribute.label.replaceFirstChar { it.uppercase() } },
+                                labelSelector = { it.label.replaceFirstChar { c -> c.uppercase() } },
                                 modifier = Modifier.weight(1f)
                             )
-
 
                             // Middle: Transfer buttons
                             Column(
                                 modifier = Modifier.padding(horizontal = 8.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                                verticalArrangement = Arrangement.Center
                             ) {
                                 TransferButton(
                                     icon = Icons.AutoMirrored.Filled.ArrowForward,
-                                    contentDesc = "Move to right",
+                                    contentDesc = "Add to Selected",
                                     enabled = highlightedAvailable.isNotEmpty(),
                                     onClick = moveRight,
                                     size = buttonSize,
                                     colors = colors
                                 )
+                                Spacer(Modifier.height(16.dp))
                                 TransferButton(
                                     icon = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDesc = "Move to left",
+                                    contentDesc = "Remove from Selected",
                                     enabled = highlightedSelected.isNotEmpty(),
                                     onClick = moveLeft,
                                     size = buttonSize,
@@ -145,11 +137,11 @@ fun IndicatorAttributesScreen(
 
                             // Right: Selected Parameters
                             ParameterList(
-                                title = "Selected parameters",
+                                title = "Selected (${selectedParameters.size})",
                                 parameters = selectedParameters,
                                 highlighted = highlightedSelected,
                                 onItemClick = toggleHighlightSelected,
-                                labelSelector = { attribute -> attribute.label.replaceFirstChar { it.uppercase() } },
+                                labelSelector = { it.label.replaceFirstChar { c -> c.uppercase() } },
                                 modifier = Modifier.weight(1f)
                             )
                         }

@@ -7,14 +7,14 @@ import com.google.android.fhir.FhirEngine
 import com.lyecdevelopers.core._base.BaseViewModel
 import com.lyecdevelopers.core.common.scheduler.SchedulerProvider
 import com.lyecdevelopers.core.utils.AppLogger
-import com.lyecdevelopers.form.domain.mapper.toPatient
-import com.lyecdevelopers.form.domain.mapper.toPatientEntity
-import com.lyecdevelopers.form.domain.mapper.toQuestionnaireAnswers
 import com.lyecdevelopers.form.domain.usecase.PatientsUseCase
 import com.lyecdevelopers.form.presentation.registration.event.PatientRegistrationEvent
 import com.lyecdevelopers.form.presentation.registration.state.PatientRegistrationState
 import com.lyecdevelopers.form.utils.QuestionnaireResponseConverter
 import com.lyecdevelopers.form.utils.QuestionnaireUtils
+import com.lyecdevelopers.form.utils.toPatient
+import com.lyecdevelopers.form.utils.toPatientEntity
+import com.lyecdevelopers.form.utils.toQuestionnaireAnswers
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -134,11 +134,7 @@ class RegisterPatientViewModel @Inject constructor(
                 }
 
                 // ✅ Save to Room DB
-                val entity = patient.toPatientEntity(
-                    visitHistory = "[]", // You can pass real data here
-                    encounters = "[]"
-                )
-                patientsUseCase.saveLocallyOnly(entity)
+                patientsUseCase.saveLocallyOnly(patient.toPatientEntity())
 
                 _state.update { it.copy(isLoading = false, isSubmitted = true) }
 
@@ -176,12 +172,7 @@ class RegisterPatientViewModel @Inject constructor(
                 }
 
                 // ✅ Save to Room DB
-                val entity = patient.toPatientEntity(
-                    visitHistory = "[]", // You can pass real data here
-                    encounters = "[]"
-                )
-
-                patientsUseCase.saveLocallyOnly(entity)
+                patientsUseCase.saveLocallyOnly(patient.toPatientEntity())
                 _state.update { it.copy(isLoading = false, isSubmitted = true) }
                 withContext(schedulerProvider.main) {
                     hideLoading()

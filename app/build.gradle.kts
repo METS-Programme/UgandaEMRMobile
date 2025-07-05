@@ -100,9 +100,6 @@ android {
         )
     }
 
-    kotlinOptions {
-        jvmTarget = "11"
-    }
 
     kotlin {
         jvmToolchain(11)
@@ -110,6 +107,12 @@ android {
 
     hilt {
         enableAggregatingTask = false
+    }
+
+    configurations.all {
+        resolutionStrategy {
+            force("com.google.guava:guava:32.1.3-android")
+        }
     }
 }
 
@@ -167,7 +170,13 @@ dependencies {
     // firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
-    implementation(libs.google.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
+
+
+    // work
+    implementation(libs.hilt.work)
+    implementation(libs.hilt.work.compiler)
+    implementation(libs.work.runtime.ktx)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

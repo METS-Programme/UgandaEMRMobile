@@ -6,11 +6,12 @@ import androidx.room.TypeConverters
 import com.lyecdevelopers.core.data.local.db.FormTypeConverters
 import com.lyecdevelopers.core.model.o3.Pages
 import com.lyecdevelopers.core.model.o3.o3Form
+import java.util.UUID
 
 @Entity(tableName = "forms")
 @TypeConverters(FormTypeConverters::class)
 data class FormEntity(
-    @PrimaryKey val uuid: String,
+    @PrimaryKey val uuid: String = UUID.randomUUID().toString(),
     val name: String?,
     val version: String?,
     val description: String?,
@@ -20,7 +21,7 @@ data class FormEntity(
     val processor: String?,
     val published: Boolean,
     val retired: Boolean,
-    val pages: List<Pages>?, // Use actual type instead of raw JSON
+    val pages: List<Pages>?,
 ) {
     companion object {
         fun from(form: o3Form): FormEntity {

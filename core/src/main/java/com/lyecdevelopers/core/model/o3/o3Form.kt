@@ -96,8 +96,10 @@ data class Sections(
 data class Questions(
     @Json(name = "label") val label: String?,
     @Json(name = "type") val type: String?,
+    @Json(name = "required") val required: String?,
     @Json(name = "id") val id: String?,
     @Json(name = "questionOptions") val questionoptions: Questionoptions,
+    @Json(name = "questions") val questions: List<Questions>? = null,
 ) {
     companion object {
         fun empty() = Questions(
@@ -105,8 +107,11 @@ data class Questions(
             type = "",
             id = "",
             questionoptions = Questionoptions.empty(),
+            required = "false",
+            questions = emptyList(), // ✅ Correct type!
         )
     }
+
 }
 
 
