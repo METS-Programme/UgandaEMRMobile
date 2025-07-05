@@ -217,17 +217,20 @@ fun PatientDetailsScreen(
                 }
 
 
-                val pastVisits = state.visits?.let { visits ->
-                    if (visits.size > 1) visits.drop(1) else emptyList()
-                } ?: emptyList()
+                val visits = state.visits.orEmpty()
 
-                if (pastVisits.isNotEmpty()) {
+                if (visits.isNotEmpty()) {
                     item {
-                        Text("Visit History", style = MaterialTheme.typography.titleMedium)
-                        HorizontalDivider()
+                        Text(
+                            text = "Visit History", style = MaterialTheme.typography.titleMedium
+                        )
+                        HorizontalDivider(Modifier.padding(vertical = 8.dp))
                     }
-                    items(pastVisits, key = { it.visit.id }) { visit ->
-                        VisitCard(visit = visit, onClick = { /* Handle */ })
+
+                    items(
+                        items = visits, key = { it.visit.id }) { visit ->
+                        VisitCard(
+                            visit = visit, onClick = { /* TODO: Handle visit click */ })
                     }
                 }
 
@@ -244,11 +247,11 @@ fun PatientDetailsScreen(
                             title = "Current Encounter", encounters = state.encounters
                         )
                     }
-                    item {
-                        EncounterSection(
-                            title = "Previous Encounters", encounters = state.encounters
-                        )
-                    }
+//                    item {
+//                        EncounterSection(
+//                            title = "Previous Encounters", encounters = state.encounters
+//                        )
+//                    }
                 } else {
                     item {
                         Column {

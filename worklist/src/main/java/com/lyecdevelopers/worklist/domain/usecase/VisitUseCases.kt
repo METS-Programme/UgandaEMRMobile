@@ -37,5 +37,10 @@ class VisitUseCases @Inject constructor(private val visitRepository: VisitReposi
         return visitRepository.getForms()
     }
 
+    // get all visits with details
+    fun getAllVisitsWithDetails(): Flow<Result<List<VisitWithDetails>>> {
+        return visitRepository.getAllVisitsWithDetails()
+    }
+
 
 }

@@ -56,6 +56,7 @@ class WorklistViewModel @Inject constructor(
     init {
         loadPatients()
         getForms()
+        getAllVisitsWithDetails()
 
         val patientId = savedStateHandle.get<String>("patientId")
         if (patientId != null) {
@@ -248,7 +249,7 @@ class WorklistViewModel @Inject constructor(
         }
     }
 
-    private fun loadPatientVisits(patientId: String) {
+    fun loadPatientVisits(patientId: String) {
         viewModelScope.launch(schedulerProvider.io) {
             visitUseCases.getVisitSummariesForPatient(patientId).collect { result ->
                 withContext(schedulerProvider.main) {
@@ -256,7 +257,6 @@ class WorklistViewModel @Inject constructor(
                         result = result, onSuccess = { visits ->
                             _uiState.update {
                                 it.copy(
-                                    visits = visits,
                                     encounters = visits.firstOrNull()?.encounters ?: emptyList(),
 
                                     )
@@ -306,6 +306,21 @@ class WorklistViewModel @Inject constructor(
                     handleResult(
                         result = result, onSuccess = { forms ->
                             _uiState.update { it.copy(forms = forms) }
+                        }, errorMessage = (result as? Result.Error)?.message
+                    )
+                }
+            }
+        }
+    }
+
+    // get all visits with details
+    fun getAllVisitsWithDetails() {
+        viewModelScope.launch(schedulerProvider.io) {
+            visitUseCases.getAllVisitsWithDetails().collect { result ->
+                withContext(schedulerProvider.main) {
+                    handleResult(
+                        result = result, onSuccess = { visits ->
+                            _uiState.update { it.copy(visits = visits) }
                         }, errorMessage = (result as? Result.Error)?.message
                     )
                 }

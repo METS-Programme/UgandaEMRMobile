@@ -19,4 +19,7 @@ interface VisitRepository {
     // get forms
     fun getForms(): Flow<Result<List<FormEntity>>>
 
+    // get all visitsWithDetails
+    fun getAllVisitsWithDetails(): Flow<Result<List<VisitWithDetails>>>
+
 }

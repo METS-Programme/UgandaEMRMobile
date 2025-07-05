@@ -29,8 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lyecdevelopers.core.data.local.entity.EncounterEntity
 import com.lyecdevelopers.worklist.presentation.worklist.WorklistViewModel
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun EncounterCard(
@@ -65,11 +63,6 @@ fun EncounterCard(
 
             Spacer(Modifier.height(4.dp))
 
-            Text(
-                text = encounter.encounterDatetime.format(),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
 
             if (expanded && encounter.obs.isNotEmpty()) {
                 Spacer(Modifier.height(8.dp))
@@ -82,11 +75,6 @@ fun EncounterCard(
                             Text(
                                 text = "Value: ${obs.value}",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Text(
-                                text = "Date: ${obs.obsDatetime.formatObsDate()}",
-                                style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -113,16 +101,5 @@ fun EncounterCard(
                 )
             }
         }
-    }
-}
-
-
-fun String.formatObsDate(): String {
-    // Assuming obsDatetime is in ISO_LOCAL_DATE_TIME format, e.g., "2024-07-05T10:45:00"
-    return try {
-        val parsed = LocalDateTime.parse(this)
-        parsed.format(DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm"))
-    } catch (e: Exception) {
-        this // fallback if parsing fails
     }
 }

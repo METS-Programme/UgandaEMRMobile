@@ -45,10 +45,16 @@ import com.lyecdevelopers.core.model.VisitWithDetails
 @Composable
 fun PatientCard(
     patient: PatientEntity,
-    visitInfo: VisitWithDetails?,
+    allVisits: List<VisitWithDetails>,
     onStartVisit: () -> Unit,
     onViewDetails: () -> Unit,
 ) {
+
+
+    val visitInfo = remember(allVisits, patient.id) {
+        allVisits.find { it.visit.patientId == patient.id }
+    }
+
     Card(
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.fillMaxWidth(),
@@ -71,7 +77,7 @@ fun PatientCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = patient.firstName.firstOrNull()?.toString()?.uppercase() ?: "",
+                        text = patient.firstName.firstOrNull()?.uppercase() ?: "",
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
@@ -79,7 +85,6 @@ fun PatientCard(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                // Name & Status
                 Column(modifier = Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
@@ -91,10 +96,7 @@ fun PatientCard(
                     }
                 }
 
-                // Actions dropdown
-                Box(
-                    modifier = Modifier.wrapContentSize(Alignment.TopEnd)
-                ) {
+                Box(modifier = Modifier.wrapContentSize(Alignment.TopEnd)) {
                     var expanded by remember { mutableStateOf(false) }
 
                     IconButton(
@@ -105,20 +107,15 @@ fun PatientCard(
                         Icon(Icons.Default.MoreVert, contentDescription = "Patient Actions")
                     }
 
-                    DropdownMenu(
-                        expanded = expanded, onDismissRequest = { expanded = false }) {
-                        DropdownMenuItem(
-
-                            text = { Text("Start New Visit") }, onClick = {
+                    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                        DropdownMenuItem(text = { Text("Start New Visit") }, onClick = {
                                 expanded = false
                                 onStartVisit()
-                            })
-                        DropdownMenuItem(
-
-                            text = { Text("View Details") }, onClick = {
+                        })
+                        DropdownMenuItem(text = { Text("View Details") }, onClick = {
                                 expanded = false
                                 onViewDetails()
-                            })
+                        })
                     }
                 }
             }
@@ -127,12 +124,10 @@ fun PatientCard(
             Divider()
             Spacer(Modifier.height(12.dp))
 
-            // ✅ Improved Additional Info Section with safe null checks
-            if (visitInfo != null) {
+            // ✅ Safe Additional Info
+            visitInfo?.let { visit ->
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.Place,
                             contentDescription = "Community",
@@ -141,15 +136,13 @@ fun PatientCard(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = visitInfo.visit.type,
+                            text = visit.visit.type,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.Event,
                             contentDescription = "Scheduled",
@@ -158,22 +151,22 @@ fun PatientCard(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = visitInfo.visit.date,
+                            text = visit.visit.scheduledTime ?: "No date",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
-            } else {
-                Text(
-                    text = "No visit details available",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            } ?: Text(
+                text = "No visit details available",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
+
+
 
 
 

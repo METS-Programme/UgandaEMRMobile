@@ -68,6 +68,11 @@ interface VisitDao {
         visitId: String,
     ): List<EncounterEntity>
 
+    // get all visits with details
+    @Transaction
+    @Query("SELECT * FROM visits")
+    suspend fun getAllVisitsWithDetails(): List<VisitWithDetails>
+
 }
 
 
