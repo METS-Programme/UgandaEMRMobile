@@ -29,6 +29,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,14 +44,16 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
+import com.lyecdevelopers.core.data.local.entity.VitalsEntity
 import com.lyecdevelopers.core.model.VisitWithDetails
 import com.lyecdevelopers.core.ui.components.BaseScreen
 import com.lyecdevelopers.core.ui.components.EmptyStateView
-import com.lyecdevelopers.worklist.domain.model.Vitals
 import com.lyecdevelopers.worklist.presentation.visit.VisitCard
 import com.lyecdevelopers.worklist.presentation.visit.VisitDetailsDialog
 import com.lyecdevelopers.worklist.presentation.worklist.StartVisitDialog
 import com.lyecdevelopers.worklist.presentation.worklist.WorklistViewModel
+import com.lyecdevelopers.worklist.presentation.worklist.event.WorklistEvent
+import kotlinx.coroutines.NonCancellable.key
 import java.time.LocalDate
 import java.time.Period
 
@@ -59,7 +62,6 @@ import java.time.Period
 @Composable
 fun PatientDetailsScreen(
     onStartEncounter: (PatientEntity?, Any?) -> Unit,
-    onAddVitals: (PatientEntity) -> Unit,
     viewModel: WorklistViewModel = hiltViewModel(),
     navController: NavController,
 ) {
@@ -70,6 +72,25 @@ fun PatientDetailsScreen(
     var fabExpanded by remember { mutableStateOf(false) }
 
     var isStartVisitDialogVisible by remember { mutableStateOf(false) }
+    var showRecordDialog by remember { mutableStateOf(false) }
+
+    // use LauchEffect
+    LaunchedEffect(key) {
+        viewModel.getVitalsByPatient(state.selectedPatient?.id ?: "")
+    }
+
+    // ✅ Show Vitals Dialog
+    if (showRecordDialog) {
+        RecordVitalDialog(
+            patient = state.selectedPatient ?: return,
+            onDismissRequest = { showRecordDialog = false },
+            onSave = { vitals ->
+                // Unified: use OnVitalsChanged + SaveVitals
+                viewModel.onEvent(WorklistEvent.OnVitalsChanged(vitals))
+                viewModel.onEvent(WorklistEvent.SaveVitals)
+                showRecordDialog = false
+            })
+    }
 
     BaseScreen(
         uiEventFlow = viewModel.uiEvent,
@@ -93,7 +114,7 @@ fun PatientDetailsScreen(
                             label = "New Vitals",
                             onClick = {
                                 fabExpanded = false
-                                state.selectedPatient?.let(onAddVitals)
+                                showRecordDialog = true
                             },
                         )
                     }
@@ -144,7 +165,7 @@ fun PatientDetailsScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Patient Info & Vitals
+                // ───────────── Patient Info ─────────────
                 item {
                     val patient = state.selectedPatient
 
@@ -167,7 +188,7 @@ fun PatientDetailsScreen(
                                         style = MaterialTheme.typography.titleMedium
                                     )
                                     HorizontalDivider()
-                                    VitalsInfo(vitals = state.vitals!!)
+                                    VitalsInfo(vitals = state.vitalsEntity)
                                 }
                             } else {
                                 EmptyStateView("No vitals recorded.")
@@ -178,6 +199,7 @@ fun PatientDetailsScreen(
                     }
                 }
 
+                // ───────────── Current Visit ─────────────
                 item {
                     state.mostRecentVisit?.let { visit ->
                         Column(
@@ -216,9 +238,8 @@ fun PatientDetailsScreen(
                     }
                 }
 
-
+                // ───────────── Visit History ─────────────
                 val visits = state.visits.orEmpty()
-
                 if (visits.isNotEmpty()) {
                     item {
                         Text(
@@ -230,12 +251,11 @@ fun PatientDetailsScreen(
                     items(
                         items = visits, key = { it.visit.id }) { visit ->
                         VisitCard(
-                            visit = visit, onClick = { /* TODO: Handle visit click */ })
+                            visit = visit, onClick = { selectedVisit = visit })
                     }
                 }
 
-
-                // Encounters
+                // ───────────── Encounters ─────────────
                 item {
                     Text("Encounters", style = MaterialTheme.typography.titleMedium)
                     HorizontalDivider()
@@ -247,11 +267,6 @@ fun PatientDetailsScreen(
                             title = "Current Encounter", encounters = state.encounters
                         )
                     }
-//                    item {
-//                        EncounterSection(
-//                            title = "Previous Encounters", encounters = state.encounters
-//                        )
-//                    }
                 } else {
                     item {
                         Column {
@@ -268,6 +283,7 @@ fun PatientDetailsScreen(
             }
         }
 
+        // ───────────── Start Visit Dialog ─────────────
         StartVisitDialog(
             isVisible = isStartVisitDialogVisible,
             onDismissRequest = { isStartVisitDialogVisible = false },
@@ -278,7 +294,7 @@ fun PatientDetailsScreen(
 
 
 @Composable
-fun VitalsInfo(vitals: Vitals) {
+fun VitalsInfo(vitals: VitalsEntity?) {
     Column {
         Text(
             "Vitals",
@@ -293,74 +309,74 @@ fun VitalsInfo(vitals: Vitals) {
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            if (vitals.bloodPressureSystolic.isNotBlank() && vitals.bloodPressureDiastolic.isNotBlank()) {
+            if (vitals?.bloodPressureSystolic != null && vitals?.bloodPressureDiastolic != null) {
                 Text(
                     "BP: ${vitals.bloodPressureSystolic}/${vitals.bloodPressureDiastolic} mmHg",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
 
-            if (vitals.heartRate.isNotBlank()) {
+            vitals?.heartRate?.let {
                 Text(
-                    "HR: ${vitals.heartRate} bpm",
+                    "HR: $it bpm",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
 
-            if (vitals.temperature.isNotBlank()) {
+            vitals?.temperature?.let {
                 Text(
-                    "Temp: ${vitals.temperature} °C",
+                    "Temp: $it °C",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
 
-            if (vitals.respirationRate.isNotBlank()) {
+            vitals?.respirationRate?.let {
                 Text(
-                    "RR: ${vitals.respirationRate} breaths/min",
+                    "RR: $it breaths/min",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
 
-            if (vitals.spo2.isNotBlank()) {
+            vitals?.spo2?.let {
                 Text(
-                    "SpO₂: ${vitals.spo2}%",
+                    "SpO₂: $it%",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
 
-            if (vitals.weight.isNotBlank()) {
+            vitals?.weight?.let {
                 Text(
-                    "Weight: ${vitals.weight} kg",
+                    "Weight: $it kg",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
 
-            if (vitals.height.isNotBlank()) {
+            vitals?.height?.let {
                 Text(
-                    "Height: ${vitals.height} cm",
+                    "Height: $it cm",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
 
-            if (vitals.bmi.isNotBlank()) {
+            vitals?.bmi?.let {
                 Text(
-                    "BMI: ${vitals.bmi}",
+                    "BMI: $it",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
 
-            if (vitals.muac.isNotBlank()) {
+            vitals?.muac?.let {
                 Text(
-                    "MUAC: ${vitals.muac} cm",
+                    "MUAC: $it cm",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
         }
 
-        if (vitals.notes.isNotBlank()) {
+        vitals?.notes?.takeIf { it.isNotBlank() }?.let { notes ->
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                "Notes: ${vitals.notes}",
+                "Notes: $notes",
                 style = MaterialTheme.typography.bodySmall
             )
         }

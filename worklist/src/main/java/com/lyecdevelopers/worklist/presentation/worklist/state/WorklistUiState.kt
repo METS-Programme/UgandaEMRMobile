@@ -3,6 +3,7 @@ package com.lyecdevelopers.worklist.presentation.worklist.state
 import com.lyecdevelopers.core.data.local.entity.EncounterEntity
 import com.lyecdevelopers.core.data.local.entity.FormEntity
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
+import com.lyecdevelopers.core.data.local.entity.VitalsEntity
 import com.lyecdevelopers.core.model.VisitWithDetails
 import com.lyecdevelopers.worklist.domain.model.Vitals
 import java.text.SimpleDateFormat
@@ -22,6 +23,7 @@ data class WorklistUiState(
     val encounters: List<EncounterEntity> = emptyList(),
     val mostRecentVisit: VisitWithDetails? = null,
     val vitals: Vitals? = null,
+    val vitalsEntity: VitalsEntity? = null,
 
     // ──────────────── Start Visit state ────────────────
     val visitType: String = "",

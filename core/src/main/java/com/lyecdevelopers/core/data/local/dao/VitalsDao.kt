@@ -15,8 +15,9 @@ interface VitalsDao {
      * Get a single vitals record for a specific visit.
      * Returns null if no vitals recorded for that visit.
      */
+    @Transaction
     @Query("SELECT * FROM vitals WHERE visitUuid = :visitUuid LIMIT 1")
-    suspend fun getVitalsByVisit(visitUuid: String): VitalsEntity?
+    fun getVitalsByVisit(visitUuid: String): Flow<VitalsEntity?>
 
     /**
      * Get all vitals ever recorded for a specific patient,
@@ -33,17 +34,20 @@ interface VitalsDao {
      * Replace on conflict.
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertVitals(vitals: VitalsEntity)
+    fun insertVitals(vitals: VitalsEntity)
+
 
     /**
      * Delete a specific vitals record by ID.
      */
+    @Transaction
     @Query("DELETE FROM vitals WHERE id = :vitalsId")
     suspend fun deleteVitals(vitalsId: String)
 
     /**
      * Delete all vitals for a patient.
      */
+    @Transaction
     @Query("DELETE FROM vitals WHERE patientUuid = :patientUuid")
     suspend fun deleteVitalsForPatient(patientUuid: String)
 }

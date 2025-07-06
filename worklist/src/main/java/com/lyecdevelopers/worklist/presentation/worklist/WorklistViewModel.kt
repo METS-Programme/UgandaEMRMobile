@@ -12,6 +12,8 @@ import com.lyecdevelopers.core.model.Result
 import com.lyecdevelopers.core.model.VisitStatus
 import com.lyecdevelopers.core.ui.event.UiEvent.Navigate
 import com.lyecdevelopers.form.domain.usecase.PatientsUseCase
+import com.lyecdevelopers.worklist.domain.mapper.toDomain
+import com.lyecdevelopers.worklist.domain.mapper.toEntity
 import com.lyecdevelopers.worklist.domain.model.Vitals
 import com.lyecdevelopers.worklist.domain.usecase.VisitUseCases
 import com.lyecdevelopers.worklist.presentation.worklist.event.WorklistEvent
@@ -41,31 +43,35 @@ class WorklistViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(WorklistUiState())
     val uiState: StateFlow<WorklistUiState> = _uiState.asStateFlow()
 
-    // paging
     private val _pagingData = MutableStateFlow<PagingData<PatientEntity>>(PagingData.empty())
     val pagingData: StateFlow<PagingData<PatientEntity>> = _pagingData.asStateFlow()
 
-    // search
     private var searchJob: Job? = null
 
-    // Filters stored as state variables
     private var nameFilter: String? = null
     private var genderFilter: String? = null
     private var statusFilter: String? = null
 
     init {
         loadPatients()
+        loadPagedPatients()
         getForms()
         getAllVisitsWithDetails()
+        getVitalsByVisit(uiState.value.mostRecentVisit?.visit?.id.orEmpty())
+
 
         val patientId = savedStateHandle.get<String>("patientId")
         if (patientId != null) {
             loadPatient(patientId)
             loadPatientVisits(patientId)
             loadPatientMostRecentVisit(patientId)
+
             getEncountersByPatientIdAndVisitId(
-                patientId, uiState.value.mostRecentVisit?.visit?.id ?: ""
+                patientId, uiState.value.mostRecentVisit?.visit?.id.orEmpty()
             )
+
+            getVitalsByPatient(patientId)
+
         } else {
             _uiState.update { it.copy(error = "Patient ID not provided") }
         }
@@ -137,7 +143,19 @@ class WorklistViewModel @Inject constructor(
                 _uiState.update { it.copy(amPmMenuExpanded = event.expanded) }
             }
 
+            is WorklistEvent.OnVitalsChanged -> updateVitals(event.vitals)
+
+            WorklistEvent.SaveVitals -> saveVitals()
+
             WorklistEvent.StartVisit -> startPatientVisit()
+        }
+    }
+
+    private fun debounceLoadPatients(delayMillis: Long = 300L) {
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            delay(delayMillis)
+            loadPatients()
         }
     }
 
@@ -145,26 +163,29 @@ class WorklistViewModel @Inject constructor(
         viewModelScope.launch(schedulerProvider.io) {
             withContext(schedulerProvider.main) { showLoading() }
 
-            patientsUseCase.searchPatients(
-                name = nameFilter, gender = genderFilter, status = statusFilter
-            ).collect { result ->
-                withContext(schedulerProvider.main) {
-                    handleResult(
-                        result = result,
-                        onSuccess = { patients ->
-                            _uiState.update {
-                                it.copy(
-                                    patients = patients,
-                                    error = null,
-                                )
-                            }
-                        },
-                        successMessage = "Successfully loaded patients",
-                        errorMessage = (result as? Result.Error)?.message
-                    )
-                    hideLoading()
+            patientsUseCase.searchPatients(nameFilter, genderFilter, statusFilter)
+                .collect { result ->
+                    withContext(schedulerProvider.main) {
+                        handleResult(
+                            result,
+                            onSuccess = { patients ->
+                                _uiState.update { it.copy(patients = patients, error = null) }
+                            },
+                            successMessage = "Patients loaded",
+                            errorMessage = (result as? Result.Error)?.message
+                        )
+                        hideLoading()
+                    }
                 }
-            }
+        }
+    }
+
+    fun loadPagedPatients() {
+        viewModelScope.launch {
+            patientsUseCase.getPagedPatients(nameFilter, genderFilter, statusFilter)
+                .cachedIn(viewModelScope).collectLatest {
+                    _pagingData.value = it
+                }
         }
     }
 
@@ -173,11 +194,10 @@ class WorklistViewModel @Inject constructor(
             patientsUseCase.getPatientById(patientId).collect { result ->
                 withContext(schedulerProvider.main) {
                     handleResult(
-                        result = result,
+                        result,
                         onSuccess = { patient ->
                             _uiState.update { it.copy(selectedPatient = patient) }
-                        },
-                        successMessage = "Patient selected",
+                        }, successMessage = "Patient loaded",
                         errorMessage = (result as? Result.Error)?.message
                     )
                     hideLoading()
@@ -186,10 +206,134 @@ class WorklistViewModel @Inject constructor(
         }
     }
 
+    private fun loadPatientVisits(patientId: String) {
+        viewModelScope.launch(schedulerProvider.io) {
+            visitUseCases.getVisitSummariesForPatient(patientId).collect { result ->
+                withContext(schedulerProvider.main) {
+                    handleResult(
+                        result, onSuccess = { visits ->
+                            _uiState.update {
+                                it.copy(
+                                    encounters = visits.firstOrNull()?.encounters ?: emptyList()
+                                )
+                            }
+                        },
+                        errorMessage = (result as? Result.Error)?.message
+                    )
+                }
+            }
+        }
+    }
+
+    private fun loadPatientMostRecentVisit(patientId: String) {
+        viewModelScope.launch(schedulerProvider.io) {
+            visitUseCases.getMostRecentVisitForPatient(patientId).collect { result ->
+                withContext(schedulerProvider.main) {
+                    handleResult(
+                        result, onSuccess = { visit ->
+                            _uiState.update { it.copy(mostRecentVisit = visit) }
+                        }, errorMessage = (result as? Result.Error)?.message
+                    )
+                }
+            }
+        }
+    }
+
+    private fun getEncountersByPatientIdAndVisitId(patientId: String, visitId: String) {
+        viewModelScope.launch(schedulerProvider.io) {
+            visitUseCases.getEncountersByPatientIdAndVisitId(patientId, visitId).collect { result ->
+                withContext(schedulerProvider.main) {
+                    handleResult(
+                        result,
+                        onSuccess = { encounters -> },
+                        errorMessage = (result as? Result.Error)?.message
+                    )
+                }
+            }
+        }
+    }
+
+    private fun getForms() {
+        viewModelScope.launch(schedulerProvider.io) {
+            visitUseCases.getForms().collect { result ->
+                withContext(schedulerProvider.main) {
+                    handleResult(
+                        result,
+                        onSuccess = { forms -> _uiState.update { it.copy(forms = forms) } },
+                        errorMessage = (result as? Result.Error)?.message
+                    )
+                }
+            }
+        }
+    }
+
+    fun getAllVisitsWithDetails() {
+        viewModelScope.launch(schedulerProvider.io) {
+            visitUseCases.getAllVisitsWithDetails().collect { result ->
+                withContext(schedulerProvider.main) {
+                    handleResult(
+                        result,
+                        onSuccess = { visits -> _uiState.update { it.copy(visits = visits) } },
+                        errorMessage = (result as? Result.Error)?.message
+                    )
+                }
+            }
+        }
+    }
+
+    fun updateVitals(newVitals: Vitals) {
+        _uiState.update { it.copy(vitals = newVitals) }
+    }
+
+    private fun saveVitals() {
+        val state = uiState.value
+        val vitals = state.vitals ?: return
+        val visitId = state.mostRecentVisit?.visit?.id.orEmpty()
+        val patientId = state.selectedPatient?.id.orEmpty()
+
+        if (visitId.isBlank() || patientId.isBlank()) {
+            _uiState.update { it.copy(error = "Cannot save vitals: missing visit or patient.") }
+            return
+        }
+
+        val entity = vitals.toEntity(
+            visitUuid = visitId, patientId = patientId
+        )
+
+        viewModelScope.launch(schedulerProvider.io) {
+            patientsUseCase.saveVitals(vitals = entity)
+        }
+    }
+
+    fun getVitalsByVisit(visitId: String) {
+        viewModelScope.launch(schedulerProvider.io) {
+            patientsUseCase.getVitalsByVisit(visitId).collect { result ->
+                handleResult(
+                    result, onSuccess = { vitals ->
+                        _uiState.update {
+                            it.copy(vitals = vitals.toDomain())
+                        }
+                    }, errorMessage = (result as? Result.Error)?.message
+                )
+            }
+        }
+    }
+
+    fun getVitalsByPatient(patientId: String) {
+        viewModelScope.launch(schedulerProvider.io) {
+            patientsUseCase.getVitalsByPatient(patientId).collect { result ->
+                handleResult(
+                    result, onSuccess = { vitalsList ->
+                        _uiState.update { it.copy(vitalsEntity = vitalsList.firstOrNull()) }
+                    }, errorMessage = (result as? Result.Error)?.message
+                )
+            }
+        }
+    }
+
     private fun startPatientVisit() {
         viewModelScope.launch(schedulerProvider.io) {
             val state = _uiState.value
-
             val patientId = state.selectedPatient?.id
             if (patientId == null) {
                 _uiState.update { it.copy(error = "No patient selected") }
@@ -215,124 +359,16 @@ class WorklistViewModel @Inject constructor(
             )
 
             visitUseCases.saveVisit(visit).collect { result ->
-                withContext(schedulerProvider.main) {
-                    handleResult(
-                        result = result,
-                        onSuccess = {
-                            loadPatients()
-                        },
-                        successMessage = "Saved visit successfully",
-                        errorMessage = (result as? Result.Error)?.message
-                    )
-                }
-
-            }
-
-
-        }
-    }
-
-    private fun debounceLoadPatients(delayMillis: Long = 300L) {
-        searchJob?.cancel()
-        searchJob = viewModelScope.launch {
-            delay(delayMillis)
-            loadPatients()
-        }
-    }
-
-    fun loadPagedPatients() {
-        viewModelScope.launch {
-            patientsUseCase.getPagedPatients(nameFilter, genderFilter, statusFilter)
-                .cachedIn(viewModelScope).collectLatest {
-                    _pagingData.value = it
-                }
-        }
-    }
-
-    fun loadPatientVisits(patientId: String) {
-        viewModelScope.launch(schedulerProvider.io) {
-            visitUseCases.getVisitSummariesForPatient(patientId).collect { result ->
-                withContext(schedulerProvider.main) {
-                    handleResult(
-                        result = result, onSuccess = { visits ->
-                            _uiState.update {
-                                it.copy(
-                                    encounters = visits.firstOrNull()?.encounters ?: emptyList(),
-
-                                    )
-                            }
-                        },
-
-                        errorMessage = (result as? Result.Error)?.message
-                    )
-                }
+                handleResult(
+                    result,
+                    onSuccess = { loadPatients() },
+                    errorMessage = (result as? Result.Error)?.message
+                )
             }
         }
     }
-
-    private fun loadPatientMostRecentVisit(patientId: String) {
-        viewModelScope.launch(schedulerProvider.io) {
-            visitUseCases.getMostRecentVisitForPatient(patientId).collect { result ->
-                withContext(schedulerProvider.main) {
-                    handleResult(
-                        result = result, onSuccess = { visit ->
-                            _uiState.update { it.copy(mostRecentVisit = visit) }
-
-                        }, errorMessage = (result as? Result.Error)?.message
-                    )
-                }
-            }
-        }
-    }
-
-    // get encounters by patient id and visit id
-    private fun getEncountersByPatientIdAndVisitId(patientId: String, visitId: String) {
-        viewModelScope.launch(schedulerProvider.io) {
-            visitUseCases.getEncountersByPatientIdAndVisitId(patientId, visitId).collect { result ->
-                withContext(schedulerProvider.main) {
-                    handleResult(
-                        result = result, onSuccess = { encounters ->
-                        }, errorMessage = (result as? Result.Error)?.message
-                    )
-                }
-            }
-        }
-    }
-
-    private fun getForms() {
-        viewModelScope.launch(schedulerProvider.io) {
-            visitUseCases.getForms().collect { result ->
-                withContext(schedulerProvider.main) {
-                    handleResult(
-                        result = result, onSuccess = { forms ->
-                            _uiState.update { it.copy(forms = forms) }
-                        }, errorMessage = (result as? Result.Error)?.message
-                    )
-                }
-            }
-        }
-    }
-
-    // get all visits with details
-    fun getAllVisitsWithDetails() {
-        viewModelScope.launch(schedulerProvider.io) {
-            visitUseCases.getAllVisitsWithDetails().collect { result ->
-                withContext(schedulerProvider.main) {
-                    handleResult(
-                        result = result, onSuccess = { visits ->
-                            _uiState.update { it.copy(visits = visits) }
-                        }, errorMessage = (result as? Result.Error)?.message
-                    )
-                }
-            }
-        }
-    }
-
-    fun updateVitals(newVitals: Vitals) {
-        _uiState.update { it.copy(vitals = newVitals) }
-    }
-
 }
+
 
 
 

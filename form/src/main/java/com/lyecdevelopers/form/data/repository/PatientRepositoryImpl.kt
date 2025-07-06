@@ -127,37 +127,24 @@ class PatientRepositoryImpl @Inject constructor(
     ): PagingSource<Int, PatientEntity> = patientDao.getPagedPatients(name, gender, status)
 
     override suspend fun saveVital(vitals: VitalsEntity) {
-        vitalsDao.insertVitals(vitals)
+        return vitalsDao.insertVitals(vitals)
     }
 
 
-    override suspend fun getVitalsByVisit(visitId: String): Flow<Result<VitalsEntity>> = flow {
-        emit(Result.Loading)
-        try {
-            val vitals = vitalsDao.getVitalsByVisit(visitId)
+    override suspend fun getVitalsByVisit(visitId: String): Flow<Result<VitalsEntity>> {
+        return vitalsDao.getVitalsByVisit(visitId).map { vitals ->
             if (vitals != null) {
-                emit(Result.Success(vitals))
+                Result.Success(vitals)
             } else {
-                emit(Result.Error("No vitals found for this visit"))
+                Result.Error("No vitals found for this visit")
             }
-        } catch (e: SQLiteDatabaseLockedException) {
-            AppLogger.e("loadPatients", "Database is locked", e)
-            emit(Result.Error("Database is currently locked. Please try again."))
-
-        } catch (e: SQLiteDatabaseCorruptException) {
-            AppLogger.e("loadPatients", "Database is corrupt", e)
-            emit(Result.Error("Database is corrupt. Please restore or reinstall."))
-
-        } catch (e: SQLiteException) {
-            AppLogger.e("loadPatients", "SQLite error", e)
+        }.catch { e ->
+            AppLogger.e("getVitalsByVisit", "Database error", e)
             emit(Result.Error("Database error: ${e.localizedMessage}"))
+        }.flowOn(Dispatchers.IO)
+    }
 
-        } catch (e: Exception) {
-            AppLogger.e("loadPatients", "Unexpected error", e)
-            emit(Result.Error("Unexpected error: ${e.localizedMessage ?: "Unknown"}"))
-        }
 
-    }.flowOn(Dispatchers.IO)
 
 
     override fun getVitalsByPatient(patientId: String): Flow<Result<List<VitalsEntity>>> =

@@ -73,7 +73,7 @@ class PatientsUseCase @Inject constructor(
 
     // save vitals
     suspend fun saveVitals(vitals: VitalsEntity) {
-        repository.saveVital(vitals)
+        return repository.saveVital(vitals)
     }
 
     // get vitals by visit
