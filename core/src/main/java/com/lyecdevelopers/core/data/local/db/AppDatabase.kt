@@ -7,6 +7,7 @@ import com.lyecdevelopers.core.data.local.dao.EncounterDao
 import com.lyecdevelopers.core.data.local.dao.FormDao
 import com.lyecdevelopers.core.data.local.dao.PatientDao
 import com.lyecdevelopers.core.data.local.dao.VisitDao
+import com.lyecdevelopers.core.data.local.dao.VitalsDao
 import com.lyecdevelopers.core.data.local.entity.EncounterEntity
 import com.lyecdevelopers.core.data.local.entity.FormEntity
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
@@ -26,4 +27,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun formDao(): FormDao
     abstract fun patientDao(): PatientDao
     abstract fun encounterDao(): EncounterDao
+
+    abstract fun vitalsDao(): VitalsDao
 }

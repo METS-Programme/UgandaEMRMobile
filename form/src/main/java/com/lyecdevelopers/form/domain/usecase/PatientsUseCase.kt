@@ -4,6 +4,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
+import com.lyecdevelopers.core.data.local.entity.VitalsEntity
 import com.lyecdevelopers.core.model.Result
 import com.lyecdevelopers.form.domain.repository.PatientRepository
 import kotlinx.coroutines.flow.Flow
@@ -69,4 +70,20 @@ class PatientsUseCase @Inject constructor(
             createPatient(patient, entity)
         }
     }
+
+    // save vitals
+    suspend fun saveVitals(vitals: VitalsEntity) {
+        repository.saveVital(vitals)
+    }
+
+    // get vitals by visit
+    suspend fun getVitalsByVisit(visitId: String): Flow<Result<VitalsEntity>> {
+        return repository.getVitalsByVisit(visitId)
+    }
+
+    // get vitals by patient
+    fun getVitalsByPatient(patientId: String): Flow<Result<List<VitalsEntity>>> {
+        return repository.getVitalsByPatient(patientId)
+    }
+
 }

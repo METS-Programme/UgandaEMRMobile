@@ -7,6 +7,7 @@ import com.lyecdevelopers.core.data.local.dao.EncounterDao
 import com.lyecdevelopers.core.data.local.dao.FormDao
 import com.lyecdevelopers.core.data.local.dao.PatientDao
 import com.lyecdevelopers.core.data.local.dao.VisitDao
+import com.lyecdevelopers.core.data.local.dao.VitalsDao
 import com.lyecdevelopers.core.data.remote.FormApi
 import com.lyecdevelopers.form.data.repository.FormRepositoryImpl
 import com.lyecdevelopers.form.data.repository.PatientRepositoryImpl
@@ -60,10 +61,11 @@ object FormModule {
     @Singleton
     fun providePatientRepository(
         patientDao: PatientDao,
+        vitalsDao: VitalsDao,
         fhirEngine: FhirEngine,
     ): PatientRepository {
         return PatientRepositoryImpl(
-            patientDao = patientDao, fhirEngine = fhirEngine
+            patientDao = patientDao, vitalsDao = vitalsDao, fhirEngine = fhirEngine
         )
     }
 }

@@ -5,6 +5,7 @@ import com.lyecdevelopers.core.data.local.entity.VitalsEntity
 import com.lyecdevelopers.worklist.domain.model.Encounter
 import com.lyecdevelopers.worklist.domain.model.Vitals
 import java.time.Instant
+import java.util.UUID
 
 
 // Encounters
@@ -51,7 +52,7 @@ fun VitalsEntity.toDomain(): Vitals {
         heartRate = heartRate?.toString() ?: "",
         respirationRate = respirationRate?.toString() ?: "",
         spo2 = spo2?.toString() ?: "",
-        notes = notes ?: "",
+        notes = notes.orEmpty(),
         weight = weight?.toString() ?: "",
         height = height?.toString() ?: "",
         bmi = bmi?.toString() ?: "",
@@ -59,9 +60,18 @@ fun VitalsEntity.toDomain(): Vitals {
     )
 }
 
-fun Vitals.toEntity(visitUuid: String): VitalsEntity {
+
+fun Vitals.toEntity(
+    visitUuid: String,
+    patientId: String,
+    id: String = UUID.randomUUID().toString(),
+    dateRecorded: Long = System.currentTimeMillis(),
+): VitalsEntity {
     return VitalsEntity(
+        id = id,
         visitUuid = visitUuid,
+        patientUuid = patientId,
+        dateRecorded = dateRecorded,
         temperature = temperature.trim().toDoubleOrNull(),
         bloodPressureSystolic = bloodPressureSystolic.trim().toIntOrNull(),
         bloodPressureDiastolic = bloodPressureDiastolic.trim().toIntOrNull(),
@@ -72,7 +82,8 @@ fun Vitals.toEntity(visitUuid: String): VitalsEntity {
         weight = weight.trim().toDoubleOrNull(),
         height = height.trim().toDoubleOrNull(),
         bmi = bmi.trim().toDoubleOrNull(),
-        muac = muac.trim().toDoubleOrNull()
+        muac = muac.trim().toDoubleOrNull(),
     )
 }
+
 

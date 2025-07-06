@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,10 +22,14 @@ import androidx.compose.material.icons.filled.Height
 import androidx.compose.material.icons.filled.MonitorWeight
 import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material.icons.filled.Thermostat
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,18 +45,23 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.lyecdevelopers.core.ui.components.BaseScreen
+import com.lyecdevelopers.core.data.local.entity.PatientEntity
 import com.lyecdevelopers.core.ui.components.SubmitButton
 import com.lyecdevelopers.worklist.domain.model.Vitals
 import com.lyecdevelopers.worklist.presentation.worklist.WorklistViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecordVitalScreen(navController: NavController) {
+fun RecordVitalDialog(
+    patient: PatientEntity,
+    onDismissRequest: () -> Unit,
+    onSave: (Vitals) -> Unit,
+) {
     val viewModel: WorklistViewModel = hiltViewModel()
     val state by viewModel.uiState.collectAsState()
-    var isLoading by remember { mutableStateOf(false) }
 
     val vitals = state.vitals ?: Vitals()
 
@@ -64,145 +72,160 @@ fun RecordVitalScreen(navController: NavController) {
 
     var showValidationError by remember { mutableStateOf(false) }
 
-    BaseScreen(
-        uiEventFlow = viewModel.uiEvent, isLoading = isLoading, showLoading = { isLoading = it }
-    ) {
-        Column(
+    Dialog(onDismissRequest = onDismissRequest) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            tonalElevation = 4.dp,
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .padding(16.dp)
-                .verticalScroll(rememberScrollState())
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            SectionHeader("Record vitals")
-
-            RowPair(
-                label = "Temperature",
-                unit = "°C",
-                value = vitals.temperature,
-                onValueChange = { viewModel.updateVitals(vitals.copy(temperature = it)) },
-                icon = Icons.Default.Thermostat
-            )
-
-            RowPairTwoFields(
-                label = "Blood Pressure",
-                unit = "mmHg",
-                first = vitals.bloodPressureSystolic,
-                second = vitals.bloodPressureDiastolic,
-                onFirstChange = { viewModel.updateVitals(vitals.copy(bloodPressureSystolic = it)) },
-                onSecondChange = { viewModel.updateVitals(vitals.copy(bloodPressureDiastolic = it)) },
-                icon = Icons.Default.Favorite // Heart icon used for BP
-            )
-
-            RowPair(
-                label = "Heart rate",
-                unit = "beats/min",
-                value = vitals.heartRate,
-                onValueChange = { viewModel.updateVitals(vitals.copy(heartRate = it)) },
-                icon = Icons.Default.Favorite
-            )
-
-            RowPair(
-                label = "Respiration rate",
-                unit = "breaths/min",
-                value = vitals.respirationRate,
-                onValueChange = { viewModel.updateVitals(vitals.copy(respirationRate = it)) },
-                icon = Icons.Default.Air
-            )
-
-            RowPair(
-                label = "SpO₂",
-                unit = "%",
-                value = vitals.spo2,
-                onValueChange = { viewModel.updateVitals(vitals.copy(spo2 = it)) },
-                icon = Icons.Default.Bloodtype
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text("Notes", fontSize = 14.sp, fontWeight = FontWeight.Medium)
-            TextField(
-                value = vitals.notes,
-                onValueChange = { viewModel.updateVitals(vitals.copy(notes = it)) },
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp),
-                placeholder = { Text("Type any additional notes here") })
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            SectionHeader("Record biometrics")
-
-            RowPair(
-                label = "Weight",
-                unit = "kg",
-                value = vitals.weight,
-                onValueChange = { viewModel.updateVitals(vitals.copy(weight = it)) },
-                icon = Icons.Default.MonitorWeight
-            )
-
-            RowPair(
-                label = "Height",
-                unit = "cm",
-                value = vitals.height,
-                onValueChange = { viewModel.updateVitals(vitals.copy(height = it)) },
-                icon = Icons.Default.Height
-            )
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 6.dp)
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState())
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("BMI (auto)", fontSize = 14.sp)
-                    TextField(
-                        value = vitals.bmi,
-                        onValueChange = {},
-                        readOnly = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("---") },
-                        singleLine = true
+                Text(
+                    "Record Vitals", style = MaterialTheme.typography.titleLarge
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Your form fields
+                RowPair(
+                    label = "Temperature",
+                    unit = "°C",
+                    value = vitals.temperature,
+                    onValueChange = { viewModel.updateVitals(vitals.copy(temperature = it)) },
+                    icon = Icons.Default.Thermostat
+                )
+
+                RowPairTwoFields(
+                    label = "Blood Pressure",
+                    unit = "mmHg",
+                    first = vitals.bloodPressureSystolic,
+                    second = vitals.bloodPressureDiastolic,
+                    onFirstChange = { viewModel.updateVitals(vitals.copy(bloodPressureSystolic = it)) },
+                    onSecondChange = { viewModel.updateVitals(vitals.copy(bloodPressureDiastolic = it)) },
+                    icon = Icons.Default.Favorite
+                )
+
+                RowPair(
+                    label = "Heart rate",
+                    unit = "beats/min",
+                    value = vitals.heartRate,
+                    onValueChange = { viewModel.updateVitals(vitals.copy(heartRate = it)) },
+                    icon = Icons.Default.Favorite
+                )
+
+                RowPair(
+                    label = "Respiration rate",
+                    unit = "breaths/min",
+                    value = vitals.respirationRate,
+                    onValueChange = { viewModel.updateVitals(vitals.copy(respirationRate = it)) },
+                    icon = Icons.Default.Air
+                )
+
+                RowPair(
+                    label = "SpO₂",
+                    unit = "%",
+                    value = vitals.spo2,
+                    onValueChange = { viewModel.updateVitals(vitals.copy(spo2 = it)) },
+                    icon = Icons.Default.Bloodtype
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text("Notes", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                TextField(
+                    value = vitals.notes,
+                    onValueChange = { viewModel.updateVitals(vitals.copy(notes = it)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp),
+                    placeholder = { Text("Type any additional notes here") })
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                SectionHeader("Record biometrics")
+
+                RowPair(
+                    label = "Weight",
+                    unit = "kg",
+                    value = vitals.weight,
+                    onValueChange = { viewModel.updateVitals(vitals.copy(weight = it)) },
+                    icon = Icons.Default.MonitorWeight
+                )
+
+                RowPair(
+                    label = "Height",
+                    unit = "cm",
+                    value = vitals.height,
+                    onValueChange = { viewModel.updateVitals(vitals.copy(height = it)) },
+                    icon = Icons.Default.Height
+                )
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 6.dp)
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("BMI (auto)", fontSize = 14.sp)
+                        TextField(
+                            value = vitals.bmi,
+                            onValueChange = {},
+                            readOnly = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = { Text("---") },
+                            singleLine = true
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("kg/m²", fontSize = 12.sp)
+                }
+
+                RowPair(
+                    label = "MUAC",
+                    unit = "cm",
+                    value = vitals.muac,
+                    onValueChange = { viewModel.updateVitals(vitals.copy(muac = it)) },
+                    icon = Icons.Default.Straighten
+                )
+
+                if (showValidationError) {
+                    Text(
+                        text = "Temperature, Weight, and Height must not be empty.",
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(top = 8.dp)
                     )
                 }
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("kg/m²", fontSize = 12.sp)
-            }
 
-            RowPair(
-                label = "MUAC",
-                unit = "cm",
-                value = vitals.muac,
-                onValueChange = { viewModel.updateVitals(vitals.copy(muac = it)) },
-                icon = Icons.Default.Straighten
-            )
+                Spacer(modifier = Modifier.height(24.dp))
 
-            if (showValidationError) {
-                Text(
-                    text = "Temperature, Weight, and Height must not be empty.",
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            ActionButtons(
-                navController = navController, onValidateAndSave = {
-                    if (vitals.temperature.isNotBlank() && vitals.weight.isNotBlank() && vitals.height.isNotBlank()) {
-                        showValidationError = false
-                        // TODO: Persist vitals here using your ViewModel logic
-                        navController.popBackStack()
-                    } else {
-                        showValidationError = true
+                Row(
+                    horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()
+                ) {
+                    TextButton(onClick = onDismissRequest) {
+                        Text("Cancel")
                     }
-                })
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(
+                        onClick = {
+                            if (vitals.temperature.isNotBlank() && vitals.weight.isNotBlank() && vitals.height.isNotBlank()) {
+                                showValidationError = false
+                                onSave(vitals)
+                            } else {
+                                showValidationError = true
+                            }
+                        }) {
+                        Text("Save")
+                    }
+                }
+            }
         }
     }
-
-
 }
 
 

@@ -12,7 +12,6 @@ import com.lyecdevelopers.form.presentation.forms.FormsScreen
 import com.lyecdevelopers.form.presentation.questionnaire.QuestionnaireScreen
 import com.lyecdevelopers.form.presentation.registration.RegisterPatientScreen
 import com.lyecdevelopers.worklist.presentation.patient.PatientDetailsScreen
-import com.lyecdevelopers.worklist.presentation.patient.RecordVitalScreen
 import com.lyecdevelopers.worklist.presentation.worklist.WorklistScreen
 
 fun NavGraphBuilder.worklistGraph(fragmentManager: FragmentManager, navController: NavController) {
@@ -48,7 +47,6 @@ fun NavGraphBuilder.worklistGraph(fragmentManager: FragmentManager, navControlle
                     navController.navigate("patient_details/$patientId/forms")
                 },
                 navController = navController,
-                onAddVitals = { navController.navigate("patient_details/$patientId/vitals")},
             )
         }
 
@@ -60,14 +58,6 @@ fun NavGraphBuilder.worklistGraph(fragmentManager: FragmentManager, navControlle
                     navController.navigate("patient_details/$patientId/forms/${form.uuid}")
                 },
                 patientId = patientId,
-            )
-        }
-
-        composable("patient_details/{patientId}/vitals") { backStackEntry ->
-            backStackEntry.arguments?.getString("patientId") ?: return@composable
-
-            RecordVitalScreen(
-                navController = navController
             )
         }
 

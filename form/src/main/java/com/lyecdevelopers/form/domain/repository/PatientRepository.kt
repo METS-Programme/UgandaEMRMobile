@@ -2,6 +2,7 @@ package com.lyecdevelopers.form.domain.repository
 
 import androidx.paging.PagingSource
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
+import com.lyecdevelopers.core.data.local.entity.VitalsEntity
 import com.lyecdevelopers.core.model.PatientWithVisits
 import com.lyecdevelopers.core.model.Result
 import kotlinx.coroutines.flow.Flow
@@ -34,4 +35,13 @@ interface PatientRepository {
         gender: String?,
         status: String?,
     ): PagingSource<Int, PatientEntity>
+
+    // save vitals
+    suspend fun saveVital(vitals: VitalsEntity)
+
+    // get vitals by visit
+    suspend fun getVitalsByVisit(visitId: String): Flow<Result<VitalsEntity>>
+
+    // get vitals by patient
+    fun getVitalsByPatient(patientId: String): Flow<Result<List<VitalsEntity>>>
 }

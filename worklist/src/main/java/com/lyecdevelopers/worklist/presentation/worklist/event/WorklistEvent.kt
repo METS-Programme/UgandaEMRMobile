@@ -1,9 +1,9 @@
 package com.lyecdevelopers.worklist.presentation.worklist.event
 
 import com.lyecdevelopers.core.model.VisitStatus
+import com.lyecdevelopers.worklist.domain.model.Vitals
 
 sealed class WorklistEvent {
-
     // ──────────────── Filters ────────────────
     data class OnNameFilterChanged(val name: String) : WorklistEvent()
     data class OnGenderFilterChanged(val gender: String?) : WorklistEvent()
@@ -26,5 +26,10 @@ sealed class WorklistEvent {
     data class OnAmPmMenuExpandedChanged(val expanded: Boolean) : WorklistEvent()
 
     object StartVisit : WorklistEvent()
+
+    // ──────────────── Vitals ────────────────
+    data class OnVitalsChanged(val vitals: Vitals) : WorklistEvent()
+    object SaveVitals : WorklistEvent()
 }
+
 

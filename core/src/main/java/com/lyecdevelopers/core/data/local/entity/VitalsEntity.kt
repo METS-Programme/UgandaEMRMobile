@@ -12,13 +12,19 @@ import java.util.UUID
         parentColumns = ["id"],
         childColumns = ["visitUuid"],
         onDelete = ForeignKey.CASCADE
-    )],
-    indices = [Index(value = ["visitUuid"])]
+    ), ForeignKey(
+        entity = PatientEntity::class,
+        parentColumns = ["id"],
+        childColumns = ["patientUuid"],
+        onDelete = ForeignKey.CASCADE
+    )], indices = [Index(value = ["visitUuid"]), Index(value = ["patientUuid"])]
 )
 data class VitalsEntity(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
 
-    val visitUuid: String,
+    val patientUuid: String,
+
+    val visitUuid: String? = null,
 
     val temperature: Double? = null,
 
@@ -38,7 +44,11 @@ data class VitalsEntity(
     val bmi: Double? = null,
 
     val muac: Double? = null,
-)
+
+    val dateRecorded: Long = System.currentTimeMillis(),
+
+    )
+
 
 
 
