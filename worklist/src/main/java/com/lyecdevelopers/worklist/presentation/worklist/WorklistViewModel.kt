@@ -57,7 +57,6 @@ class WorklistViewModel @Inject constructor(
         loadPagedPatients()
         getForms()
         getAllVisitsWithDetails()
-        getVitalsByVisit(uiState.value.mostRecentVisit?.visit?.id.orEmpty())
 
 
         val patientId = savedStateHandle.get<String>("patientId")
@@ -161,8 +160,6 @@ class WorklistViewModel @Inject constructor(
 
     private fun loadPatients() {
         viewModelScope.launch(schedulerProvider.io) {
-            withContext(schedulerProvider.main) { showLoading() }
-
             patientsUseCase.searchPatients(nameFilter, genderFilter, statusFilter)
                 .collect { result ->
                     withContext(schedulerProvider.main) {
@@ -171,10 +168,8 @@ class WorklistViewModel @Inject constructor(
                             onSuccess = { patients ->
                                 _uiState.update { it.copy(patients = patients, error = null) }
                             },
-                            successMessage = "Patients loaded",
                             errorMessage = (result as? Result.Error)?.message
                         )
-                        hideLoading()
                     }
                 }
         }
@@ -200,7 +195,6 @@ class WorklistViewModel @Inject constructor(
                         }, successMessage = "Patient loaded",
                         errorMessage = (result as? Result.Error)?.message
                     )
-                    hideLoading()
                 }
             }
         }

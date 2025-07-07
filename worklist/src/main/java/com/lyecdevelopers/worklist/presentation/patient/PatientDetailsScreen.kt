@@ -53,7 +53,6 @@ import com.lyecdevelopers.worklist.presentation.visit.VisitDetailsDialog
 import com.lyecdevelopers.worklist.presentation.worklist.StartVisitDialog
 import com.lyecdevelopers.worklist.presentation.worklist.WorklistViewModel
 import com.lyecdevelopers.worklist.presentation.worklist.event.WorklistEvent
-import kotlinx.coroutines.NonCancellable.key
 import java.time.LocalDate
 import java.time.Period
 
@@ -74,10 +73,13 @@ fun PatientDetailsScreen(
     var isStartVisitDialogVisible by remember { mutableStateOf(false) }
     var showRecordDialog by remember { mutableStateOf(false) }
 
-    // use LauchEffect
-    LaunchedEffect(key) {
-        viewModel.getVitalsByPatient(state.selectedPatient?.id ?: "")
+
+    LaunchedEffect(state.mostRecentVisit) {
+        state.mostRecentVisit?.visit?.id?.let { visitId ->
+            viewModel.getVitalsByVisit(visitId)
+        }
     }
+
 
     // ✅ Show Vitals Dialog
     if (showRecordDialog) {
@@ -85,7 +87,6 @@ fun PatientDetailsScreen(
             patient = state.selectedPatient ?: return,
             onDismissRequest = { showRecordDialog = false },
             onSave = { vitals ->
-                // Unified: use OnVitalsChanged + SaveVitals
                 viewModel.onEvent(WorklistEvent.OnVitalsChanged(vitals))
                 viewModel.onEvent(WorklistEvent.SaveVitals)
                 showRecordDialog = false
