@@ -310,7 +310,7 @@ fun VitalsInfo(vitals: VitalsEntity?) {
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            if (vitals?.bloodPressureSystolic != null && vitals?.bloodPressureDiastolic != null) {
+            if (vitals?.bloodPressureSystolic != null && vitals.bloodPressureDiastolic != null) {
                 Text(
                     "BP: ${vitals.bloodPressureSystolic}/${vitals.bloodPressureDiastolic} mmHg",
                     style = MaterialTheme.typography.bodySmall
@@ -406,7 +406,7 @@ fun calculateAge(dateOfBirth: String): Int {
         val dob = LocalDate.parse(dateOfBirth)
         val today = LocalDate.now()
         Period.between(dob, today).years
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         -1 // fallback if parsing fails
     }
 }
