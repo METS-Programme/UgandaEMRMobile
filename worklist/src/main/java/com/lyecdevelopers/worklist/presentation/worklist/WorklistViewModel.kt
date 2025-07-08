@@ -64,11 +64,6 @@ class WorklistViewModel @Inject constructor(
             loadPatient(patientId)
             loadPatientVisits(patientId)
             loadPatientMostRecentVisit(patientId)
-
-            getEncountersByPatientIdAndVisitId(
-                patientId, uiState.value.mostRecentVisit?.visit?.id.orEmpty()
-            )
-
             getVitalsByPatient(patientId)
 
         } else {
@@ -192,7 +187,7 @@ class WorklistViewModel @Inject constructor(
                         result,
                         onSuccess = { patient ->
                             _uiState.update { it.copy(selectedPatient = patient) }
-                        }, successMessage = "Patient loaded",
+                        }, successMessage = "Patient loaded successfully",
                         errorMessage = (result as? Result.Error)?.message
                     )
                 }
@@ -227,20 +222,6 @@ class WorklistViewModel @Inject constructor(
                         result, onSuccess = { visit ->
                             _uiState.update { it.copy(mostRecentVisit = visit) }
                         }, errorMessage = (result as? Result.Error)?.message
-                    )
-                }
-            }
-        }
-    }
-
-    private fun getEncountersByPatientIdAndVisitId(patientId: String, visitId: String) {
-        viewModelScope.launch(schedulerProvider.io) {
-            visitUseCases.getEncountersByPatientIdAndVisitId(patientId, visitId).collect { result ->
-                withContext(schedulerProvider.main) {
-                    handleResult(
-                        result,
-                        onSuccess = { encounters -> },
-                        errorMessage = (result as? Result.Error)?.message
                     )
                 }
             }

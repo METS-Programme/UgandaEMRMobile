@@ -38,7 +38,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -78,6 +77,10 @@ fun PatientDetailsScreen(
         state.mostRecentVisit?.visit?.id?.let { visitId ->
             viewModel.getVitalsByVisit(visitId)
         }
+    }
+
+    val patientVisits = remember(state.visits, state.selectedPatient?.id) {
+        state.visits?.filter { it.visit.patientId == state.selectedPatient?.id }
     }
 
 
@@ -240,8 +243,7 @@ fun PatientDetailsScreen(
                 }
 
                 // ───────────── Visit History ─────────────
-                val visits = state.visits.orEmpty()
-                if (visits.isNotEmpty()) {
+                if (!patientVisits.isNullOrEmpty()) {
                     item {
                         Text(
                             text = "Visit History", style = MaterialTheme.typography.titleMedium
@@ -250,11 +252,12 @@ fun PatientDetailsScreen(
                     }
 
                     items(
-                        items = visits, key = { it.visit.id }) { visit ->
+                        items = patientVisits, key = { it.visit.id }) { visit ->
                         VisitCard(
                             visit = visit, onClick = { selectedVisit = visit })
                     }
                 }
+
 
                 // ───────────── Encounters ─────────────
                 item {
@@ -297,12 +300,6 @@ fun PatientDetailsScreen(
 @Composable
 fun VitalsInfo(vitals: VitalsEntity?) {
     Column {
-        Text(
-            "Vitals",
-            style = MaterialTheme.typography.labelMedium,
-            color = Color.Gray
-        )
-
         Spacer(modifier = Modifier.height(4.dp))
 
         FlowRow(
