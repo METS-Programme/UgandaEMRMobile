@@ -61,6 +61,8 @@ class RegisterPatientViewModel @Inject constructor(
             try {
                 val json = context.assets.open(filename).bufferedReader().use { it.readText() }
                 loadRegisterPatientQuestionnaireFromJson(json)
+                _state.value = _state.value.copy(isLoading = true)
+
             } catch (e: Exception) {
                 AppLogger.e(("FHIR_PARSE_ERROR" + e.message), e)
                 _state.value = _state.value.copy(
