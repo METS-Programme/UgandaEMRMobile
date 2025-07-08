@@ -44,11 +44,14 @@ fun RegisterPatientScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
 
     // Load form: either for new registration or edit
-    LaunchedEffect(patient?.id, uiState.isLoading) {
+    LaunchedEffect(patient?.id) {
         val event = patient?.let { PatientRegistrationEvent.LoadForEdit(it) }
             ?: PatientRegistrationEvent.Load
         viewModel.onEvent(event)
 
+    }
+
+    LaunchedEffect(uiState.isLoading) {
         isLoading = uiState.isLoading
     }
 

@@ -44,10 +44,11 @@ fun QuestionnaireScreen(
 
 
     // Prevent re-triggering when recomposing
-    LaunchedEffect(key1 = formId, key2 = state.isLoading) {
+    LaunchedEffect(key1 = formId) {
         viewModel.loadQuestionnaireByUuid(formId)
+    }
+    LaunchedEffect(state.isLoading) {
         isLoading = state.isLoading
-
     }
 
 
