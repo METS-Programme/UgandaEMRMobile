@@ -1,6 +1,7 @@
 package com.lyecdevelopers.worklist.presentation.worklist
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
 import com.lyecdevelopers.core.ui.components.BaseScreen
+import com.lyecdevelopers.core.ui.components.EmptyStateView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,16 +73,31 @@ fun WorklistScreen(
                     WorklistSummary(patients = uiState.patients)
                 }
 
-                items(uiState.patients, key = { it.id }) { patient ->
-                    PatientCard(
-                        allVisits = uiState.visits!!,
-                        patient = patient,
-                        onStartVisit = {
-                        isStartVisitDialogVisible = true
-                        }, onViewDetails = { onPatientClick(patient) })
-
+                if (uiState.patients.isEmpty()) {
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
+                        ) {
+                            EmptyStateView(
+                                message = "No patients found."
+                            )
+                        }
+                    }
+                } else {
+                    items(uiState.patients, key = { it.id }) { patient ->
+                        PatientCard(
+                            allVisits = uiState.visits!!,
+                            patient = patient,
+                            onStartVisit = {
+                                isStartVisitDialogVisible = true
+                            },
+                            onViewDetails = { onPatientClick(patient) })
+                    }
                 }
             }
+
 
         }
 

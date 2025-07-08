@@ -193,8 +193,7 @@ class SyncViewModel @Inject constructor(
 //                                                isSheetVisible = false
                             clearSelection()
                             _uiState.value = _uiState.value.copy(isLoading = false)
-                        },
-                        successMessage = "Successfully created data definition",
+                        }, successMessage = "Successfully downloaded selected forms",
                         errorMessage = (saveResult as? Result.Error)?.message
                     )
                 }
