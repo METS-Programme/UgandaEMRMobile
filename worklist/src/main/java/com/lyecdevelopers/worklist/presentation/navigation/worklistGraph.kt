@@ -1,6 +1,5 @@
 package com.lyecdevelopers.worklist.presentation.navigation
 
-import androidx.compose.material3.Text
 import androidx.fragment.app.FragmentManager
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -9,12 +8,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.lyecdevelopers.core.model.BottomNavItem
-import com.lyecdevelopers.worklist.presentation.patient.RecordVitalScreen
 import com.lyecdevelopers.form.presentation.forms.FormsScreen
 import com.lyecdevelopers.form.presentation.questionnaire.QuestionnaireScreen
 import com.lyecdevelopers.form.presentation.registration.RegisterPatientScreen
 import com.lyecdevelopers.worklist.presentation.patient.PatientDetailsScreen
-import com.lyecdevelopers.worklist.presentation.patient.StartVisitScreen
 import com.lyecdevelopers.worklist.presentation.worklist.WorklistScreen
 
 fun NavGraphBuilder.worklistGraph(fragmentManager: FragmentManager, navController: NavController) {
@@ -27,7 +24,6 @@ fun NavGraphBuilder.worklistGraph(fragmentManager: FragmentManager, navControlle
                 onPatientClick = { patient ->
                     navController.navigate("patient_details/${patient.id}")
                 },
-                onStartVisit = { /* TODO */ },
                 onRegisterPatient = {
                     navController.navigate("register_patient")
                 },
@@ -47,13 +43,10 @@ fun NavGraphBuilder.worklistGraph(fragmentManager: FragmentManager, navControlle
             val patientId = backStackEntry.arguments?.getString("patientId") ?: return@composable
 
             PatientDetailsScreen(
-                patientId = patientId,
-                onStartVisit = { navController.navigate("patient_details/$patientId/startVisit")},
                 onStartEncounter = { _, _ ->
                     navController.navigate("patient_details/$patientId/forms")
                 },
                 navController = navController,
-                onAddVitals = { navController.navigate("patient_details/$patientId/vitals")},
             )
         }
 
@@ -68,40 +61,18 @@ fun NavGraphBuilder.worklistGraph(fragmentManager: FragmentManager, navControlle
             )
         }
 
-        composable("patient_details/{patientId}/vitals") { backStackEntry ->
-            val patientId = backStackEntry.arguments?.getString("patientId") ?: return@composable
-
-            RecordVitalScreen(
-                navController = navController
-            )
-        }
-
-        composable("patient_details/{patientId}/startVisit") { backStackEntry ->
-            val patientId = backStackEntry.arguments?.getString("patientId") ?: return@composable
-
-            StartVisitScreen(
-
-            )
-        }
-
         composable(
             "patient_details/{patientId}/forms/{formId}",
             arguments = listOf(
                 navArgument("patientId") { type = NavType.StringType },
                 navArgument("formId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val patientId = backStackEntry.arguments?.getString("patientId")
-            val formId = backStackEntry.arguments?.getString("formId")
-
-            if (patientId != null && formId != null) {
-                QuestionnaireScreen(
-                    navController = navController,
-                    fragmentManager = fragmentManager,
-                    formId = formId,
-                )
-            } else {
-                Text("Missing patient or form ID")
-            }
+        ) { it ->
+            QuestionnaireScreen(
+                navController = navController,
+                fragmentManager = fragmentManager,
+                formId = it.arguments?.getString("formId")!!,
+                patientId = it.arguments?.getString("patientId")!!
+            )
         }
 
 

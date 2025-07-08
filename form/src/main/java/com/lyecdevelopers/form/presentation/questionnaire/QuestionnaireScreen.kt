@@ -32,6 +32,7 @@ fun QuestionnaireScreen(
     fragmentManager: FragmentManager = LocalContext.current.let { it as? FragmentActivity }?.supportFragmentManager
         ?: throw IllegalStateException("Not a FragmentActivity"),
     formId: String,
+    patientId: String,
 ) {
     val viewModel: QuestionnaireViewModel = hiltViewModel()
     val state by viewModel.state.collectAsState()

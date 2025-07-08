@@ -1,8 +1,11 @@
 package com.lyecdevelopers.form.domain.usecase
 
+import com.lyecdevelopers.core.data.local.entity.EncounterEntity
 import com.lyecdevelopers.core.data.local.entity.FormEntity
+import com.lyecdevelopers.core.data.local.entity.VisitEntity
 import com.lyecdevelopers.core.model.Form
 import com.lyecdevelopers.core.model.Result
+import com.lyecdevelopers.core.model.VisitWithDetails
 import com.lyecdevelopers.core.model.o3.o3Form
 import com.lyecdevelopers.form.domain.repository.FormRepository
 import kotlinx.coroutines.flow.Flow
@@ -56,6 +59,21 @@ class FormsUseCase @Inject constructor(
     suspend fun deleteLocalForm(uuid: String) {
         repository.deleteForm(uuid)
     }
+
+    suspend fun saveEncounterLocally(encounter: EncounterEntity) {
+        repository.saveEncounterLocally(encounter)
+    }
+
+    // get most recent visit
+    fun getMostRecentForVisitPatient(patientId: String): Flow<Result<VisitWithDetails>> {
+        return repository.getMostRecentForVisitPatient(patientId)
+    }
+
+    // create a default visit
+    suspend fun createADefault(visit: VisitEntity) {
+        repository.createDefault(visit)
+    }
+
 }
 
 

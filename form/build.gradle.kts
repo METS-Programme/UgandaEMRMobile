@@ -47,9 +47,7 @@ android {
 
     packaging { resources.excludes.addAll(listOf("META-INF/ASL-2.0.txt", "META-INF/LGPL-3.0.txt")) }
 
-    kotlinOptions {
-        jvmTarget = "11"
-    }
+
 
     kotlin { jvmToolchain(11) }
 
@@ -57,6 +55,8 @@ android {
     hilt {
         enableAggregatingTask = false
     }
+
+
 }
 
 dependencies {
@@ -78,11 +78,6 @@ dependencies {
     implementation(libs.androidx.paging.common.android)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)
-
-
-
-
-
 
     // fhir
     implementation(libs.android.fhir.engine)
@@ -119,6 +114,11 @@ dependencies {
 
     // logging
     implementation(libs.timber)
+
+    // firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
 
     // Optional: for previewing Composables
     implementation(libs.androidx.ui.tooling.preview)

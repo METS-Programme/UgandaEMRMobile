@@ -59,10 +59,15 @@ android {
 
     kotlinOptions {
         jvmTarget = "11"
+        freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
     }
 
     hilt {
         enableAggregatingTask = false
+    }
+
+    kotlin {
+        jvmToolchain(11)
     }
 }
 
@@ -81,15 +86,11 @@ dependencies {
     implementation(libs.androidx.paging.common.android)
     implementation(libs.androidx.appcompat)
 
-
-
     // fhir
     implementation(libs.android.fhir.engine)
     implementation(libs.android.fhir.sdc)
     implementation(libs.androidx.constraintlayout)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
-
-
 
     // Hilt
     implementation(libs.hilt.android)
@@ -125,7 +126,7 @@ dependencies {
     // firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
-    implementation(libs.google.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
 
 
     // Optional: for previewing Composables

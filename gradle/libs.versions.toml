@@ -1,11 +1,11 @@
 [versions]
 # Build tools
 agp = "8.11.0"
-firebaseBom = "33.15.0"
+firebaseBom = "33.16.0"
 kotlin = "2.2.0"
-ksp = "2.1.21-2.0.1"
+ksp = "2.2.0-2.0.2"
 coreKtx = "1.16.0"
-googleServices = "4.4.2"
+googleServices = "4.4.3"
 crashlytics = "3.0.4"
 
 # Compose
@@ -20,6 +20,10 @@ hiltNavigationCompose = "1.2.0"
 
 # Hilt DI
 hilt = "2.56.2"
+
+# worker manager
+hilt-work = "1.2.0"
+workmanager = "2.10.2"
 
 # Networking & Serialization
 retrofit = "3.0.0"
@@ -138,8 +142,12 @@ splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "core
 # firebase
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
-google-firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
+firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 
+# work manager
+hilt-work = { module = "androidx.hilt:hilt-work", version.ref = "hilt-work" }
+hilt-work-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "hilt-work" }
+work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workmanager" }
 
 # Test
 junit = { group = "junit", name = "junit", version.ref = "junit" }

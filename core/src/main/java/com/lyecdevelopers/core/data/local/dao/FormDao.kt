@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.lyecdevelopers.core.data.local.entity.FormEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface FormDao {
@@ -28,6 +29,6 @@ interface FormDao {
     suspend fun deleteFormById(uuid: String)
 
     @Query("SELECT COUNT(*) FROM forms")
-    suspend fun getFormCount(): Int
+    fun getFormCount(): Flow<Int>
 }
 

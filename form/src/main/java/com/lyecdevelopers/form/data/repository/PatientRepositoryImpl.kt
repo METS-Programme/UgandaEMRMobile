@@ -6,7 +6,9 @@ import android.database.sqlite.SQLiteException
 import androidx.paging.PagingSource
 import com.google.android.fhir.FhirEngine
 import com.lyecdevelopers.core.data.local.dao.PatientDao
+import com.lyecdevelopers.core.data.local.dao.VitalsDao
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
+import com.lyecdevelopers.core.data.local.entity.VitalsEntity
 import com.lyecdevelopers.core.model.PatientWithVisits
 import com.lyecdevelopers.core.model.Result
 import com.lyecdevelopers.core.utils.AppLogger
@@ -14,14 +16,17 @@ import com.lyecdevelopers.form.domain.repository.PatientRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import org.hl7.fhir.r4.model.Patient
 import javax.inject.Inject
 
 class PatientRepositoryImpl @Inject constructor(
     private val patientDao: PatientDao,
+    private val vitalsDao: VitalsDao,
     private val fhirEngine: FhirEngine,
 ) : PatientRepository {
     override suspend fun getPatientWithVisits(patientId: String): Flow<Result<PatientWithVisits?>> =
@@ -121,5 +126,37 @@ class PatientRepositoryImpl @Inject constructor(
         name: String?, gender: String?, status: String?,
     ): PagingSource<Int, PatientEntity> = patientDao.getPagedPatients(name, gender, status)
 
+    override suspend fun saveVital(vitals: VitalsEntity) {
+        return vitalsDao.insertVitals(vitals)
+    }
+
+
+    override suspend fun getVitalsByVisit(visitId: String): Flow<Result<VitalsEntity>> {
+        return vitalsDao.getVitalsByVisit(visitId).map { vitals ->
+            if (vitals != null) {
+                Result.Success(vitals)
+            } else {
+                Result.Error("No vitals found for this visit")
+            }
+        }.catch { e ->
+            AppLogger.e("getVitalsByVisit", "Database error", e)
+            emit(Result.Error("Database error: ${e.localizedMessage}"))
+        }.flowOn(Dispatchers.IO)
+    }
+
+
+
+
+    override fun getVitalsByPatient(patientId: String): Flow<Result<List<VitalsEntity>>> =
+        vitalsDao.getVitalsForPatient(patientId).map { vitalsList ->
+            if (vitalsList.isNotEmpty()) {
+                Result.Success(vitalsList)
+            } else {
+                Result.Error("No vitals found for this patient.")
+            }
+        }.onStart { emit(Result.Loading) }.catch { e ->
+            AppLogger.e("loadPatients", "Error getting vitals", e)
+            emit(Result.Error("Error: ${e.localizedMessage}"))
+        }.distinctUntilChanged().flowOn(Dispatchers.IO)
 
 }

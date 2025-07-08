@@ -3,21 +3,22 @@ package com.lyecdevelopers.core.model
 import androidx.room.Embedded
 import androidx.room.Relation
 import com.lyecdevelopers.core.data.local.entity.EncounterEntity
-import com.lyecdevelopers.core.data.local.entity.VisitSummaryEntity
+import com.lyecdevelopers.core.data.local.entity.VisitEntity
 import com.lyecdevelopers.core.data.local.entity.VitalsEntity
 
 data class VisitWithDetails(
-    @Embedded val visit: VisitSummaryEntity,
+    @Embedded val visit: VisitEntity,
 
     @Relation(
         parentColumn = "id",
-        entityColumn = "visitId"
+        entityColumn = "visitUuid"
     )
-    val encounters: List<EncounterEntity> = emptyList(),
+    val encounters: List<EncounterEntity>,
 
     @Relation(
         parentColumn = "id",
-        entityColumn = "visitId"
+        entityColumn = "visitUuid"
     )
-    val vitals: VitalsEntity? = null,
+    val vitals: List<VitalsEntity>,
 )
+

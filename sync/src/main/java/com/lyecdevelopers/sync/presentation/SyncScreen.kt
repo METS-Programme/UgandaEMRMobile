@@ -1,6 +1,8 @@
 package com.lyecdevelopers.sync.presentation
 
 // Sync module
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -10,15 +12,28 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Autorenew
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.EventNote
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.HowToReg
+import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonSearch
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -29,7 +44,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,17 +51,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.lyecdevelopers.core.model.cohort.Indicator
 import com.lyecdevelopers.core.model.cohort.IndicatorRepository
-import com.lyecdevelopers.core.model.o3.o3Form
+import com.lyecdevelopers.core.ui.components.BaseScreen
+import com.lyecdevelopers.sync.presentation.event.SyncEvent
 import com.lyecdevelopers.sync.presentation.forms.DownloadFormsScreen
-import com.lyecdevelopers.sync.presentation.forms.event.DownloadFormsUiEvent
 import com.lyecdevelopers.sync.presentation.patients.PatientFilterSectionContent
-import kotlinx.coroutines.flow.collectLatest
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,50 +69,19 @@ fun SyncScreen(
     lastSyncStatus: String = "Never Synced",
     lastSyncBy: String = "N/A",
     lastSyncError: String? = null,
-    patientsSynced: Int = 0,
     autoSyncEnabled: Boolean = false,
     autoSyncInterval: String = "15 minutes",
     onToggleAutoSync: (Boolean) -> Unit = {},
     onBack: () -> Unit = {},
     onSyncNow: () -> Unit = {},
-    onFormsSelected: (List<o3Form>) -> Unit = {},
 ) {
     val viewModel: SyncViewModel = hiltViewModel()
+    val uiState by viewModel.uiState.collectAsState()
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var isSheetVisible by rememberSaveable { mutableStateOf(false) }
     var showPatientFilterDialog by rememberSaveable { mutableStateOf(false) }
 
-    // Collect all state from ViewModel
-    val selectedCohort by viewModel.selectedCohort.collectAsState()
-    val selectedIndicator by viewModel.selectedIndicator.collectAsState()
-    val selectedDateRange by viewModel.selectedDateRange.collectAsState()
-
-    val cohortOptions by viewModel.cohorts.collectAsState()
-    val indicatorOptions: List<Indicator> = IndicatorRepository.reportIndicators
-
-    val availableParameters by viewModel.availableParameters.collectAsState()
-    val selectedParameters by viewModel.selectedParameters.collectAsState()
-    val highlightedAvailable by viewModel.highlightedAvailable.collectAsState()
-    val highlightedSelected by viewModel.highlightedSelected.collectAsState()
-
-    // forms
-    val formCount by viewModel.formCount.collectAsState()
-
-    // UI Event listener
-    LaunchedEffect(Unit) {
-        viewModel.uiEvent.collectLatest { event ->
-            when (event) {
-                is DownloadFormsUiEvent.ShowSnackbar -> {
-                }
-
-                is DownloadFormsUiEvent.FormsDownloaded -> {
-                    onFormsSelected(event.selectedForms)
-                    isSheetVisible = false
-                }
-            }
-        }
-    }
 
     if (isSheetVisible) {
         ModalBottomSheet(
@@ -111,173 +92,286 @@ fun SyncScreen(
         }
     }
 
-    Scaffold { padding ->
-        LazyColumn(
-            contentPadding = padding,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            item {
-                SyncSection(title = "Sync Status") {
-                    Surface(
-                        tonalElevation = 1.dp,
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text("Last Sync: $lastSyncTime")
-                            Text("Status: $lastSyncStatus")
-                            Text("Synced By: $lastSyncBy")
-                            lastSyncError?.let {
-                                Spacer(Modifier.height(8.dp))
-                                Text("Last Error: $it", color = MaterialTheme.colorScheme.error)
-                            }
-                            Spacer(Modifier.height(12.dp))
-                            Button(
-                                onClick = onSyncNow, modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(Icons.Filled.Sync, contentDescription = null)
-                                Spacer(Modifier.width(8.dp))
-                                Text("Sync Now")
-                            }
-                        }
-                    }
-                }
-            }
+    BaseScreen(
+        uiEventFlow = viewModel.uiEvent,
+        isLoading = uiState.isLoading,
+        showLoading = { /* handled by uiState */ }) {
+        Scaffold { padding ->
+            LazyColumn(
+                contentPadding = padding,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                item {
+                    SyncSection(title = "Sync Status") {
+                        Surface(
+                            tonalElevation = 1.dp, shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
 
-            item {
-                SyncSection(title = "Data Summary") {
-                    Surface(
-                        tonalElevation = 1.dp,
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text("Forms Synced:")
-                                Text("$formCount")
-                            }
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text("Patients Synced:")
-                                Text("$patientsSynced")
-                            }
-                        }
-                    }
-                }
-            }
-
-            item {
-                SyncSection(title = "Auto Sync") {
-                    Surface(
-                        tonalElevation = 1.dp,
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Enable Auto-Sync")
-                                Spacer(Modifier.weight(1f))
-                                Switch(
-                                    checked = autoSyncEnabled, onCheckedChange = onToggleAutoSync
+                                StatusRow(
+                                    icon = Icons.Filled.Schedule,
+                                    label = "Last Sync:",
+                                    value = lastSyncTime
                                 )
+
+                                StatusRow(
+                                    icon = Icons.Filled.CheckCircle,
+                                    label = "Status:",
+                                    value = lastSyncStatus
+                                )
+
+                                StatusRow(
+                                    icon = Icons.Filled.Person,
+                                    label = "Synced By:",
+                                    value = lastSyncBy
+                                )
+
+                                lastSyncError?.let {
+                                    Spacer(Modifier.height(12.dp))
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = Icons.Filled.ErrorOutline,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                        Spacer(Modifier.width(8.dp))
+                                        Text(
+                                            text = "Last Error: $it",
+                                            color = MaterialTheme.colorScheme.error,
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                    }
+                                }
+
+                                Spacer(Modifier.height(16.dp))
+
+                                Button(
+                                    onClick = onSyncNow, modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Icon(Icons.Filled.Sync, contentDescription = null)
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Sync Now")
+                                }
                             }
-                            if (autoSyncEnabled) {
-                                Spacer(Modifier.height(4.dp))
+                        }
+                    }
+                }
+
+                item {
+                    SyncSection(title = "Data Summary") {
+                        Surface(
+                            tonalElevation = 1.dp, shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .animateContentSize()
+                            ) {
+                                // Saved Section
                                 Text(
-                                    "Interval: $autoSyncInterval",
-                                    color = Color.Gray,
-                                    fontSize = 14.sp
+                                    text = "Saved",
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+
+                                SummaryRow(
+                                    icon = Icons.Default.Description, // Document icon for forms
+                                    label = "Forms Saved:", count = uiState.formCount
+                                )
+                                SummaryRow(
+                                    icon = Icons.Default.HowToReg, // Person add icon for patients
+                                    label = "Patients Saved:", count = uiState.patientCount
+                                )
+                                SummaryRow(
+                                    icon = Icons.Default.EventNote, // Calendar/note icon for visits
+                                    label = "Visits Saved:", count = 0
+                                )
+
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+                                // Synced Section
+                                Text(
+                                    text = "Synced",
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+
+                                SummaryRow(
+                                    icon = Icons.Default.Groups, // Group icon for patients synced
+                                    label = "Patients Synced:", count = uiState.patientCount
+                                )
+                                SummaryRow(
+                                    icon = Icons.Default.EventNote, // Reuse for visits synced
+                                    label = "Visits Synced:", count = 0
+                                )
+                                SummaryRow(
+                                    icon = Icons.Default.CheckCircle, // Check for encounters synced
+                                    label = "Encounters Synced:", count = uiState.encounterCount
                                 )
                             }
                         }
                     }
                 }
-            }
 
-            item {
-                SyncSection(title = "Manual Download") {
-                    Surface(
-                        tonalElevation = 1.dp,
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text("Download Forms", style = MaterialTheme.typography.titleMedium)
-                            Spacer(Modifier.height(8.dp))
-                            Button(
-                                onClick = { isSheetVisible = true },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(Icons.Default.Download, contentDescription = null)
-                                Spacer(Modifier.width(8.dp))
-                                Text("Download Forms")
-                            }
+                item {
+                    SyncSection(title = "Auto Sync") {
+                        Surface(
+                            tonalElevation = 1.dp,
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Autorenew,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(
+                                        "Enable Auto-Sync",
+                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                                    )
+                                    Spacer(Modifier.weight(1f))
+                                    Switch(
+                                        checked = autoSyncEnabled,
+                                        onCheckedChange = onToggleAutoSync
+                                    )
+                                }
 
-                            Spacer(Modifier.height(16.dp))
-                            Text("Download Patients", style = MaterialTheme.typography.titleMedium)
-                            Spacer(Modifier.height(8.dp))
-                            Button(
-                                onClick = { showPatientFilterDialog = true },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(Icons.Default.Download, contentDescription = null)
-                                Spacer(Modifier.width(8.dp))
-                                Text("Download Patients")
+                                if (autoSyncEnabled) {
+                                    Spacer(Modifier.height(8.dp))
+                                    Text(
+                                        "Interval: $autoSyncInterval",
+                                        style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    )
+                                }
                             }
                         }
                     }
                 }
+
+
+
+                item {
+                    SyncSection(title = "Manual Download") {
+                        Surface(
+                            tonalElevation = 1.dp, shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+
+                                // Download Forms Section
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Description,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(
+                                        "Download Forms",
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                }
+
+                                Spacer(Modifier.height(8.dp))
+
+                                Button(
+                                    onClick = { isSheetVisible = true },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Icon(Icons.Default.Download, contentDescription = null)
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Download Forms")
+                                }
+
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
+                                // Download Patients Section
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.People,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(
+                                        "Download Patients",
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                }
+
+                                Spacer(Modifier.height(8.dp))
+
+                                Button(
+                                    onClick = { showPatientFilterDialog = true },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Icon(Icons.Default.PersonSearch, contentDescription = null)
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Download Patients")
+                                }
+                            }
+                        }
+                    }
+                }
+
             }
         }
     }
 
-    // Patient Filter Dialog
     if (showPatientFilterDialog) {
         AlertDialog(onDismissRequest = { showPatientFilterDialog = false }, confirmButton = {
             TextButton(
                 onClick = {
-                    viewModel.onApplyFilters()
+                    viewModel.onEvent(SyncEvent.ApplyFilters)
                     showPatientFilterDialog = false
-                }) {
-                Text("Apply")
-            }
+                }) { Text("Apply") }
         }, dismissButton = {
             TextButton(onClick = { showPatientFilterDialog = false }) {
                 Text("Cancel")
             }
         }, text = {
             PatientFilterSectionContent(
-                cohortOptions = cohortOptions,
-                selectedCohort = selectedCohort,
-                onSelectedCohortChanged = viewModel::onSelectedCohortChanged,
-                indicatorOptions = indicatorOptions,
-                selectedIndicator = selectedIndicator,
-                onIndicatorSelected = viewModel::onIndicatorSelected,
-                selectedDateRange = selectedDateRange,
-                onDateRangeSelected = { startDate, endDate ->
-                    viewModel.onDateRangeSelected(Pair(startDate, endDate))
+                cohortOptions = uiState.cohorts,
+                selectedCohort = uiState.selectedCohort,
+                onSelectedCohortChanged = {
+                    viewModel.onEvent(SyncEvent.SelectedCohortChanged(it))
                 },
-                availableParameters = availableParameters,
-                selectedParameters = selectedParameters,
-                highlightedAvailable = highlightedAvailable,
-                highlightedSelected = highlightedSelected,
-                onHighlightAvailableToggle = { viewModel.toggleHighlightAvailable(it) },
-                onHighlightSelectedToggle = { viewModel.toggleHighlightSelected(it) },
-                onMoveRight = viewModel.moveRight,
-                onMoveLeft = viewModel.moveLeft,
+                indicatorOptions = IndicatorRepository.reportIndicators,
+                selectedIndicator = uiState.selectedIndicator,
+                onIndicatorSelected = {
+                    viewModel.onEvent(SyncEvent.IndicatorSelected(it))
+                },
+                availableParameters = uiState.availableParameters,
+                selectedParameters = uiState.selectedParameters,
+                highlightedAvailable = uiState.highlightedAvailable,
+                highlightedSelected = uiState.highlightedSelected,
+                onHighlightAvailableToggle = {
+                    viewModel.onEvent(SyncEvent.ToggleHighlightAvailable(it))
+                },
+                onHighlightSelectedToggle = {
+                    viewModel.onEvent(SyncEvent.ToggleHighlightSelected(it))
+                },
+                onMoveRight = { viewModel.onEvent(SyncEvent.MoveRight) },
+                onMoveLeft = { viewModel.onEvent(SyncEvent.MoveLeft) },
                 onFilter = {
-                    viewModel.onApplyFilters()
+                    viewModel.onEvent(SyncEvent.ApplyFilters)
                     showPatientFilterDialog = false
                 })
-
         })
     }
 }
@@ -302,4 +396,72 @@ fun SyncSection(
         content()
     }
 }
+
+
+@Composable
+fun SummaryRow(
+    icon: ImageVector,
+    label: String,
+    count: Int?,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(label)
+        }
+
+        AnimatedCount(count)
+    }
+}
+
+@Composable
+fun AnimatedCount(count: Int?) {
+    val animatedCount by animateIntAsState(
+        targetValue = count ?: 0, label = "AnimatedCount"
+    )
+    Text(
+        text = if (count == null) "--" else "$animatedCount",
+        style = MaterialTheme.typography.bodyLarge
+    )
+}
+
+@Composable
+fun StatusRow(
+    icon: ImageVector,
+    label: String,
+    value: String,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(label)
+        }
+        Text(value)
+    }
+}
+
 

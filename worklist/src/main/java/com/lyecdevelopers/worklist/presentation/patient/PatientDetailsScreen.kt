@@ -5,13 +5,12 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,11 +25,11 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,13 +44,15 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
+import com.lyecdevelopers.core.data.local.entity.VitalsEntity
+import com.lyecdevelopers.core.model.VisitWithDetails
 import com.lyecdevelopers.core.ui.components.BaseScreen
 import com.lyecdevelopers.core.ui.components.EmptyStateView
-import com.lyecdevelopers.worklist.domain.model.VisitSummary
-import com.lyecdevelopers.worklist.domain.model.Vitals
 import com.lyecdevelopers.worklist.presentation.visit.VisitCard
 import com.lyecdevelopers.worklist.presentation.visit.VisitDetailsDialog
+import com.lyecdevelopers.worklist.presentation.worklist.StartVisitDialog
 import com.lyecdevelopers.worklist.presentation.worklist.WorklistViewModel
+import com.lyecdevelopers.worklist.presentation.worklist.event.WorklistEvent
 import java.time.LocalDate
 import java.time.Period
 
@@ -59,25 +60,38 @@ import java.time.Period
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PatientDetailsScreen(
-    patientId: String,
-    onStartVisit: (PatientEntity) -> Unit,
     onStartEncounter: (PatientEntity?, Any?) -> Unit,
-    onAddVitals: (PatientEntity) -> Unit,
     viewModel: WorklistViewModel = hiltViewModel(),
     navController: NavController,
-
-    ) {
-
+) {
     var isLoading by remember { mutableStateOf(false) }
     val state by viewModel.uiState.collectAsState()
 
-
-    var selectedVisit by remember { mutableStateOf<VisitSummary?>(null) }
+    var selectedVisit by remember { mutableStateOf<VisitWithDetails?>(null) }
     var fabExpanded by remember { mutableStateOf(false) }
 
-    var dropdownExpanded by remember { mutableStateOf(false) }
+    var isStartVisitDialogVisible by remember { mutableStateOf(false) }
+    var showRecordDialog by remember { mutableStateOf(false) }
 
 
+    LaunchedEffect(state.mostRecentVisit) {
+        state.mostRecentVisit?.visit?.id?.let { visitId ->
+            viewModel.getVitalsByVisit(visitId)
+        }
+    }
+
+
+    // ✅ Show Vitals Dialog
+    if (showRecordDialog) {
+        RecordVitalDialog(
+            patient = state.selectedPatient ?: return,
+            onDismissRequest = { showRecordDialog = false },
+            onSave = { vitals ->
+                viewModel.onEvent(WorklistEvent.OnVitalsChanged(vitals))
+                viewModel.onEvent(WorklistEvent.SaveVitals)
+                showRecordDialog = false
+            })
+    }
 
     BaseScreen(
         uiEventFlow = viewModel.uiEvent,
@@ -93,22 +107,23 @@ fun PatientDetailsScreen(
                 Column(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     horizontalAlignment = Alignment.End,
-                    modifier = Modifier.padding(bottom = 72.dp, end = 0.dp)
+                    modifier = Modifier.padding(bottom = 72.dp)
                 ) {
                     AnimatedVisibility(visible = fabExpanded) {
                         SmallFabButton(
-                            icon = Icons.Outlined.MonitorHeart, // or any medical icon
+                            icon = Icons.Outlined.MonitorHeart,
                             label = "New Vitals",
                             onClick = {
                                 fabExpanded = false
-                                state.selectedPatient?.let(onAddVitals)
+                                showRecordDialog = true
                             },
                         )
                     }
 
                     AnimatedVisibility(visible = fabExpanded) {
                         SmallFabButton(
-                            icon = Icons.Default.Info, label = "New Encounter",
+                            icon = Icons.Default.Info,
+                            label = "New Encounter",
                             onClick = {
                                 fabExpanded = false
                                 onStartEncounter(state.selectedPatient, null)
@@ -118,10 +133,11 @@ fun PatientDetailsScreen(
 
                     AnimatedVisibility(visible = fabExpanded) {
                         SmallFabButton(
-                            icon = Icons.Default.Add, label = "New Visit",
+                            icon = Icons.Default.Add,
+                            label = "New Visit",
                             onClick = {
                                 fabExpanded = false
-                                state.selectedPatient?.let(onStartVisit)
+                                isStartVisitDialogVisible = true
                             },
                         )
                     }
@@ -142,7 +158,6 @@ fun PatientDetailsScreen(
                 }
             }
         }
-
         ) { padding ->
             LazyColumn(
                 contentPadding = padding,
@@ -151,7 +166,7 @@ fun PatientDetailsScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Patient Info and Vitals
+                // ───────────── Patient Info ─────────────
                 item {
                     val patient = state.selectedPatient
 
@@ -160,22 +175,13 @@ fun PatientDetailsScreen(
                         val ageText = if (age >= 0) "$age years" else "Unknown age"
                         val demographics = "$ageText • ${patient.gender}"
 
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            // Patient name
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(
-                                text = "${patient.firstName} • ${patient.lastName}",
+                                text = "${patient.firstName} ${patient.lastName}",
                                 style = MaterialTheme.typography.titleMedium
                             )
+                            Text(demographics, style = MaterialTheme.typography.bodyMedium)
 
-                            // Age and gender
-                            Text(
-                                text = demographics, style = MaterialTheme.typography.bodyMedium
-                            )
-
-                            // Vitals or Empty State
                             if (state.vitals != null) {
                                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                     Text(
@@ -183,49 +189,74 @@ fun PatientDetailsScreen(
                                         style = MaterialTheme.typography.titleMedium
                                     )
                                     HorizontalDivider()
-                                    VitalsInfo(vitals = state.vitals!!)
+                                    VitalsInfo(vitals = state.vitalsEntity)
                                 }
                             } else {
-                                EmptyStateView(message = "No vitals recorded.")
+                                EmptyStateView("No vitals recorded.")
                             }
                         }
                     } else {
-                        EmptyStateView(message = "No patient selected.")
+                        EmptyStateView("No patient selected.")
                     }
                 }
 
-
-                // Current Visit Section
+                // ───────────── Current Visit ─────────────
                 item {
-                    Text("Current Visit", style = MaterialTheme.typography.titleMedium)
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
-                    if (state.visits.isNotEmpty()) {
-                        val currentVisit = state.visits.first()
-                        VisitCard(
-                            visit = currentVisit,
-                            isCurrent = true,
-                            onClick = { selectedVisit = currentVisit })
-                    } else {
-                        EmptyStateView("No ongoing visit.")
+                    state.mostRecentVisit?.let { visit ->
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                        ) {
+                            Text(
+                                text = "Current Visit",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                            VisitCard(
+                                visit = visit,
+                                isCurrent = true,
+                                onClick = { selectedVisit = visit }
+                            )
+                        }
+                    } ?: run {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                        ) {
+                            Text(
+                                text = "Current Visit",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                            Text(
+                                text = "No active visit found.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
-
                 }
 
-                // Visit History
-                val pastVisits = if (state.visits.size > 1) state.visits.drop(1) else emptyList()
-                if (pastVisits.isNotEmpty()) {
+                // ───────────── Visit History ─────────────
+                val visits = state.visits.orEmpty()
+                if (visits.isNotEmpty()) {
                     item {
-                        Text("Visit History", style = MaterialTheme.typography.titleMedium)
-                        HorizontalDivider()
+                        Text(
+                            text = "Visit History", style = MaterialTheme.typography.titleMedium
+                        )
+                        HorizontalDivider(Modifier.padding(vertical = 8.dp))
                     }
 
-                    items(pastVisits, key = { it.id }) { visit ->
-                        VisitCard(visit = visit, onClick = { /* Handle */ })
+                    items(
+                        items = visits, key = { it.visit.id }) { visit ->
+                        VisitCard(
+                            visit = visit, onClick = { selectedVisit = visit })
                     }
                 }
 
-                // Encounter Section
+                // ───────────── Encounters ─────────────
                 item {
                     Text("Encounters", style = MaterialTheme.typography.titleMedium)
                     HorizontalDivider()
@@ -237,87 +268,118 @@ fun PatientDetailsScreen(
                             title = "Current Encounter", encounters = state.encounters
                         )
                     }
-
-                    item {
-                        EncounterSection(
-                            title = "Previous Encounters", encounters = state.encounters
-                        )
-                    }
                 } else {
                     item {
                         Column {
                             EmptyStateView("No encounters available.")
-                            Spacer(modifier = Modifier.height(8.dp))
-
+                            Spacer(Modifier.height(8.dp))
                         }
                     }
                 }
             }
 
             selectedVisit?.let {
-                VisitDetailsDialog(visit = it, onDismiss = { selectedVisit = null })
+                VisitDetailsDialog(
+                    visit = it, onDismiss = { selectedVisit = null })
             }
         }
 
-
-
+        // ───────────── Start Visit Dialog ─────────────
+        StartVisitDialog(
+            isVisible = isStartVisitDialogVisible,
+            onDismissRequest = { isStartVisitDialogVisible = false },
+            viewModel = viewModel
+        )
     }
-
 }
 
 
 @Composable
-fun VitalsInfo(vitals: Vitals) {
+fun VitalsInfo(vitals: VitalsEntity?) {
     Column {
-        Text("Vitals", style = MaterialTheme.typography.labelMedium, color = Color.Gray)
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()
+        Text(
+            "Vitals",
+            style = MaterialTheme.typography.labelMedium,
+            color = Color.Gray
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            vitals.bloodPressure?.let {
+            if (vitals?.bloodPressureSystolic != null && vitals.bloodPressureDiastolic != null) {
                 Text(
-                    "BP: $it", style = MaterialTheme.typography.bodySmall
+                    "BP: ${vitals.bloodPressureSystolic}/${vitals.bloodPressureDiastolic} mmHg",
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
-            vitals.heartRate?.let {
+
+            vitals?.heartRate?.let {
                 Text(
-                    "HR: $it bpm", style = MaterialTheme.typography.bodySmall
+                    "HR: $it bpm",
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
-            vitals.temperature?.let {
+
+            vitals?.temperature?.let {
                 Text(
-                    "Temp: $it °C", style = MaterialTheme.typography.bodySmall
+                    "Temp: $it °C",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            vitals?.respirationRate?.let {
+                Text(
+                    "RR: $it breaths/min",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            vitals?.spo2?.let {
+                Text(
+                    "SpO₂: $it%",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            vitals?.weight?.let {
+                Text(
+                    "Weight: $it kg",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            vitals?.height?.let {
+                Text(
+                    "Height: $it cm",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            vitals?.bmi?.let {
+                Text(
+                    "BMI: $it",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            vitals?.muac?.let {
+                Text(
+                    "MUAC: $it cm",
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
         }
-    }
-}
 
-
-@Composable
-fun VisitActionButtons(
-    onStartVisit: () -> Unit,
-    onStartEncounter: () -> Unit,
-) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp)
-    ) {
-        OutlinedButton(
-            onClick = onStartVisit, modifier = Modifier.weight(1f)
-        ) {
-            Icon(Icons.Default.Add, contentDescription = null)
-            Spacer(Modifier.width(4.dp))
-            Text("New Visit")
-        }
-
-        OutlinedButton(
-            onClick = onStartEncounter, modifier = Modifier.weight(1f)
-        ) {
-            Icon(Icons.Default.Info, contentDescription = null)
-            Spacer(Modifier.width(4.dp))
-            Text("New Encounter")
+        vitals?.notes?.takeIf { it.isNotBlank() }?.let { notes ->
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                "Notes: $notes",
+                style = MaterialTheme.typography.bodySmall
+            )
         }
     }
 }
@@ -344,7 +406,7 @@ fun calculateAge(dateOfBirth: String): Int {
         val dob = LocalDate.parse(dateOfBirth)
         val today = LocalDate.now()
         Period.between(dob, today).years
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         -1 // fallback if parsing fails
     }
 }

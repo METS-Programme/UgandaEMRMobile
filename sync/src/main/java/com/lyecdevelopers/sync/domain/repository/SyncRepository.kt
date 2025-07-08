@@ -1,5 +1,7 @@
 package com.lyecdevelopers.sync.domain.repository
 
+import com.lyecdevelopers.core.data.local.entity.EncounterEntity
+import com.lyecdevelopers.core.data.local.entity.PatientEntity
 import com.lyecdevelopers.core.model.Form
 import com.lyecdevelopers.core.model.Identifier
 import com.lyecdevelopers.core.model.PersonAttributeType
@@ -23,6 +25,19 @@ interface SyncRepository {
     // local db
     fun saveFormsLocally(forms: List<o3Form>): Flow<Result<List<o3Form>>>
     fun getFormCount(): Flow<Result<Int>>
+    fun getPatientsCount(): Flow<Result<Int>>
+
+    fun getEncountersCount(): Flow<Result<Int>>
+
+    // sync
+    // encounters
+    fun getUnsynced(): Flow<List<EncounterEntity>>
+    fun markSynced(encounter: EncounterEntity): Flow<Unit>
+
+    // patients
+    fun getUnsyncedPatients(): Flow<List<PatientEntity>>
+
+    fun markSyncedPatient(patient: PatientEntity): Flow<Unit>
 
 
     // cohorts
@@ -49,5 +64,8 @@ interface SyncRepository {
 
     // data definition
     fun createDataDefinition(payload: DataDefinition): Flow<Result<Any>>
+
+
+
 
 }

@@ -4,18 +4,35 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.lyecdevelopers.core.model.OpenmrsObs
+import com.lyecdevelopers.core.model.encounter.Order
+import java.util.UUID
 
 @Entity(
-    tableName = "encounters", foreignKeys = [ForeignKey(
-        entity = VisitSummaryEntity::class,
+    tableName = "encounters",
+    foreignKeys = [ForeignKey(
+        entity = VisitEntity::class,
         parentColumns = ["id"],
-        childColumns = ["visitId"],
+        childColumns = ["visitUuid"],
         onDelete = ForeignKey.CASCADE
-    )], indices = [Index(value = ["visitId"])]
+    )], indices = [Index(value = ["visitUuid"])]
 )
+
 data class EncounterEntity(
-    @PrimaryKey val id: String,
-    val visitId: String,
-    val type: String,
-    val date: String,
+    @PrimaryKey val id: String = UUID.randomUUID().toString(),
+    val encounterTypeUuid: String,
+    val encounterDatetime: String,
+    val patientUuid: String,
+    val locationUuid: String,
+    val providerUuid: String?,
+    val obs: List<OpenmrsObs> = emptyList(),
+    val orders: List<Order> = emptyList(),
+    val formUuid: String,
+    val visitUuid: String,
+    val voided: Boolean = false,
+    val synced: Boolean = false,
+    val createdAt: String,
 )
+
+
+

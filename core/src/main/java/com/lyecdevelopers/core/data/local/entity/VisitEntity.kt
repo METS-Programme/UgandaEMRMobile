@@ -5,9 +5,12 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.lyecdevelopers.core.model.VisitStatus
+import java.util.UUID
+
 
 @Entity(
-    tableName = "visits", foreignKeys = [ForeignKey(
+    tableName = "visits",
+    foreignKeys = [ForeignKey(
         entity = PatientEntity::class,
         parentColumns = ["id"],
         childColumns = ["patientId"],
@@ -15,12 +18,16 @@ import com.lyecdevelopers.core.model.VisitStatus
     )], indices = [Index("patientId")]
 )
 data class VisitEntity(
-    @PrimaryKey val id: String,
+    @PrimaryKey val id: String = UUID.randomUUID().toString(),
     val patientId: String,
-    val visitType: String,
+    val type: String,
+    val date: String,
     val status: VisitStatus,
-    val scheduledTime: String, // or use `LocalDateTime` with type converters
+    val notes: String? = null,
+    val scheduledTime: String? = null,
 )
+
+
 
 
 
