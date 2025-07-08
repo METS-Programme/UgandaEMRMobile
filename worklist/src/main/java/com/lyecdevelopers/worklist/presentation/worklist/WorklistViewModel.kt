@@ -158,10 +158,15 @@ class WorklistViewModel @Inject constructor(
             patientsUseCase.searchPatients(nameFilter, genderFilter, statusFilter)
                 .collect { result ->
                     withContext(schedulerProvider.main) {
+                        _uiState.value = _uiState.value.copy(isLoading = true)
                         handleResult(
                             result,
                             onSuccess = { patients ->
-                                _uiState.update { it.copy(patients = patients, error = null) }
+                                _uiState.update {
+                                    it.copy(
+                                        patients = patients, error = null, isLoading = false
+                                    )
+                                }
                             },
                             errorMessage = (result as? Result.Error)?.message
                         )
@@ -183,10 +188,15 @@ class WorklistViewModel @Inject constructor(
         viewModelScope.launch(schedulerProvider.io) {
             patientsUseCase.getPatientById(patientId).collect { result ->
                 withContext(schedulerProvider.main) {
+                    _uiState.value = _uiState.value.copy(isLoading = true)
                     handleResult(
                         result,
                         onSuccess = { patient ->
-                            _uiState.update { it.copy(selectedPatient = patient) }
+                            _uiState.update {
+                                it.copy(
+                                    selectedPatient = patient, isLoading = false
+                                )
+                            }
                         }, successMessage = "Patient loaded successfully",
                         errorMessage = (result as? Result.Error)?.message
                     )
@@ -274,10 +284,13 @@ class WorklistViewModel @Inject constructor(
         val entity = vitals.toEntity(
             visitUuid = visitId, patientId = patientId
         )
-
+        _uiState.value = _uiState.value.copy(isLoading = true)
         viewModelScope.launch(schedulerProvider.io) {
             patientsUseCase.saveVitals(vitals = entity)
+            _uiState.value = _uiState.value.copy(isLoading = false)
+
         }
+
     }
 
     fun getVitalsByVisit(visitId: String) {
@@ -334,9 +347,13 @@ class WorklistViewModel @Inject constructor(
             )
 
             visitUseCases.saveVisit(visit).collect { result ->
+                _uiState.value = _uiState.value.copy(isLoading = true)
                 handleResult(
-                    result,
-                    onSuccess = { loadPatients() },
+                    result, onSuccess = {
+                        loadPatients()
+                        _uiState.value = _uiState.value.copy(isLoading = false)
+
+                    },
                     errorMessage = (result as? Result.Error)?.message
                 )
             }

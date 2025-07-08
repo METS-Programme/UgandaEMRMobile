@@ -73,11 +73,15 @@ fun PatientDetailsScreen(
     var showRecordDialog by remember { mutableStateOf(false) }
 
 
-    LaunchedEffect(state.mostRecentVisit) {
+    LaunchedEffect(state.mostRecentVisit, state.isLoading) {
         state.mostRecentVisit?.visit?.id?.let { visitId ->
             viewModel.getVitalsByVisit(visitId)
         }
+
+        isLoading = state.isLoading
+
     }
+
 
     val patientVisits = remember(state.visits, state.selectedPatient?.id) {
         state.visits?.filter { it.visit.patientId == state.selectedPatient?.id }
@@ -99,8 +103,8 @@ fun PatientDetailsScreen(
     BaseScreen(
         uiEventFlow = viewModel.uiEvent,
         navController = navController,
+        showLoading = { loading -> isLoading = loading },
         isLoading = isLoading,
-        showLoading = { isLoading = it },
     ) {
         Scaffold(topBar = {
             TopAppBar(
@@ -233,10 +237,8 @@ fun PatientDetailsScreen(
                                 style = MaterialTheme.typography.titleMedium
                             )
                             HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                            Text(
-                                text = "No active visit found.",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            EmptyStateView(
+                                message = "No active visit found."
                             )
                         }
                     }
@@ -255,6 +257,18 @@ fun PatientDetailsScreen(
                         items = patientVisits, key = { it.visit.id }) { visit ->
                         VisitCard(
                             visit = visit, onClick = { selectedVisit = visit })
+                    }
+                } else {
+                    item {
+                        Column {
+                            Text(
+                                text = "Visit History", style = MaterialTheme.typography.titleMedium
+                            )
+                            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                            EmptyStateView(
+                                message = "No previous visits found for this patient."
+                            )
+                        }
                     }
                 }
 

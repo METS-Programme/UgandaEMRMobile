@@ -44,9 +44,12 @@ fun QuestionnaireScreen(
 
 
     // Prevent re-triggering when recomposing
-    LaunchedEffect(key1 = formId) {
+    LaunchedEffect(key1 = formId, key2 = state.isLoading) {
         viewModel.loadQuestionnaireByUuid(formId)
+        isLoading = state.isLoading
+
     }
+
 
     // Handle result from QuestionnaireFragment
     DisposableEffect(fragmentManager, lifecycleOwner) {

@@ -21,7 +21,6 @@ import com.lyecdevelopers.core.model.cohort.ReportRequest
 import com.lyecdevelopers.core.model.cohort.ReportType
 import com.lyecdevelopers.core.model.cohort.formatReportArray
 import com.lyecdevelopers.core.model.o3.o3Form
-import com.lyecdevelopers.core.utils.AppLogger
 import com.lyecdevelopers.sync.domain.usecase.SyncUseCase
 import com.lyecdevelopers.sync.presentation.event.SyncEvent
 import com.lyecdevelopers.sync.presentation.state.SyncUiState
@@ -108,6 +107,7 @@ class SyncViewModel @Inject constructor(
     private fun loadForms() {
         viewModelScope.launch(schedulerProvider.io) {
             syncUseCase.loadForms().collect { result ->
+                _uiState.value = _uiState.value.copy(isLoading = true)
                 handleResult(
                     result = result, onSuccess = { forms ->
                         updateUi {
@@ -128,6 +128,7 @@ class SyncViewModel @Inject constructor(
         updateUi { copy(searchQuery = query) }
         viewModelScope.launch(schedulerProvider.io) {
             syncUseCase.filterForms(query).collect { result ->
+                _uiState.value = _uiState.value.copy(isLoading = true)
                 handleResult(
                     result = result, onSuccess = { forms ->
                         updateUi {
@@ -163,9 +164,7 @@ class SyncViewModel @Inject constructor(
 
         viewModelScope.launch(schedulerProvider.io) {
             updateUi { copy(isLoading = true) }
-
             val loadedForms = mutableListOf<o3Form>()
-
             coroutineScope {
                 selectedForms.forEach { form ->
                     launch {
@@ -187,12 +186,13 @@ class SyncViewModel @Inject constructor(
 
             syncUseCase.saveFormsLocally(loadedForms).collect { saveResult ->
                 withContext(schedulerProvider.main) {
+                    _uiState.value = _uiState.value.copy(isLoading = true)
                     handleResult(
                         result = saveResult,
                         onSuccess = { data ->
-                            AppLogger.d("Data$data")
 //                                                isSheetVisible = false
                             clearSelection()
+                            _uiState.value = _uiState.value.copy(isLoading = false)
                         },
                         successMessage = "Successfully created data definition",
                         errorMessage = (saveResult as? Result.Error)?.message
@@ -268,10 +268,11 @@ class SyncViewModel @Inject constructor(
             val payload = buildDataDefinitionPayload(reportRequest, indicator)
 
             syncUseCase.createDataDefinition(payload).collect { result ->
+                _uiState.value = _uiState.value.copy(isLoading = true)
                 handleResult(
                     result = result,
                     onSuccess = { data ->
-                        AppLogger.d("Data$data")
+                        _uiState.value = _uiState.value.copy(isLoading = false)
                     },
                     successMessage = "Successfully created data definition",
                     errorMessage = (result as? Result.Error)?.message

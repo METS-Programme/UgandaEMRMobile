@@ -44,11 +44,14 @@ fun RegisterPatientScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
 
     // Load form: either for new registration or edit
-    LaunchedEffect(patient?.id) {
+    LaunchedEffect(patient?.id, uiState.isLoading) {
         val event = patient?.let { PatientRegistrationEvent.LoadForEdit(it) }
             ?: PatientRegistrationEvent.Load
         viewModel.onEvent(event)
+
+        isLoading = uiState.isLoading
     }
+
 
     // Handle result from QuestionnaireFragment
     DisposableEffect(fragmentManager, lifecycleOwner) {
@@ -78,7 +81,6 @@ fun RegisterPatientScreen(
         }
     }
 
-    // 🧱 Base UI with Snackbar & Dialog support
     BaseScreen(
         uiEventFlow = viewModel.uiEvent,
         showLoading = { loading -> isLoading = loading },
