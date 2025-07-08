@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
@@ -60,6 +61,7 @@ class SyncViewModel @Inject constructor(
         updateFormCount()
         updatePatientCount()
         updateEncounterCount()
+        restoreAutoSyncSettings()
     }
 
     fun onEvent(event: SyncEvent) {
@@ -78,7 +80,29 @@ class SyncViewModel @Inject constructor(
             is SyncEvent.ToggleHighlightSelected -> toggleHighlightSelected(event.item)
             SyncEvent.MoveRight -> moveRight()
             SyncEvent.MoveLeft -> moveLeft()
+            is SyncEvent.UpdateLastSyncTime -> {
+                _uiState.update { it.copy(lastSyncTime = event.time) }
+            }
+
+            is SyncEvent.UpdateLastSyncStatus -> {
+                _uiState.update { it.copy(lastSyncStatus = event.status) }
+            }
+
+            is SyncEvent.UpdateLastSyncBy -> {
+                _uiState.update { it.copy(lastSyncBy = event.user) }
+            }
+
+            is SyncEvent.UpdateLastSyncError -> {
+                _uiState.update { it.copy(lastSyncError = event.error) }
+            }
+
+            is SyncEvent.ToggleAutoSync -> handleToggleAutoSync(event.enabled)
+
+
+            is SyncEvent.UpdateAutoSyncInterval -> updateAutoSyncInterval(event.interval)
+
         }
+
     }
 
     private fun loadForms() {
@@ -94,7 +118,7 @@ class SyncViewModel @Inject constructor(
                                 searchQuery = ""
                             )
                         }
-                    }, successMessage = "", errorMessage = (result as? Result.Error)?.message
+                    }, errorMessage = (result as? Result.Error)?.message
                 )
             }
         }
@@ -109,7 +133,7 @@ class SyncViewModel @Inject constructor(
                         updateUi {
                             copy(formItems = forms, selectedFormIds = emptySet())
                         }
-                    }, successMessage = "", errorMessage = (result as? Result.Error)?.message
+                    }, errorMessage = (result as? Result.Error)?.message
                 )
 
             }
@@ -187,7 +211,7 @@ class SyncViewModel @Inject constructor(
                 handleResult(
                     result = result, onSuccess = { cohorts ->
                         updateUi { copy(cohorts = cohorts) }
-                    }, successMessage = "", errorMessage = (result as? Result.Error)?.message
+                    }, errorMessage = (result as? Result.Error)?.message
                 )
             }
         }
@@ -199,7 +223,7 @@ class SyncViewModel @Inject constructor(
                 handleResult(
                     result = result, onSuccess = { encounterTypes ->
                         updateUi { copy(encounterTypes = encounterTypes) }
-                    }, successMessage = "", errorMessage = (result as? Result.Error)?.message
+                    }, errorMessage = (result as? Result.Error)?.message
                 )
             }
         }
@@ -211,7 +235,7 @@ class SyncViewModel @Inject constructor(
                 handleResult(
                     result = result, onSuccess = { orderTypes ->
                         updateUi { copy(orderTypes = orderTypes) }
-                    }, successMessage = "", errorMessage = (result as? Result.Error)?.message
+                    }, errorMessage = (result as? Result.Error)?.message
                 )
             }
         }
@@ -314,7 +338,7 @@ class SyncViewModel @Inject constructor(
                     handleResult(
                         result = result, onSuccess = { formCount ->
                             updateUi { copy(formCount = formCount) }
-                        }, successMessage = "", errorMessage = (result as? Result.Error)?.message
+                        }, errorMessage = (result as? Result.Error)?.message
                     )
                 }
 
@@ -329,7 +353,7 @@ class SyncViewModel @Inject constructor(
                     handleResult(
                         result = result, onSuccess = { patientCount ->
                             updateUi { copy(patientCount = patientCount) }
-                        }, successMessage = "", errorMessage = (result as? Result.Error)?.message
+                        }, errorMessage = (result as? Result.Error)?.message
                     )
 
                 }
@@ -342,11 +366,10 @@ class SyncViewModel @Inject constructor(
         viewModelScope.launch(schedulerProvider.io) {
             syncUseCase.getEncounterCount().collect { result ->
                 withContext(schedulerProvider.main) {
-
                     handleResult(
                         result = result, onSuccess = { encounterCount ->
                             updateUi { copy(encounterCount = encounterCount) }
-                        }, successMessage = "", errorMessage = (result as? Result.Error)?.message
+                        }, errorMessage = (result as? Result.Error)?.message
                     )
 
                 }
@@ -393,6 +416,75 @@ class SyncViewModel @Inject constructor(
     private fun updateUi(reducer: SyncUiState.() -> SyncUiState) {
         _uiState.update { it.reducer() }
     }
+
+    private fun saveDownloadedForms(selectedForms: List<o3Form>) {
+        viewModelScope.launch(schedulerProvider.io) {
+            updateUi { copy(isLoading = true) }
+            syncUseCase.saveFormsLocally(selectedForms).collect { result ->
+                withContext(schedulerProvider.main) {
+                    handleResult(
+                        result = result,
+                        onSuccess = {
+                            clearSelection()
+                            updateUi { copy(isLoading = false) }
+                        },
+                        successMessage = "Forms downloaded successfully",
+                        errorMessage = (result as? Result.Error)?.message
+                    )
+                }
+            }
+        }
+    }
+
+
+    private fun restoreAutoSyncSettings() {
+        viewModelScope.launch {
+            val enabled = preferenceManager.loadAutoSyncEnabled()
+            val interval = preferenceManager.loadAutoSyncInterval()
+            updateUi { copy(autoSyncEnabled = enabled, autoSyncInterval = interval) }
+        }
+    }
+
+    private fun handleToggleAutoSync(enabled: Boolean) {
+        updateUi { copy(autoSyncEnabled = enabled) }
+        viewModelScope.launch {
+            preferenceManager.saveAutoSyncEnabled(enabled)
+        }
+    }
+
+    private fun updateAutoSyncInterval(newInterval: String) {
+        updateUi { copy(autoSyncInterval = newInterval) }
+        viewModelScope.launch {
+            preferenceManager.saveAutoSyncInterval(newInterval)
+        }
+    }
+
+//    fun syncNow() {
+//        viewModelScope.launch(schedulerProvider.io) {
+//            updateUi { copy(isLoading = true) }
+//            val syncResult = syncUseCase.syncNow()
+//            withContext(schedulerProvider.main) {
+//                updateUi {
+//                    copy(
+//                        isLoading = false,
+//                        lastSyncTime = getCurrentFormattedTime(),
+//                        lastSyncStatus = if (syncResult.isSuccess) "Success" else "Failed",
+//                        lastSyncBy = "You",
+//                        lastSyncError = if (syncResult.isSuccess) null else syncResult.errorMessage
+//                    )
+//                }
+//            }
+//        }
+//    }
+
+    private fun getCurrentFormattedTime(): String {
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+    }
+
+
+
+
+
 }
 
 

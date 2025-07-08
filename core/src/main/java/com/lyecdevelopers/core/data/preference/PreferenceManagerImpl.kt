@@ -25,6 +25,8 @@ class PreferenceManagerImpl(
         private val USERNAME = stringPreferencesKey("username")
         private val PASSWORD = stringPreferencesKey("password")
         private val SELECTED_FORM_IDS = stringSetPreferencesKey("selected_form_ids")
+        private val KEY_AUTO_SYNC_ENABLED = booleanPreferencesKey("auto_sync_enabled")
+        private val KEY_AUTO_SYNC_INTERVAL = stringPreferencesKey("auto_sync_interval")
 
     }
 
@@ -107,6 +109,30 @@ class PreferenceManagerImpl(
     override suspend fun loadSelectedForms(context: Context): Set<String> {
         val prefs = context.dataStore.data.first()
         return prefs[SELECTED_FORM_IDS] ?: emptySet()
+    }
+
+    override suspend fun saveAutoSyncEnabled(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[KEY_AUTO_SYNC_ENABLED] = enabled
+        }
+    }
+
+    override suspend fun loadAutoSyncEnabled(): Boolean {
+        return context.dataStore.data.map { prefs ->
+            prefs[KEY_AUTO_SYNC_ENABLED] ?: false
+        }.first()
+    }
+
+    override suspend fun saveAutoSyncInterval(interval: String) {
+        context.dataStore.edit { prefs ->
+            prefs[KEY_AUTO_SYNC_INTERVAL] = interval
+        }
+    }
+
+    override suspend fun loadAutoSyncInterval(): String {
+        return context.dataStore.data.map { prefs ->
+            prefs[KEY_AUTO_SYNC_INTERVAL] ?: "15 minutes"
+        }.first()
     }
 
     override suspend fun clear() {

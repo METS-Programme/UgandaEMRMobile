@@ -32,6 +32,15 @@ data class SyncUiState(
     val selectedParameters: List<Attribute> = emptyList(),
     val highlightedAvailable: List<Attribute> = emptyList(),
     val highlightedSelected: List<Attribute> = emptyList(),
+
+    // New sync-related fields
+    val lastSyncTime: String = "Not synced yet",
+    val lastSyncStatus: String = "Never Synced",
+    val lastSyncBy: String = "N/A",
+    val lastSyncError: String? = null,
+    val autoSyncEnabled: Boolean = false,
+    val autoSyncInterval: String = "15 minutes",
 )
+
 
 

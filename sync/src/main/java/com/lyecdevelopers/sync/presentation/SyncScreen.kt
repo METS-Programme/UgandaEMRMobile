@@ -65,12 +65,6 @@ import com.lyecdevelopers.sync.presentation.patients.PatientFilterSectionContent
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SyncScreen(
-    lastSyncTime: String = "Not synced yet",
-    lastSyncStatus: String = "Never Synced",
-    lastSyncBy: String = "N/A",
-    lastSyncError: String? = null,
-    autoSyncEnabled: Boolean = false,
-    autoSyncInterval: String = "15 minutes",
     onToggleAutoSync: (Boolean) -> Unit = {},
     onBack: () -> Unit = {},
     onSyncNow: () -> Unit = {},
@@ -81,7 +75,6 @@ fun SyncScreen(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var isSheetVisible by rememberSaveable { mutableStateOf(false) }
     var showPatientFilterDialog by rememberSaveable { mutableStateOf(false) }
-
 
     if (isSheetVisible) {
         ModalBottomSheet(
@@ -115,22 +108,22 @@ fun SyncScreen(
                                 StatusRow(
                                     icon = Icons.Filled.Schedule,
                                     label = "Last Sync:",
-                                    value = lastSyncTime
+                                    value = uiState.lastSyncTime
                                 )
 
                                 StatusRow(
                                     icon = Icons.Filled.CheckCircle,
                                     label = "Status:",
-                                    value = lastSyncStatus
+                                    value = uiState.lastSyncStatus
                                 )
 
                                 StatusRow(
                                     icon = Icons.Filled.Person,
                                     label = "Synced By:",
-                                    value = lastSyncBy
+                                    value = uiState.lastSyncBy
                                 )
 
-                                lastSyncError?.let {
+                                uiState.lastSyncError?.let {
                                     Spacer(Modifier.height(12.dp))
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(
@@ -180,15 +173,15 @@ fun SyncScreen(
                                 )
 
                                 SummaryRow(
-                                    icon = Icons.Default.Description, // Document icon for forms
+                                    icon = Icons.Default.Description,
                                     label = "Forms Saved:", count = uiState.formCount
                                 )
                                 SummaryRow(
-                                    icon = Icons.Default.HowToReg, // Person add icon for patients
+                                    icon = Icons.Default.HowToReg,
                                     label = "Patients Saved:", count = uiState.patientCount
                                 )
                                 SummaryRow(
-                                    icon = Icons.Default.EventNote, // Calendar/note icon for visits
+                                    icon = Icons.Default.EventNote,
                                     label = "Visits Saved:", count = 0
                                 )
 
@@ -202,15 +195,15 @@ fun SyncScreen(
                                 )
 
                                 SummaryRow(
-                                    icon = Icons.Default.Groups, // Group icon for patients synced
+                                    icon = Icons.Default.Groups,
                                     label = "Patients Synced:", count = uiState.patientCount
                                 )
                                 SummaryRow(
-                                    icon = Icons.Default.EventNote, // Reuse for visits synced
+                                    icon = Icons.Default.EventNote,
                                     label = "Visits Synced:", count = 0
                                 )
                                 SummaryRow(
-                                    icon = Icons.Default.CheckCircle, // Check for encounters synced
+                                    icon = Icons.Default.CheckCircle,
                                     label = "Encounters Synced:", count = uiState.encounterCount
                                 )
                             }
@@ -242,15 +235,15 @@ fun SyncScreen(
                                     )
                                     Spacer(Modifier.weight(1f))
                                     Switch(
-                                        checked = autoSyncEnabled,
+                                        checked = uiState.autoSyncEnabled,
                                         onCheckedChange = onToggleAutoSync
                                     )
                                 }
 
-                                if (autoSyncEnabled) {
+                                if (uiState.autoSyncEnabled) {
                                     Spacer(Modifier.height(8.dp))
                                     Text(
-                                        "Interval: $autoSyncInterval",
+                                        "Interval: ${uiState.autoSyncInterval}",
                                         style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     )
                                 }
@@ -258,8 +251,6 @@ fun SyncScreen(
                         }
                     }
                 }
-
-
 
                 item {
                     SyncSection(title = "Manual Download") {
@@ -269,10 +260,7 @@ fun SyncScreen(
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
 
-                                // Download Forms Section
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
                                         imageVector = Icons.Default.Description,
                                         contentDescription = null,
@@ -298,10 +286,7 @@ fun SyncScreen(
 
                                 HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
 
-                                // Download Patients Section
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
                                         imageVector = Icons.Default.People,
                                         contentDescription = null,
