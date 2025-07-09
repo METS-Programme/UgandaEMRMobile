@@ -11,6 +11,7 @@ import com.lyecdevelopers.core.model.cohort.DataDefinition
 import com.lyecdevelopers.core.model.encounter.EncounterType
 import com.lyecdevelopers.core.model.o3.o3Form
 import com.lyecdevelopers.core.model.order.OrderType
+import com.lyecdevelopers.core.model.reports.Definition
 import com.lyecdevelopers.sync.domain.repository.SyncRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -73,7 +74,7 @@ class SyncUseCase @Inject constructor(
     }
 
     // data definition
-    fun createDataDefinition(payload: DataDefinition): Flow<Result<Any>> {
+    fun createDataDefinition(payload: DataDefinition): Flow<Result<List<Definition>>> {
         return repository.createDataDefinition(payload)
     }
 

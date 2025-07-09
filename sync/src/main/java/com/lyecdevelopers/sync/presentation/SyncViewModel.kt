@@ -20,19 +20,24 @@ import com.lyecdevelopers.core.model.cohort.ReportCategoryWrapper
 import com.lyecdevelopers.core.model.cohort.ReportRequest
 import com.lyecdevelopers.core.model.cohort.ReportType
 import com.lyecdevelopers.core.model.cohort.formatReportArray
+import com.lyecdevelopers.core.model.encounter.toAttributes
 import com.lyecdevelopers.core.model.o3.o3Form
+import com.lyecdevelopers.core.model.order.toAttributes
+import com.lyecdevelopers.core.model.toAttributes
+import com.lyecdevelopers.core.utils.AppLogger
 import com.lyecdevelopers.sync.domain.usecase.SyncUseCase
 import com.lyecdevelopers.sync.presentation.event.SyncEvent
 import com.lyecdevelopers.sync.presentation.state.SyncUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
@@ -55,6 +60,8 @@ class SyncViewModel @Inject constructor(
         loadCohorts()
         loadOrderTypes()
         loadEncounterTypes()
+        loadPatientIndentifiers()
+        loadPersonAttributeTypes()
         restoreSelectedForms()
         loadReportIndicators()
         updateFormCount()
@@ -107,7 +114,7 @@ class SyncViewModel @Inject constructor(
     private fun loadForms() {
         viewModelScope.launch(schedulerProvider.io) {
             syncUseCase.loadForms().collect { result ->
-                _uiState.value = _uiState.value.copy(isLoading = true)
+                updateUi { copy(isLoading = true) }
                 handleResult(
                     result = result, onSuccess = { forms ->
                         updateUi {
@@ -120,6 +127,8 @@ class SyncViewModel @Inject constructor(
                         }
                     }, errorMessage = (result as? Result.Error)?.message
                 )
+                updateUi { copy(isLoading = false) }
+
             }
         }
     }
@@ -128,7 +137,7 @@ class SyncViewModel @Inject constructor(
         updateUi { copy(searchQuery = query) }
         viewModelScope.launch(schedulerProvider.io) {
             syncUseCase.filterForms(query).collect { result ->
-                _uiState.value = _uiState.value.copy(isLoading = true)
+                updateUi { copy(isLoading = true) }
                 handleResult(
                     result = result, onSuccess = { forms ->
                         updateUi {
@@ -136,6 +145,7 @@ class SyncViewModel @Inject constructor(
                         }
                     }, errorMessage = (result as? Result.Error)?.message
                 )
+                updateUi { copy(isLoading = false) }
 
             }
         }
@@ -164,20 +174,13 @@ class SyncViewModel @Inject constructor(
 
         viewModelScope.launch(schedulerProvider.io) {
             updateUi { copy(isLoading = true) }
-            val loadedForms = mutableListOf<o3Form>()
-            coroutineScope {
-                selectedForms.forEach { form ->
-                    launch {
-                        syncUseCase.loadFormByUuid(form.uuid).collect { result ->
-                            when (result) {
-                                is Result.Success -> loadedForms.add(result.data)
-                                is Result.Error -> {}
-                                else -> {}
-                            }
-                        }
-                    }
+
+            val loadedForms = selectedForms.map { form ->
+                async {
+                    syncUseCase.loadFormByUuid(form.uuid)
+                        .firstOrNull { it is Result.Success } as? Result.Success
                 }
-            }
+            }.awaitAll().mapNotNull { it?.data }
 
             if (loadedForms.isEmpty()) {
                 updateUi { copy(isLoading = false) }
@@ -186,19 +189,17 @@ class SyncViewModel @Inject constructor(
 
             syncUseCase.saveFormsLocally(loadedForms).collect { saveResult ->
                 withContext(schedulerProvider.main) {
-                    _uiState.value = _uiState.value.copy(isLoading = true)
                     handleResult(
-                        result = saveResult,
-                        onSuccess = { data ->
-//                                                isSheetVisible = false
+                        result = saveResult, onSuccess = {
                             clearSelection()
-                            _uiState.value = _uiState.value.copy(isLoading = false)
                         }, successMessage = "Successfully downloaded selected forms",
                         errorMessage = (saveResult as? Result.Error)?.message
                     )
+                    updateUi { copy(isLoading = false) }
                 }
             }
         }
+
     }
 
     private fun getSelectedForms() =
@@ -221,7 +222,7 @@ class SyncViewModel @Inject constructor(
             syncUseCase.getEncounterTypes().collect { result ->
                 handleResult(
                     result = result, onSuccess = { encounterTypes ->
-                        updateUi { copy(encounterTypes = encounterTypes) }
+                        updateUi { copy(encounterTypes = encounterTypes.toAttributes()) }
                     }, errorMessage = (result as? Result.Error)?.message
                 )
             }
@@ -233,18 +234,42 @@ class SyncViewModel @Inject constructor(
             syncUseCase.getOrderTypes().collect { result ->
                 handleResult(
                     result = result, onSuccess = { orderTypes ->
-                        updateUi { copy(orderTypes = orderTypes) }
+                        updateUi { copy(orderTypes = orderTypes.toAttributes()) }
                     }, errorMessage = (result as? Result.Error)?.message
                 )
             }
         }
     }
 
+    private fun loadPatientIndentifiers() {
+        viewModelScope.launch(schedulerProvider.io) {
+            syncUseCase.getIdentifiers().collect { result ->
+                handleResult(
+                    result = result, onSuccess = { identifiers ->
+                        updateUi { copy(identifiers = identifiers.toAttributes()) }
+                    }, errorMessage = (result as? Result.Error)?.message
+                )
+            }
+        }
+    }
+
+    private fun loadPersonAttributeTypes() {
+        viewModelScope.launch(schedulerProvider.io) {
+            syncUseCase.getPersonAttributeTypes().collect { result ->
+                handleResult(
+                    result = result, onSuccess = { personAttributeTypes ->
+                        updateUi { copy(personAttributeTypes = personAttributeTypes.toAttributes()) }
+                    }, errorMessage = (result as? Result.Error)?.message
+                )
+            }
+
+        }
+    }
+
     private fun onIndicatorSelected(indicator: Indicator) {
         updateUi {
             copy(
-                selectedIndicator = indicator,
-                availableParameters = indicator.attributes,
+                selectedIndicator = indicator, customAvailableParameters = indicator.attributes,
                 selectedParameters = emptyList(),
                 highlightedAvailable = emptyList(),
                 highlightedSelected = emptyList()
@@ -252,33 +277,49 @@ class SyncViewModel @Inject constructor(
         }
     }
 
+
     fun onApplyFilters() {
         viewModelScope.launch(schedulerProvider.io) {
             val error = validateFilters()
             if (error != null) {
+                AppLogger.e("Validation failed: $error")
+                updateUi { copy(error = error) }
                 return@launch
             }
 
-            val indicator = uiState.value.selectedIndicator!!
-            val cohort = uiState.value.selectedCohort!!
-            val (start, end) = uiState.value.selectedDateRange!!
+            val indicator = uiState.value.selectedIndicator
+            val cohort = uiState.value.selectedCohort
 
-            val reportRequest = buildReportRequest(cohort, start, end)
+
+            if (indicator == null || cohort == null) {
+                AppLogger.e("Missing indicator or cohort")
+                updateUi { copy(error = "Missing indicator or cohort") }
+                return@launch
+            }
+
+            val reportRequest = buildReportRequest(cohort)
             val payload = buildDataDefinitionPayload(reportRequest, indicator)
 
             syncUseCase.createDataDefinition(payload).collect { result ->
-                _uiState.value = _uiState.value.copy(isLoading = true)
-                handleResult(
-                    result = result,
-                    onSuccess = { data ->
-                        _uiState.value = _uiState.value.copy(isLoading = false)
-                    },
-                    successMessage = "Successfully created data definition",
-                    errorMessage = (result as? Result.Error)?.message
-                )
+                withContext(schedulerProvider.main) {
+                    _uiState.value = _uiState.value.copy(isLoading = true)
+                    handleResult(
+                        result = result,
+                        onSuccess = { data ->
+                            _uiState.value = _uiState.value.copy(isLoading = false)
+                        },
+                        onError = {
+                            _uiState.value =
+                                _uiState.value.copy(error = "Error occurred ${(result as? Result.Error)?.message}")
+                        },
+                        successMessage = "Successfully created data definition",
+                        errorMessage = (result as? Result.Error)?.message
+                    )
+                }
             }
         }
     }
+
 
     private fun toggleHighlightAvailable(item: Attribute) {
         val new = uiState.value.highlightedAvailable.toMutableSet().apply {
@@ -296,32 +337,37 @@ class SyncViewModel @Inject constructor(
 
     private fun moveRight() {
         val items = uiState.value.highlightedAvailable
+        val remaining = uiState.value.availableParameters - items.toSet()
         updateUi {
             copy(
-                availableParameters = availableParameters - items.toSet(),
-                selectedParameters = selectedParameters + items,
+                customAvailableParameters = remaining,
+                selectedParameters = (selectedParameters + items).distinctBy { it.id },
                 highlightedAvailable = emptyList()
             )
         }
     }
 
+
     private fun moveLeft() {
         val items = uiState.value.highlightedSelected
+        val updated = (uiState.value.availableParameters + items).distinctBy { it.id }
         updateUi {
             copy(
                 selectedParameters = selectedParameters - items.toSet(),
-                availableParameters = availableParameters + items,
+                customAvailableParameters = updated,
                 highlightedSelected = emptyList()
             )
         }
     }
 
+
     private fun loadReportIndicators() {
         viewModelScope.launch(schedulerProvider.io) {
             val indicators = IndicatorRepository.reportIndicators
-            updateUi { copy(availableParameters = indicators.flatMap { it.attributes }) }
+            updateUi { copy(customAvailableParameters = indicators.flatMap { it.attributes }) }
         }
     }
+
 
     private fun restoreSelectedForms() {
         viewModelScope.launch {
@@ -378,12 +424,10 @@ class SyncViewModel @Inject constructor(
     }
 
 
-    private fun buildReportRequest(cohort: Cohort, start: LocalDate, end: LocalDate) =
+    private fun buildReportRequest(cohort: Cohort) =
         ReportRequest(
-            uuid = cohort.uuid,
-            startDate = start.format(DateTimeFormatter.ISO_DATE),
-            endDate = end.format(DateTimeFormatter.ISO_DATE),
-            type = "cohort",
+            uuid = cohort.uuid, startDate = "", endDate = "",
+            type = "Cohort",
             reportCategory = ReportCategoryWrapper(ReportCategory.FACILITY, RenderType.JSON),
             reportIndicators = uiState.value.selectedParameters,
             reportType = ReportType.DYNAMIC,
@@ -409,7 +453,6 @@ class SyncViewModel @Inject constructor(
     private fun validateFilters(): String? = when {
         uiState.value.selectedIndicator == null -> "Please select an indicator"
         uiState.value.selectedCohort == null -> "Please select a cohort"
-        uiState.value.selectedDateRange == null -> "Please select a valid date range"
         else -> null
     }
 

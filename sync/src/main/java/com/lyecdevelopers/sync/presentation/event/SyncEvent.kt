@@ -23,7 +23,6 @@ sealed class SyncEvent {
     object MoveRight : SyncEvent()
     object MoveLeft : SyncEvent()
 
-    // ✅ NEW: Sync metadata updates
     data class UpdateLastSyncTime(val time: String) : SyncEvent()
     data class UpdateLastSyncStatus(val status: String) : SyncEvent()
     data class UpdateLastSyncBy(val user: String) : SyncEvent()

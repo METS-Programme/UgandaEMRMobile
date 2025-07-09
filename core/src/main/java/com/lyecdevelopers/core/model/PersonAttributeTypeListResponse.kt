@@ -1,5 +1,6 @@
 package com.lyecdevelopers.core.model
 
+import com.lyecdevelopers.core.model.cohort.Attribute
 import com.squareup.moshi.Json
 
 data class PersonAttributeTypeListResponse(
@@ -11,3 +12,31 @@ data class PersonAttributeType(
     @Json(name = "display") val display: String,
     @Json(name = "links") val links: List<Links>,
 )
+
+
+fun PersonAttributeType.toAttribute(): Attribute {
+    return Attribute(
+        id = this.uuid,
+        label = this.display,
+        type = "default",
+        modifier = 0,
+        showModifierPanel = false,
+        extras = emptyList(),
+        attributes = emptyList()
+    )
+}
+
+fun Attribute.toPersonAttributeType(): PersonAttributeType {
+    return PersonAttributeType(
+        uuid = this.id, display = this.label, links = emptyList()
+    )
+}
+
+
+fun List<PersonAttributeType>.toAttributes(): List<Attribute> {
+    return this.map { it.toAttribute() }
+}
+
+fun List<Attribute>.toPersonAttributeTypes(): List<PersonAttributeType> {
+    return this.map { it.toPersonAttributeType() }
+}

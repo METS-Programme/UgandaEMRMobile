@@ -4,6 +4,7 @@ import com.lyecdevelopers.core.BuildConfig
 import com.lyecdevelopers.core.data.remote.AuthApi
 import com.lyecdevelopers.core.data.remote.FormApi
 import com.lyecdevelopers.core.data.remote.interceptor.AuthInterceptor
+import com.lyecdevelopers.core.data.remote.interceptor.RetryInterceptor
 import com.lyecdevelopers.core.data.remote.interceptor.provideLoggingInterceptor
 import com.lyecdevelopers.core.model.Config
 import com.squareup.moshi.Moshi
@@ -14,6 +15,7 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 
@@ -34,8 +36,10 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(
-        authInterceptor: AuthInterceptor
-    ): OkHttpClient = OkHttpClient.Builder()
+        authInterceptor: AuthInterceptor,
+    ): OkHttpClient = OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS).writeTimeout(30, TimeUnit.SECONDS)
+        .addInterceptor(RetryInterceptor())
         .addInterceptor(authInterceptor)
         .addInterceptor(provideLoggingInterceptor())
         .build()

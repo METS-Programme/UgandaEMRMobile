@@ -9,6 +9,15 @@ object IndicatorRepository {
         Attribute("familyName2", "Family Name 2", "PersonName", 1, false)
     )
 
+    val defaultSelectedAttributes = listOf(
+        Attribute("givenName", "Given Name", "PersonName", 1, false),
+        Attribute("familyName", "Family Name", "PersonName", 1, false),
+        Attribute("gender", "Gender", "Demographics", 1, false),
+        Attribute("Age", "Age", "Demographics", 1, false),
+        Attribute("birthdate", "Birthdate", "Demographics", 1, false),
+        Attribute("dead", "Deceased", "Demographics", 1, false),
+    )
+
     private val demographicsAttributes = listOf(
         Attribute("gender", "Gender", "Demographics", 1, false),
         Attribute("birthdate", "Birthdate", "Demographics", 1, false),

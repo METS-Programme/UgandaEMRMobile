@@ -4,9 +4,7 @@ import com.lyecdevelopers.core.model.Form
 import com.lyecdevelopers.core.model.cohort.Attribute
 import com.lyecdevelopers.core.model.cohort.Cohort
 import com.lyecdevelopers.core.model.cohort.Indicator
-import com.lyecdevelopers.core.model.encounter.EncounterType
-import com.lyecdevelopers.core.model.order.OrderType
-import java.time.LocalDate
+import com.lyecdevelopers.core.model.cohort.IndicatorRepository
 
 data class SyncUiState(
     val isLoading: Boolean = false,
@@ -22,25 +20,34 @@ data class SyncUiState(
     val cohorts: List<Cohort> = emptyList(),
     val selectedCohort: Cohort? = null,
 
-    val selectedDateRange: Pair<LocalDate, LocalDate>? = null,
     val selectedIndicator: Indicator? = null,
 
-    val encounterTypes: List<EncounterType> = emptyList(),
-    val orderTypes: List<OrderType> = emptyList(),
+    val encounterTypes: List<Attribute> = emptyList(),
+    val orderTypes: List<Attribute> = emptyList(),
 
-    val availableParameters: List<Attribute> = emptyList(),
-    val selectedParameters: List<Attribute> = emptyList(),
+    val identifiers: List<Attribute> = emptyList(),
+    val personAttributeTypes: List<Attribute> = emptyList(),
+
+    val customAvailableParameters: List<Attribute>? = null,
+
+    val selectedParameters: List<Attribute> = IndicatorRepository.defaultSelectedAttributes,
     val highlightedAvailable: List<Attribute> = emptyList(),
     val highlightedSelected: List<Attribute> = emptyList(),
 
-    // New sync-related fields
     val lastSyncTime: String = "Not synced yet",
     val lastSyncStatus: String = "Never Synced",
     val lastSyncBy: String = "N/A",
     val lastSyncError: String? = null,
     val autoSyncEnabled: Boolean = false,
     val autoSyncInterval: String = "15 minutes",
-)
+) {
+
+    val availableParameters: List<Attribute>
+        get() = customAvailableParameters
+            ?: (encounterTypes + orderTypes + identifiers + personAttributeTypes)
+                .distinctBy { it.id }
+}
+
 
 
 

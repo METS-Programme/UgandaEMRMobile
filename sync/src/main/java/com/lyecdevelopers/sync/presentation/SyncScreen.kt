@@ -360,10 +360,8 @@ fun SyncScreen(
                 },
                 onMoveRight = { viewModel.onEvent(SyncEvent.MoveRight) },
                 onMoveLeft = { viewModel.onEvent(SyncEvent.MoveLeft) },
-                onFilter = {
-                    viewModel.onEvent(SyncEvent.ApplyFilters)
-                    showPatientFilterDialog = false
-                })
+            )
+
         })
     }
 }
