@@ -1,6 +1,7 @@
 package com.lyecdevelopers.core.model.order
 
 import com.lyecdevelopers.core.model.cohort.Attribute
+import com.lyecdevelopers.core.model.cohort.Indicator
 import com.squareup.moshi.Json
 
 
@@ -26,6 +27,17 @@ fun OrderType.toAttribute(): Attribute {
     )
 }
 
+fun OrderType.toIndicator(): Indicator {
+    return Indicator(
+        id = this.uuid,
+        label = this.display ?: this.name.orEmpty(),
+        type = "orderType",
+        attributes = emptyList()
+    )
+}
+
+
+
 fun Attribute.toOrderType(): OrderType {
     return OrderType(
         uuid = this.id,
@@ -33,6 +45,11 @@ fun Attribute.toOrderType(): OrderType {
         name = this.label
     )
 }
+
+fun List<OrderType>.toIndicators(): List<Indicator> {
+    return this.map { it.toIndicator() }
+}
+
 
 fun List<OrderType>.toAttributes(): List<Attribute> = map { it.toAttribute() }
 

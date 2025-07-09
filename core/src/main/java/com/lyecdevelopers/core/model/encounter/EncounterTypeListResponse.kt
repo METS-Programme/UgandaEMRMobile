@@ -1,6 +1,7 @@
 package com.lyecdevelopers.core.model.encounter
 
 import com.lyecdevelopers.core.model.cohort.Attribute
+import com.lyecdevelopers.core.model.cohort.Indicator
 import com.squareup.moshi.Json
 
 data class EncounterTypeListResponse(
@@ -34,6 +35,19 @@ fun Attribute.toEncounterType(): EncounterType = EncounterType(
     display = label,
     links = emptyList()
 )
+
+fun EncounterType.toIndicator(): Indicator {
+    return Indicator(
+        id = this.uuid, label = this.display, type = "encounterType", attributes = emptyList()
+
+    )
+}
+
+fun List<EncounterType>.toIndicators(): List<Indicator> {
+    return this.map { it.toIndicator() }
+}
+
+
 
 fun List<EncounterType>.toAttributes(): List<Attribute> =
     map { it.toAttribute() }

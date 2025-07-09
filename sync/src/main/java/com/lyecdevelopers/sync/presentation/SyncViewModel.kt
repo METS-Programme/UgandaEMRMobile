@@ -12,7 +12,6 @@ import com.lyecdevelopers.core.model.cohort.Cohort
 import com.lyecdevelopers.core.model.cohort.CohortResponse
 import com.lyecdevelopers.core.model.cohort.DataDefinition
 import com.lyecdevelopers.core.model.cohort.Indicator
-import com.lyecdevelopers.core.model.cohort.IndicatorRepository
 import com.lyecdevelopers.core.model.cohort.Parameters
 import com.lyecdevelopers.core.model.cohort.RenderType
 import com.lyecdevelopers.core.model.cohort.ReportCategory
@@ -20,9 +19,9 @@ import com.lyecdevelopers.core.model.cohort.ReportCategoryWrapper
 import com.lyecdevelopers.core.model.cohort.ReportRequest
 import com.lyecdevelopers.core.model.cohort.ReportType
 import com.lyecdevelopers.core.model.cohort.formatReportArray
-import com.lyecdevelopers.core.model.encounter.toAttributes
+import com.lyecdevelopers.core.model.encounter.toIndicators
 import com.lyecdevelopers.core.model.o3.o3Form
-import com.lyecdevelopers.core.model.order.toAttributes
+import com.lyecdevelopers.core.model.order.toIndicators
 import com.lyecdevelopers.core.model.toAttributes
 import com.lyecdevelopers.core.utils.AppLogger
 import com.lyecdevelopers.sync.domain.usecase.SyncUseCase
@@ -63,7 +62,6 @@ class SyncViewModel @Inject constructor(
         loadPatientIndentifiers()
         loadPersonAttributeTypes()
         restoreSelectedForms()
-        loadReportIndicators()
         updateFormCount()
         updatePatientCount()
         updateEncounterCount()
@@ -222,7 +220,7 @@ class SyncViewModel @Inject constructor(
             syncUseCase.getEncounterTypes().collect { result ->
                 handleResult(
                     result = result, onSuccess = { encounterTypes ->
-                        updateUi { copy(encounterTypes = encounterTypes.toAttributes()) }
+                        updateUi { copy(encounterTypes = encounterTypes.toIndicators()) }
                     }, errorMessage = (result as? Result.Error)?.message
                 )
             }
@@ -234,7 +232,7 @@ class SyncViewModel @Inject constructor(
             syncUseCase.getOrderTypes().collect { result ->
                 handleResult(
                     result = result, onSuccess = { orderTypes ->
-                        updateUi { copy(orderTypes = orderTypes.toAttributes()) }
+                        updateUi { copy(orderTypes = orderTypes.toIndicators()) }
                     }, errorMessage = (result as? Result.Error)?.message
                 )
             }
@@ -268,14 +266,32 @@ class SyncViewModel @Inject constructor(
 
     private fun onIndicatorSelected(indicator: Indicator) {
         updateUi {
-            copy(
-                selectedIndicator = indicator, customAvailableParameters = indicator.attributes,
-                selectedParameters = emptyList(),
-                highlightedAvailable = emptyList(),
-                highlightedSelected = emptyList()
-            )
+            when (indicator.id) {
+                "IDN" -> copy(
+                    selectedIndicator = indicator,
+                    availableParameters = identifiers,
+                    highlightedAvailable = emptyList(),
+                    highlightedSelected = emptyList()
+                )
+
+                "PAT" -> copy(
+                    selectedIndicator = indicator,
+                    availableParameters = personAttributeTypes,
+                    highlightedAvailable = emptyList(),
+                    highlightedSelected = emptyList()
+                )
+
+                else -> copy(
+                    selectedIndicator = indicator,
+                    availableParameters = indicator.attributes,
+                    highlightedAvailable = emptyList(),
+                    highlightedSelected = emptyList()
+                )
+            }
         }
     }
+
+
 
 
     fun onApplyFilters() {
@@ -340,7 +356,7 @@ class SyncViewModel @Inject constructor(
         val remaining = uiState.value.availableParameters - items.toSet()
         updateUi {
             copy(
-                customAvailableParameters = remaining,
+                availableParameters = remaining,
                 selectedParameters = (selectedParameters + items).distinctBy { it.id },
                 highlightedAvailable = emptyList()
             )
@@ -354,19 +370,13 @@ class SyncViewModel @Inject constructor(
         updateUi {
             copy(
                 selectedParameters = selectedParameters - items.toSet(),
-                customAvailableParameters = updated,
+                availableParameters = updated,
                 highlightedSelected = emptyList()
             )
         }
     }
 
 
-    private fun loadReportIndicators() {
-        viewModelScope.launch(schedulerProvider.io) {
-            val indicators = IndicatorRepository.reportIndicators
-            updateUi { copy(customAvailableParameters = indicators.flatMap { it.attributes }) }
-        }
-    }
 
 
     private fun restoreSelectedForms() {

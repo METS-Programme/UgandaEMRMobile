@@ -1,6 +1,7 @@
 package com.lyecdevelopers.core.model
 
 import com.lyecdevelopers.core.model.cohort.Attribute
+import com.lyecdevelopers.core.model.cohort.Indicator
 import com.squareup.moshi.Json
 
 data class IdentifierListResponse(
@@ -17,7 +18,7 @@ fun Identifier.toAttribute(): Attribute {
     return Attribute(
         id = this.uuid,
         label = this.display,
-        type = "default",
+        type = "IDN",
         modifier = 0,
         showModifierPanel = false,
         extras = emptyList(),
@@ -25,11 +26,23 @@ fun Identifier.toAttribute(): Attribute {
     )
 }
 
+fun Identifier.toIndicator(): Indicator {
+    return Indicator(
+        id = this.uuid, label = this.display, type = "PatientIdentifier", attributes = emptyList()
+    )
+}
+
+
 fun Attribute.toIdentifier(): Identifier {
     return Identifier(
         uuid = this.id, display = this.label, links = emptyList()
     )
 }
+
+fun List<Identifier>.toIndicators(): List<Indicator> {
+    return this.map { it.toIndicator() }
+}
+
 
 fun List<Identifier>.toAttributes(): List<Attribute> = map { it.toAttribute() }
 

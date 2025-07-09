@@ -343,7 +343,12 @@ fun SyncScreen(
                 onSelectedCohortChanged = {
                     viewModel.onEvent(SyncEvent.SelectedCohortChanged(it))
                 },
-                indicatorOptions = IndicatorRepository.reportIndicators,
+                indicatorOptions = buildList {
+                    addAll(IndicatorRepository.reportIndicators)
+                    addAll(uiState.encounterTypes)
+                    addAll(uiState.orderTypes)
+
+                },
                 selectedIndicator = uiState.selectedIndicator,
                 onIndicatorSelected = {
                     viewModel.onEvent(SyncEvent.IndicatorSelected(it))
