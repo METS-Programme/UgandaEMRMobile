@@ -5,6 +5,7 @@ import com.lyecdevelopers.core.data.local.dao.FormDao
 import com.lyecdevelopers.core.data.local.dao.PatientDao
 import com.lyecdevelopers.core.data.local.entity.EncounterEntity
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
+import com.lyecdevelopers.core.data.local.entity.mapToPatientEntity
 import com.lyecdevelopers.core.data.remote.FormApi
 import com.lyecdevelopers.core.model.Form
 import com.lyecdevelopers.core.model.Identifier
@@ -15,10 +16,10 @@ import com.lyecdevelopers.core.model.cohort.DataDefinition
 import com.lyecdevelopers.core.model.encounter.EncounterType
 import com.lyecdevelopers.core.model.o3.o3Form
 import com.lyecdevelopers.core.model.order.OrderType
-import com.lyecdevelopers.core.model.reports.Definition
 import com.lyecdevelopers.core.utils.AppLogger
 import com.lyecdevelopers.form.domain.mapper.toEntity
 import com.lyecdevelopers.sync.domain.repository.SyncRepository
+import com.squareup.moshi.JsonAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -34,7 +35,9 @@ class SyncRepositoryImpl @Inject constructor(
     private val formDao: FormDao,
     private val encounterDao: EncounterDao,
     private val patientDao: PatientDao,
-) : SyncRepository {
+    private val listOfMapAdapter: JsonAdapter<List<Map<String, Any>>>,
+
+    ) : SyncRepository {
 
     override fun loadForms(): Flow<Result<List<Form>>> = flow {
         emit(Result.Loading)
@@ -251,18 +254,25 @@ class SyncRepositoryImpl @Inject constructor(
         TODO("Not yet implemented")
     }
 
-    override fun createDataDefinition(payload: DataDefinition): Flow<Result<List<Definition>>> =
+    override fun createDataDefinition(payload: DataDefinition): Flow<Result<List<PatientEntity>>> =
         flow {
-        emit(Result.Loading)
+            emit(Result.Loading)
 
             val response = formApi.generateDataDefinition(payload)
 
             if (response.isSuccessful) {
-                val definitions = response.body()
-                if (!definitions.isNullOrEmpty()) {
-                    emit(Result.Success(definitions))
+                val body = response.body()
+                if (body != null) {
+                    val listOfMaps = body.use { listOfMapAdapter.fromJson(it.source()) }
+                    if (!listOfMaps.isNullOrEmpty()) {
+                        val patients = listOfMaps.map { mapToPatientEntity(it) }
+                        patientDao.insertAll(patients)  // save to DB
+                        emit(Result.Success(patients))
+                    } else {
+                        throw IllegalStateException("No data definitions returned")
+                    }
                 } else {
-                    throw IllegalStateException("No data definitions created")
+                    throw IllegalStateException("Response body was null")
                 }
             } else {
                 throw HttpException(response)
@@ -270,7 +280,7 @@ class SyncRepositoryImpl @Inject constructor(
         }.catch { e ->
             AppLogger.e(e.message ?: "Failed to create data definition")
             emit(Result.Error(e.message ?: "Failed to create data definition"))
-    }.flowOn(Dispatchers.IO)
+        }.flowOn(Dispatchers.IO)
 
 
     override fun getUnsynced(): Flow<List<EncounterEntity>> = flow {
