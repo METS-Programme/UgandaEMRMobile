@@ -215,7 +215,9 @@ fun StartVisitScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { viewModel.onEvent(WorklistEvent.OnVisitTypeChanged(type)) }
+                        .clickable {
+                            viewModel.onEvent(WorklistEvent.OnVisitTypeChanged(type))
+                        }
                         .padding(vertical = 8.dp)) {
                     RadioButton(
                         selected = uiState.visitType == type,

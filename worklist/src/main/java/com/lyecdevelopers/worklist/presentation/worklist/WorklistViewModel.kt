@@ -284,10 +284,24 @@ class WorklistViewModel @Inject constructor(
         val entity = vitals.toEntity(
             visitUuid = visitId, patientId = patientId
         )
-        _uiState.value = _uiState.value.copy(isLoading = true)
         viewModelScope.launch(schedulerProvider.io) {
-            patientsUseCase.saveVitals(vitals = entity)
-            _uiState.value = _uiState.value.copy(isLoading = false)
+            patientsUseCase.saveVitals(vitals = entity).collect { result ->
+                withContext(schedulerProvider.main) {
+                    _uiState.value = _uiState.value.copy(isLoading = true)
+                    handleResult(
+                        result, onSuccess = {
+                            _uiState.update { it.copy(isLoading = false) }
+                            loadPatientMostRecentVisit(patientId)
+                            loadPatientVisits(patientId)
+                        }, onError = {
+                            _uiState.value = _uiState.value.copy(isLoading = false)
+
+                        }, errorMessage = (result as? Result.Error)?.message
+                    )
+
+                }
+            }
+
 
         }
 
@@ -347,15 +361,20 @@ class WorklistViewModel @Inject constructor(
             )
 
             visitUseCases.saveVisit(visit).collect { result ->
-                _uiState.value = _uiState.value.copy(isLoading = true)
-                handleResult(
-                    result, onSuccess = {
-                        loadPatients()
+                withContext(schedulerProvider.main) {
+                    _uiState.value = _uiState.value.copy(isLoading = true)
+                    handleResult(
+                        result, onSuccess = {
+                            loadPatientMostRecentVisit(patientId)
                         _uiState.value = _uiState.value.copy(isLoading = false)
 
-                    },
-                    errorMessage = (result as? Result.Error)?.message
-                )
+                        }, onError = {
+                            _uiState.value = _uiState.value.copy(isLoading = false)
+
+                        }, errorMessage = (result as? Result.Error)?.message
+                    )
+                }
+
             }
         }
     }

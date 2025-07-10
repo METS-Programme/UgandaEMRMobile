@@ -68,7 +68,7 @@ fun WorklistScreen(
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-
+                // Static header
                 item {
                     WorklistSummary(patients = uiState.patients)
                 }
@@ -78,11 +78,9 @@ fun WorklistScreen(
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(16.dp),
+                                .padding(16.dp)
                         ) {
-                            EmptyStateView(
-                                message = "No patients found."
-                            )
+                            EmptyStateView(message = "No patients found.")
                         }
                     }
                 } else {
