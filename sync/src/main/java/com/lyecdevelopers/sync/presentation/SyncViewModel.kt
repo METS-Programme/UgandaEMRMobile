@@ -326,7 +326,10 @@ class SyncViewModel @Inject constructor(
                         },
                         onError = {
                             _uiState.value =
-                                _uiState.value.copy(error = "Error occurred ${(result as? Result.Error)?.message}")
+                                _uiState.value.copy(
+                                    error = "Error occurred ${(result as? Result.Error)?.message}",
+                                    isLoading = false
+                                )
                         },
                         successMessage = "Successfully created data definition",
                         errorMessage = (result as? Result.Error)?.message
