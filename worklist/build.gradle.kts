@@ -68,6 +68,7 @@ dependencies {
     implementation(libs.android.fhir.engine)
     implementation(libs.android.fhir.sdc)
     implementation(libs.androidx.paging.common.android)
+    implementation(libs.androidx.paging.compose)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     // Hilt

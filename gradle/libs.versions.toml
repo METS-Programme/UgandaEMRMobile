@@ -68,6 +68,7 @@ material = "1.12.0"
 datastorePreferencesCoreAndroid = "1.1.7"
 constraintlayout = "2.2.1"
 pagingCommonAndroid = "3.3.6"
+pagingComposeAndroid = "3.4.0-alpha01"
 
 [libraries]
 # Core
@@ -87,7 +88,9 @@ androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-man
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "icons" }
-androidx-paging-common-android = { group = "androidx.paging", name = "paging-common-android", version.ref = "pagingCommonAndroid" }
+androidx-paging-common-android = { group = "androidx.paging", name = "paging-common", version.ref = "pagingCommonAndroid" }
+androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "pagingComposeAndroid" }
+
 
 
 # fragments
@@ -117,6 +120,7 @@ room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 room-paging = { module = "androidx.room:room-paging", version.ref = "room" }
+
 
 # Image Loading
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
