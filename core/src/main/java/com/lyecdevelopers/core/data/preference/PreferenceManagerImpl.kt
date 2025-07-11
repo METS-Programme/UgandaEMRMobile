@@ -124,16 +124,25 @@ class PreferenceManagerImpl(
         }.first()
     }
 
-    override suspend fun saveAutoSyncInterval(interval: Int) {
+    override suspend fun saveAutoSyncInterval(hours: Int) {
         context.dataStore.edit { prefs ->
-            prefs[AUTO_SYNC_INTERVAL_HOURS] = interval
+            prefs[AUTO_SYNC_INTERVAL_HOURS] = hours
         }
     }
 
     override suspend fun loadAutoSyncInterval(): Int {
         return context.dataStore.data.map { prefs ->
-            prefs[AUTO_SYNC_INTERVAL_HOURS] ?: "12"
+            prefs[AUTO_SYNC_INTERVAL_HOURS] ?: 12
         }.first()
+    }
+
+
+    override suspend fun loadServerUrl(): String {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun saveServerUrl(url: String) {
+        TODO("Not yet implemented")
     }
 
     override suspend fun clear() {

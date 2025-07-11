@@ -28,11 +28,11 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -97,7 +97,7 @@ fun SettingsScreen(
                                 onClick = { /* Open editable username dialog */ },
                                 trailingIcon = Icons.Default.Edit
                             )
-                            Divider(Modifier.padding(horizontal = 16.dp))
+                            HorizontalDivider(Modifier.padding(horizontal = 16.dp))
                             SettingsItem(
                                 icon = Icons.Default.Business,
                                 title = "Facility",
@@ -123,7 +123,7 @@ fun SettingsScreen(
                                 title = "Language",
                                 subtitle = "English",
                                 onClick = { /* Open language selector */ })
-                            Divider(Modifier.padding(horizontal = 16.dp))
+                            HorizontalDivider(Modifier.padding(horizontal = 16.dp))
                             SettingsItemSwitch(
                                 icon = Icons.Default.DarkMode,
                                 title = "Dark Mode",
@@ -150,7 +150,7 @@ fun SettingsScreen(
                                 icon = Icons.Default.Cloud,
                                 title = "Server URL",
                                 subtitle = state.serverUrl, onClick = { showServerDialog = true })
-                            Divider(Modifier.padding(horizontal = 16.dp))
+                            HorizontalDivider(Modifier.padding(horizontal = 16.dp))
 
                             SettingsItem(
                                 icon = Icons.Default.Schedule,
@@ -159,7 +159,7 @@ fun SettingsScreen(
                                 onClick = { showServerDialog = true }
                             )
 
-                            Divider(Modifier.padding(horizontal = 16.dp))
+                            HorizontalDivider(Modifier.padding(horizontal = 16.dp))
 
                             SettingsItem(
                                 icon = Icons.Default.Info,
@@ -204,8 +204,7 @@ fun SettingsScreen(
 
         if (showServerDialog) {
             SettingsServerConfigurationDialog(
-                currentUrl = state.serverUrl,
-                currentInterval = state.syncIntervalInHours,
+                currentUrl = state.serverUrl, currentIntervalHours = state.syncIntervalInHours,
                 onDismiss = { showServerDialog = false },
                 onSave = { newUrl, newInterval ->
                     viewModel.onEvent(SettingsEvent.UpdateServerUrl(newUrl))
@@ -243,15 +242,15 @@ fun SettingsSection(
 @Composable
 fun SettingsServerConfigurationDialog(
     currentUrl: String,
-    currentInterval: Int,
+    currentIntervalHours: Int,
     onDismiss: () -> Unit,
     onSave: (String, Int) -> Unit,
 ) {
     var url by remember { mutableStateOf(currentUrl) }
-    var selectedInterval by remember { mutableIntStateOf(currentInterval) }
+    var selectedInterval by remember { mutableIntStateOf(currentIntervalHours) }
     var expanded by remember { mutableStateOf(false) }
 
-    val intervalOptions = listOf(5, 15, 30, 60)
+    val intervalOptions = listOf(1, 6, 12, 24) // HOURS!
     MaterialTheme.colorScheme
 
     AlertDialog(
@@ -282,7 +281,7 @@ fun SettingsServerConfigurationDialog(
                 ) {
                     OutlinedTextField(
                         readOnly = true,
-                        value = "$selectedInterval mins",
+                        value = "$selectedInterval hours",
                         onValueChange = {},
                         label = { Text("Sync Interval") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
@@ -297,7 +296,7 @@ fun SettingsServerConfigurationDialog(
                     ) {
                         intervalOptions.forEach { interval ->
                             DropdownMenuItem(
-                                text = { Text("$interval mins") },
+                                text = { Text("$interval hours") },
                                 onClick = {
                                     selectedInterval = interval
                                     expanded = false

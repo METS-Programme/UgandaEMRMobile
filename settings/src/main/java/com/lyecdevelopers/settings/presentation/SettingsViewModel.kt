@@ -101,7 +101,7 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private fun updateSyncInterval(interval: Long) {
+    private fun updateSyncInterval(interval: Int) {
         viewModelScope.launch {
             preferenceManager.saveAutoSyncInterval(interval)
             // If auto-sync is ON, reschedule

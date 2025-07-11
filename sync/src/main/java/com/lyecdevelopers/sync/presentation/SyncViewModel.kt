@@ -512,7 +512,7 @@ class SyncViewModel @Inject constructor(
                 syncManager.schedulePeriodicSync(
                     workers = listOf(
                         PatientsSyncWorker::class, EncountersSyncWorker::class
-                    ), intervalHours = intervalHours
+                    ), intervalHours = intervalHours.toLong()
                 )
             } else {
                 syncManager.cancelPeriodicSync(
@@ -525,7 +525,7 @@ class SyncViewModel @Inject constructor(
     }
 
 
-    private fun updateAutoSyncInterval(newInterval: Long) {
+    private fun updateAutoSyncInterval(newInterval: Int) {
         updateUi { copy(autoSyncInterval = newInterval) }
         viewModelScope.launch {
             preferenceManager.saveAutoSyncInterval(newInterval)
@@ -541,11 +541,12 @@ class SyncViewModel @Inject constructor(
                 syncManager.schedulePeriodicSync(
                     workers = listOf(
                         PatientsSyncWorker::class, EncountersSyncWorker::class
-                    ), intervalHours = intervalHours
+                    ), intervalHours = intervalHours.toLong()
                 )
             }
         }
     }
+
 
 }
 

@@ -41,9 +41,9 @@ interface PreferenceManager {
 
     suspend fun loadAutoSyncEnabled(): Boolean
 
-    suspend fun saveAutoSyncInterval(hours: Long)
+    suspend fun saveAutoSyncInterval(hours: Int)
 
-    suspend fun loadAutoSyncInterval(): Long
+    suspend fun loadAutoSyncInterval(): Int
 
     suspend fun loadServerUrl(): String
 

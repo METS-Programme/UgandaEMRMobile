@@ -252,7 +252,7 @@ fun SyncScreen(
                                 if (uiState.autoSyncEnabled) {
                                     Spacer(Modifier.height(8.dp))
                                     Text(
-                                        "Interval: ${uiState.autoSyncInterval}",
+                                        "Interval: ${uiState.autoSyncInterval} hours",
                                         style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     )
                                 }
