@@ -155,11 +155,10 @@ fun SettingsScreen(
                             SettingsItem(
                                 icon = Icons.Default.Schedule,
                                 title = "Sync Interval",
-                                subtitle = "${state.syncIntervalInMinutes} mins",
-                                onClick = {
-                                    showServerDialog = true
-                                } // Or separate dialog if needed
+                                subtitle = "${state.syncIntervalInHours} hrs",
+                                onClick = { showServerDialog = true }
                             )
+
                             Divider(Modifier.padding(horizontal = 16.dp))
 
                             SettingsItem(
@@ -206,7 +205,7 @@ fun SettingsScreen(
         if (showServerDialog) {
             SettingsServerConfigurationDialog(
                 currentUrl = state.serverUrl,
-                currentInterval = state.syncIntervalInMinutes,
+                currentInterval = state.syncIntervalInHours,
                 onDismiss = { showServerDialog = false },
                 onSave = { newUrl, newInterval ->
                     viewModel.onEvent(SettingsEvent.UpdateServerUrl(newUrl))

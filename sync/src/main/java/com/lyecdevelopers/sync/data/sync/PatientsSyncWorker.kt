@@ -1,4 +1,4 @@
-package com.lyecdevelopers.sync.presentation
+package com.lyecdevelopers.sync.data.sync
 
 import android.content.Context
 import androidx.hilt.work.HiltWorker

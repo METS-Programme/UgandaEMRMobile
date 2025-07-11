@@ -128,6 +128,10 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.crashlytics)
 
+    // work
+    implementation(libs.hilt.work)
+    implementation(libs.hilt.work.compiler)
+    implementation(libs.work.runtime.ktx)
 
     // Optional: for previewing Composables
     implementation(libs.androidx.ui.tooling.preview)

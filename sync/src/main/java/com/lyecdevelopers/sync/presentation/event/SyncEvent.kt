@@ -6,14 +6,19 @@ import com.lyecdevelopers.core.model.cohort.Indicator
 import com.lyecdevelopers.core.model.o3.o3Form
 
 sealed class SyncEvent {
+
+    // --------------------
+    // Forms related
+    // --------------------
     data class FilterForms(val query: String) : SyncEvent()
     data class ToggleFormSelection(val uuid: String) : SyncEvent()
-
-    data class FormsDownloaded(val selectedForms: List<o3Form>) : SyncEvent()
-
     object ClearSelection : SyncEvent()
     object DownloadForms : SyncEvent()
+    data class FormsDownloaded(val selectedForms: List<o3Form>) : SyncEvent()
 
+    // --------------------
+    // Cohort / Indicator / Filters
+    // --------------------
     data class SelectedCohortChanged(val cohort: Cohort) : SyncEvent()
     data class IndicatorSelected(val indicator: Indicator) : SyncEvent()
     object ApplyFilters : SyncEvent()
@@ -23,12 +28,19 @@ sealed class SyncEvent {
     object MoveRight : SyncEvent()
     object MoveLeft : SyncEvent()
 
+    // --------------------
+    // Sync meta updates
+    // --------------------
     data class UpdateLastSyncTime(val time: String) : SyncEvent()
     data class UpdateLastSyncStatus(val status: String) : SyncEvent()
     data class UpdateLastSyncBy(val user: String) : SyncEvent()
     data class UpdateLastSyncError(val error: String?) : SyncEvent()
 
+    // --------------------
+    // Manual & Auto Sync
+    // --------------------
+    object SyncNow : SyncEvent()
     data class ToggleAutoSync(val enabled: Boolean) : SyncEvent()
-    data class UpdateAutoSyncInterval(val interval: String) : SyncEvent()
 }
+
 

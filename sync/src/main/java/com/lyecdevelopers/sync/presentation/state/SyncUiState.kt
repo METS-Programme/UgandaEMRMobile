@@ -38,7 +38,7 @@ data class SyncUiState(
     val lastSyncBy: String = "N/A",
     val lastSyncError: String? = null,
     val autoSyncEnabled: Boolean = false,
-    val autoSyncInterval: String = "15 minutes",
+    val autoSyncInterval: Long = 12,
 )
 
 

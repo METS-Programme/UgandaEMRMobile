@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.lyecdevelopers.core._base.BaseViewModel
 import com.lyecdevelopers.core.common.scheduler.SchedulerProvider
 import com.lyecdevelopers.core.data.preference.PreferenceManager
+import com.lyecdevelopers.core.data.sync.SyncManager
 import com.lyecdevelopers.core.model.Result
 import com.lyecdevelopers.core.model.cohort.Attribute
 import com.lyecdevelopers.core.model.cohort.CQIReportingCohort
@@ -20,10 +21,11 @@ import com.lyecdevelopers.core.model.cohort.ReportRequest
 import com.lyecdevelopers.core.model.cohort.ReportType
 import com.lyecdevelopers.core.model.cohort.formatReportArray
 import com.lyecdevelopers.core.model.encounter.toIndicators
-import com.lyecdevelopers.core.model.o3.o3Form
 import com.lyecdevelopers.core.model.order.toIndicators
 import com.lyecdevelopers.core.model.toAttributes
 import com.lyecdevelopers.core.utils.AppLogger
+import com.lyecdevelopers.sync.data.sync.EncountersSyncWorker
+import com.lyecdevelopers.sync.data.sync.PatientsSyncWorker
 import com.lyecdevelopers.sync.domain.usecase.SyncUseCase
 import com.lyecdevelopers.sync.presentation.event.SyncEvent
 import com.lyecdevelopers.sync.presentation.state.SyncUiState
@@ -37,8 +39,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 
@@ -48,6 +48,7 @@ class SyncViewModel @Inject constructor(
     private val schedulerProvider: SchedulerProvider,
     private val preferenceManager: PreferenceManager,
     private val context: Application,
+    private val syncManager: SyncManager,
 ) : BaseViewModel() {
 
     private val _uiState = MutableStateFlow(SyncUiState())
@@ -104,9 +105,11 @@ class SyncViewModel @Inject constructor(
 
             is SyncEvent.ToggleAutoSync -> handleToggleAutoSync(event.enabled)
 
-
-            is SyncEvent.UpdateAutoSyncInterval -> updateAutoSyncInterval(event.interval)
-
+            SyncEvent.SyncNow -> syncManager.syncNow(
+                workers = listOf(
+                    PatientsSyncWorker::class, EncountersSyncWorker::class
+                )
+            )
         }
 
     }
@@ -489,24 +492,6 @@ class SyncViewModel @Inject constructor(
         _uiState.update { it.reducer() }
     }
 
-    private fun saveDownloadedForms(selectedForms: List<o3Form>) {
-        viewModelScope.launch(schedulerProvider.io) {
-            updateUi { copy(isLoading = true) }
-            syncUseCase.saveFormsLocally(selectedForms).collect { result ->
-                withContext(schedulerProvider.main) {
-                    handleResult(
-                        result = result,
-                        onSuccess = {
-                            clearSelection()
-                            updateUi { copy(isLoading = false) }
-                        },
-                        successMessage = "Forms downloaded successfully",
-                        errorMessage = (result as? Result.Error)?.message
-                    )
-                }
-            }
-        }
-    }
     private fun restoreAutoSyncSettings() {
         viewModelScope.launch {
             val enabled = preferenceManager.loadAutoSyncEnabled()
@@ -516,38 +501,52 @@ class SyncViewModel @Inject constructor(
     }
     private fun handleToggleAutoSync(enabled: Boolean) {
         updateUi { copy(autoSyncEnabled = enabled) }
+
         viewModelScope.launch {
             preferenceManager.saveAutoSyncEnabled(enabled)
+
+            if (enabled) {
+                val interval = preferenceManager.loadAutoSyncInterval()
+                val intervalHours = interval
+
+                syncManager.schedulePeriodicSync(
+                    workers = listOf(
+                        PatientsSyncWorker::class, EncountersSyncWorker::class
+                    ), intervalHours = intervalHours
+                )
+            } else {
+                syncManager.cancelPeriodicSync(
+                    workers = listOf(
+                        PatientsSyncWorker::class, EncountersSyncWorker::class
+                    )
+                )
+            }
         }
     }
-    private fun updateAutoSyncInterval(newInterval: String) {
+
+
+    private fun updateAutoSyncInterval(newInterval: Long) {
         updateUi { copy(autoSyncInterval = newInterval) }
         viewModelScope.launch {
             preferenceManager.saveAutoSyncInterval(newInterval)
+
+            // If auto-sync is ON, re-schedule with new interval
+            if (uiState.value.autoSyncEnabled) {
+                syncManager.cancelPeriodicSync(
+                    workers = listOf(
+                        PatientsSyncWorker::class, EncountersSyncWorker::class
+                    )
+                )
+                val intervalHours = newInterval
+                syncManager.schedulePeriodicSync(
+                    workers = listOf(
+                        PatientsSyncWorker::class, EncountersSyncWorker::class
+                    ), intervalHours = intervalHours
+                )
+            }
         }
     }
 
-//    fun syncNow() {
-//        viewModelScope.launch(schedulerProvider.io) {
-//            updateUi { copy(isLoading = true) }
-//            val syncResult = syncUseCase.syncNow()
-//            withContext(schedulerProvider.main) {
-//                updateUi {
-//                    copy(
-//                        isLoading = false,
-//                        lastSyncTime = getCurrentFormattedTime(),
-//                        lastSyncStatus = if (syncResult.isSuccess) "Success" else "Failed",
-//                        lastSyncBy = "You",
-//                        lastSyncError = if (syncResult.isSuccess) null else syncResult.errorMessage
-//                    )
-//                }
-//            }
-//        }
-//    }
-
-    private fun getCurrentFormattedTime(): String {
-        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
-    }
 }
 
 

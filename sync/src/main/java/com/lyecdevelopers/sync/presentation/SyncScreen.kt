@@ -66,9 +66,7 @@ import com.lyecdevelopers.sync.presentation.patients.PatientFilterSectionContent
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SyncScreen(
-    onToggleAutoSync: (Boolean) -> Unit = {},
     onBack: () -> Unit = {},
-    onSyncNow: () -> Unit = {},
 ) {
     val viewModel: SyncViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
@@ -149,7 +147,8 @@ fun SyncScreen(
                                 Spacer(Modifier.height(16.dp))
 
                                 Button(
-                                    onClick = onSyncNow, modifier = Modifier.fillMaxWidth()
+                                    onClick = { viewModel.onEvent(SyncEvent.SyncNow) },
+                                    modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Icon(Icons.Filled.Sync, contentDescription = null)
                                     Spacer(Modifier.width(8.dp))
@@ -245,8 +244,9 @@ fun SyncScreen(
                                     Spacer(Modifier.weight(1f))
                                     Switch(
                                         checked = uiState.autoSyncEnabled,
-                                        onCheckedChange = onToggleAutoSync
-                                    )
+                                        onCheckedChange = { isChecked ->
+                                            viewModel.onEvent(SyncEvent.ToggleAutoSync(isChecked))
+                                        })
                                 }
 
                                 if (uiState.autoSyncEnabled) {

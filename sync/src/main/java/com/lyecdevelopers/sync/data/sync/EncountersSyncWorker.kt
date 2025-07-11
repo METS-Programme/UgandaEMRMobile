@@ -1,4 +1,4 @@
-package com.lyecdevelopers.sync.presentation
+package com.lyecdevelopers.sync.data.sync
 
 import android.content.Context
 import androidx.hilt.work.HiltWorker
@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.catch
 
 
 @HiltWorker
-class EncounterSyncWorker @AssistedInject constructor(
+class EncountersSyncWorker @AssistedInject constructor(
     @Assisted val context: Context,
     @Assisted workerParams: WorkerParameters,
     private val syncUseCase: SyncUseCase,
