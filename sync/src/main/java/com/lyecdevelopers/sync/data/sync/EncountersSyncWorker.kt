@@ -16,15 +16,18 @@ import kotlinx.coroutines.flow.catch
 
 @HiltWorker
 class EncountersSyncWorker @AssistedInject constructor(
-    @Assisted val context: Context,
+    @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val syncUseCase: SyncUseCase,
     private val api: FormApi,
-) : CoroutineWorker(context, workerParams) {
+) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
+        AppLogger.d("🔄 EncountersSyncWorker started")
+
         return try {
             var shouldRetry = false
+
             syncUseCase.getUnsynced().catch { e ->
                 AppLogger.e("❌ DB read failed: ${e.message}")
                 shouldRetry = true
@@ -40,11 +43,11 @@ class EncountersSyncWorker @AssistedInject constructor(
                             val response = api.saveEncounter(payload)
 
                             if (response.isSuccessful) {
-                                syncUseCase.markSynced(entity).catch { e ->
-                                    AppLogger.e("⚠️ Synced ${entity.id} but failed to mark local: ${e.message}")
+                                syncUseCase.markSynced(entity).catch { markErr ->
+                                    AppLogger.e("⚠️ Mark local failed: ${markErr.message}")
                                     shouldRetry = true
                                 }.collect {
-                                    AppLogger.d("✅ Encounter ${entity.id} marked as synced.")
+                                    AppLogger.d("✅ Encounter ${entity.id} marked synced.")
                                 }
                             } else {
                                 AppLogger.e(
@@ -61,18 +64,24 @@ class EncountersSyncWorker @AssistedInject constructor(
                 }
             }
 
-            if (shouldRetry) Result.retry() else Result.success()
+            if (shouldRetry) {
+                AppLogger.d("🔁 Retrying EncountersSyncWorker...")
+                Result.retry()
+            } else {
+                AppLogger.d("✅ EncountersSyncWorker success")
+                Result.success()
+            }
 
         } catch (e: Exception) {
-            AppLogger.e("❌ SyncWorker failed: ${e.localizedMessage}")
+            AppLogger.e("❌ EncountersSyncWorker failed: ${e.localizedMessage}")
             Result.retry()
         }
     }
 
     private fun buildEncounterPayload(entity: EncounterEntity): EncounterPayload {
         return EncounterPayload(
-            uuid = this.id.toString(),
-            visitUuid = entity.id,
+            uuid = entity.id,
+            visitUuid = entity.visitUuid,
             encounterType = entity.encounterTypeUuid,
             encounterDatetime = entity.encounterDatetime,
             patientUuid = entity.patientUuid,
@@ -84,6 +93,7 @@ class EncountersSyncWorker @AssistedInject constructor(
         )
     }
 }
+
 
 
 

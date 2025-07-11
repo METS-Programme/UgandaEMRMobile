@@ -14,17 +14,19 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.catch
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.hl7.fhir.r4.model.Patient
 
 @HiltWorker
 class PatientsSyncWorker @AssistedInject constructor(
-    @Assisted val context: Context,
+    @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val syncUseCase: SyncUseCase,
     private val api: FormApi,
-) : CoroutineWorker(context, workerParams) {
-
+) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
+        AppLogger.d("🔄 PatientsSyncWorker started")
+
         return try {
             var shouldRetry = false
 
@@ -39,8 +41,7 @@ class PatientsSyncWorker @AssistedInject constructor(
 
                     unsyncedList.forEach { entity ->
                         try {
-                            // ➜ Convert to FHIR JSON
-                            val fhirPatient = entity.toFhirPatient()
+                            val fhirPatient: Patient = entity.toFhirPatient()
                             val patientJson = FhirContext.forR4().newJsonParser()
                                 .encodeResourceToString(fhirPatient)
                             val requestBody = patientJson.toRequestBody(
@@ -50,35 +51,35 @@ class PatientsSyncWorker @AssistedInject constructor(
                             val response = api.savePatient(requestBody)
 
                             if (response.isSuccessful) {
-                                syncUseCase.markSyncedPatient(entity).catch { e ->
-                                    AppLogger.e(
-                                        "⚠️ Synced ${entity.id} but failed to mark local: ${e.message}"
-                                    )
+                                syncUseCase.markSyncedPatient(entity).catch { markErr ->
+                                    AppLogger.e("⚠️ Mark local failed: ${markErr.message}")
                                     shouldRetry = true
                                 }.collect {
-                                    AppLogger.d("✅ Patient ${entity.id} marked as synced.")
+                                    AppLogger.d("✅ Patient ${entity.id} marked synced.")
                                 }
                             } else {
-                                AppLogger.e(
-                                    "❌ API rejected patient ${entity.id}: ${response.code()} ${response.message()}"
-                                )
+                                AppLogger.e("❌ API rejected: ${response.code()} ${response.message()}")
                                 shouldRetry = true
                             }
 
                         } catch (e: Exception) {
-                            AppLogger.e(
-                                "❌ Error syncing patient ${entity.id}: ${e.message}"
-                            )
+                            AppLogger.e("❌ Error syncing patient ${entity.id}: ${e.message}")
                             shouldRetry = true
                         }
                     }
                 }
             }
 
-            if (shouldRetry) Result.retry() else Result.success()
+            if (shouldRetry) {
+                AppLogger.d("🔁 Retrying PatientsSyncWorker...")
+                Result.retry()
+            } else {
+                AppLogger.d("✅ PatientsSyncWorker success")
+                Result.success()
+            }
 
         } catch (e: Exception) {
-            AppLogger.e("❌ SyncWorker failed: ${e.localizedMessage}")
+            AppLogger.e("❌ PatientsSyncWorker failed: ${e.localizedMessage}")
             Result.retry()
         }
     }
