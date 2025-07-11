@@ -48,6 +48,12 @@ android {
     kotlin {
         jvmToolchain(11)
     }
+
+    configurations.all {
+        resolutionStrategy {
+            force("com.google.guava:guava:32.1.3-android")
+        }
+    }
 }
 
 dependencies {
