@@ -30,13 +30,14 @@ interface SyncRepository {
 
     // sync
     // encounters
-    fun getUnsynced(): Flow<List<EncounterEntity>>
-    fun markSynced(encounter: EncounterEntity): Flow<Unit>
+    fun getUnsyncedEncounters(): Flow<List<EncounterEntity>>
+    fun markSyncedEncounter(encounter: EncounterEntity): Flow<Unit>
+    fun getSyncedEncountersCount(): Flow<Result<Int>>
 
     // patients
     fun getUnsyncedPatients(): Flow<List<PatientEntity>>
-
     fun markSyncedPatient(patient: PatientEntity): Flow<Unit>
+    fun getSyncedPatientsCount(): Flow<Result<Int>>
 
 
     // cohorts

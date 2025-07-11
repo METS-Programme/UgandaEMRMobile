@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.filled.EventNote
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.HowToReg
 import androidx.compose.material.icons.filled.People
@@ -181,15 +180,18 @@ fun SyncScreen(
 
                                 SummaryRow(
                                     icon = Icons.Default.Description,
-                                    label = "Forms Saved:", count = uiState.formCount
+                                    label = "Available Forms:",
+                                    count = uiState.formCount
                                 )
                                 SummaryRow(
                                     icon = Icons.Default.HowToReg,
-                                    label = "Patients Saved:", count = uiState.patientCount
+                                    label = "Patients Saved:",
+                                    count = uiState.patientCount
                                 )
                                 SummaryRow(
-                                    icon = Icons.Default.EventNote,
-                                    label = "Visits Saved:", count = 0
+                                    icon = Icons.Default.CheckCircle,
+                                    label = "Encounters Saved:",
+                                    count = uiState.encounterCount
                                 )
 
                                 HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
@@ -203,20 +205,20 @@ fun SyncScreen(
 
                                 SummaryRow(
                                     icon = Icons.Default.Groups,
-                                    label = "Patients Synced:", count = uiState.patientCount
-                                )
-                                SummaryRow(
-                                    icon = Icons.Default.EventNote,
-                                    label = "Visits Synced:", count = 0
+                                    label = "Patients Synced:",
+                                    count = uiState.syncedPatientCount
                                 )
                                 SummaryRow(
                                     icon = Icons.Default.CheckCircle,
-                                    label = "Encounters Synced:", count = uiState.encounterCount
+                                    label = "Encounters Synced:",
+                                    count = uiState.syncedEncounterCount
                                 )
                             }
                         }
                     }
                 }
+
+
 
                 item {
                     SyncSection(title = "Auto Sync") {

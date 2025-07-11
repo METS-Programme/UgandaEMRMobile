@@ -66,6 +66,8 @@ class SyncViewModel @Inject constructor(
         updatePatientCount()
         updateEncounterCount()
         restoreAutoSyncSettings()
+        updateSyncedPatientsCount()
+        updateSyncedEncounterCount()
     }
 
     fun onEvent(event: SyncEvent) {
@@ -159,7 +161,6 @@ class SyncViewModel @Inject constructor(
             preferenceManager.saveSelectedForms(context, newIds)
         }
     }
-
     private fun clearSelection() {
         updateUi { copy(selectedFormIds = emptySet()) }
     }
@@ -190,7 +191,9 @@ class SyncViewModel @Inject constructor(
                     handleResult(
                         result = saveResult, onSuccess = {
                             clearSelection()
-                        }, successMessage = "Successfully downloaded selected forms",
+                        }, successMessage = "Successfully downloaded selected forms", onError = {
+                            updateUi { copy(isLoading = false) }
+                        },
                         errorMessage = (saveResult as? Result.Error)?.message
                     )
                     updateUi { copy(isLoading = false) }
@@ -214,7 +217,6 @@ class SyncViewModel @Inject constructor(
             }
         }
     }
-
     private fun loadEncounterTypes() {
         viewModelScope.launch(schedulerProvider.io) {
             syncUseCase.getEncounterTypes().collect { result ->
@@ -291,9 +293,6 @@ class SyncViewModel @Inject constructor(
         }
     }
 
-
-
-
     fun onApplyFilters() {
         viewModelScope.launch(schedulerProvider.io) {
             val error = validateFilters()
@@ -366,7 +365,6 @@ class SyncViewModel @Inject constructor(
         }
     }
 
-
     private fun moveLeft() {
         val items = uiState.value.highlightedSelected
         val updated = (uiState.value.availableParameters + items).distinctBy { it.id }
@@ -379,16 +377,12 @@ class SyncViewModel @Inject constructor(
         }
     }
 
-
-
-
     private fun restoreSelectedForms() {
         viewModelScope.launch {
             val ids = preferenceManager.loadSelectedForms(context)
             updateUi { copy(selectedFormIds = ids) }
         }
     }
-
 
     private fun updateFormCount() {
         viewModelScope.launch(schedulerProvider.io) {
@@ -419,8 +413,6 @@ class SyncViewModel @Inject constructor(
             }
         }
     }
-
-
     private fun updateEncounterCount() {
         viewModelScope.launch(schedulerProvider.io) {
             syncUseCase.getEncounterCount().collect { result ->
@@ -435,8 +427,33 @@ class SyncViewModel @Inject constructor(
             }
         }
     }
+    private fun updateSyncedEncounterCount() {
+        viewModelScope.launch(schedulerProvider.io) {
+            syncUseCase.getSyncedEncounterCount().collect { result ->
+                withContext(schedulerProvider.main) {
+                    handleResult(
+                        result = result, onSuccess = { syncedEncounterCount ->
+                            updateUi { copy(syncedEncounterCount = syncedEncounterCount) }
+                        }, errorMessage = (result as? Result.Error)?.message
+                    )
+                }
+            }
+        }
+    }
 
-
+    private fun updateSyncedPatientsCount() {
+        viewModelScope.launch(schedulerProvider.io) {
+            syncUseCase.getSyncedPatientsCount().collect { result ->
+                withContext(schedulerProvider.main) {
+                    handleResult(
+                        result = result, onSuccess = { syncedPatientCount ->
+                            updateUi { copy(syncedPatientCount = syncedPatientCount) }
+                        }, errorMessage = (result as? Result.Error)?.message
+                    )
+                }
+            }
+        }
+    }
     private fun buildReportRequest(cohort: Cohort) =
         ReportRequest(
             uuid = cohort.uuid, startDate = "", endDate = "",
@@ -446,7 +463,6 @@ class SyncViewModel @Inject constructor(
             reportType = ReportType.DYNAMIC,
             reportingCohort = CQIReportingCohort.PATIENTS_WITH_ENCOUNTERS
         )
-
     private fun buildDataDefinitionPayload(
         reportRequest: ReportRequest,
         indicator: Indicator,
@@ -491,8 +507,6 @@ class SyncViewModel @Inject constructor(
             }
         }
     }
-
-
     private fun restoreAutoSyncSettings() {
         viewModelScope.launch {
             val enabled = preferenceManager.loadAutoSyncEnabled()
@@ -500,14 +514,12 @@ class SyncViewModel @Inject constructor(
             updateUi { copy(autoSyncEnabled = enabled, autoSyncInterval = interval) }
         }
     }
-
     private fun handleToggleAutoSync(enabled: Boolean) {
         updateUi { copy(autoSyncEnabled = enabled) }
         viewModelScope.launch {
             preferenceManager.saveAutoSyncEnabled(enabled)
         }
     }
-
     private fun updateAutoSyncInterval(newInterval: String) {
         updateUi { copy(autoSyncInterval = newInterval) }
         viewModelScope.launch {
@@ -536,11 +548,6 @@ class SyncViewModel @Inject constructor(
     private fun getCurrentFormattedTime(): String {
         return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
     }
-
-
-
-
-
 }
 
 

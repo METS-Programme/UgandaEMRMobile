@@ -283,7 +283,7 @@ class SyncRepositoryImpl @Inject constructor(
         }.flowOn(Dispatchers.IO)
 
 
-    override fun getUnsynced(): Flow<List<EncounterEntity>> = flow {
+    override fun getUnsyncedEncounters(): Flow<List<EncounterEntity>> = flow {
         try {
             val unsynced = encounterDao.getUnsynced()
             emit(unsynced)
@@ -293,7 +293,7 @@ class SyncRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun markSynced(encounter: EncounterEntity): Flow<Unit> = flow {
+    override fun markSyncedEncounter(encounter: EncounterEntity): Flow<Unit> = flow {
         try {
             val rows = encounterDao.update(encounter.copy(synced = true))
             if (rows > 0) {
@@ -307,6 +307,17 @@ class SyncRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun getSyncedEncountersCount(): Flow<Result<Int>> =
+        encounterDao.getSyncedEncountersCount().map {
+            Result.Success(it)
+        }.catch { e ->
+            val errorMsg =
+                "Error getting synced encounter count: ${e.localizedMessage ?: "Unknown error"}"
+            AppLogger.e("SyncedEncounterCountFlowCatch", errorMsg, e)
+        }.flowOn(Dispatchers.IO)
+
+
+
     override fun getUnsyncedPatients(): Flow<List<PatientEntity>> = flow {
         try {
             val unsynced = patientDao.getUnsyncedPatients()
@@ -316,6 +327,7 @@ class SyncRepositoryImpl @Inject constructor(
             throw e // ⚡ Let the caller handle it!
         }
     }
+
 
 
     override fun markSyncedPatient(patient: PatientEntity): Flow<Unit> = flow {
@@ -331,6 +343,15 @@ class SyncRepositoryImpl @Inject constructor(
             throw e // ⚡ Let the caller handle it!
         }
     }
+
+    override fun getSyncedPatientsCount(): Flow<Result<Int>> =
+        patientDao.getSyncedPatientsCount().map { it ->
+            Result.Success(it)
+        }.catch { e ->
+            val errorMsg =
+                "Error getting synced patient count: ${e.localizedMessage ?: "Unknown error"}"
+            AppLogger.e("SyncedPatientCountFlowCatch", errorMsg, e)
+        }.flowOn(Dispatchers.IO)
 
 }
 

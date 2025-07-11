@@ -80,11 +80,15 @@ class SyncUseCase @Inject constructor(
 
     // encounters
     fun getUnsynced(): Flow<List<EncounterEntity>> {
-        return repository.getUnsynced()
+        return repository.getUnsyncedEncounters()
     }
 
     fun markSynced(encounter: EncounterEntity): Flow<Unit> {
-        return repository.markSynced(encounter)
+        return repository.markSyncedEncounter(encounter)
+    }
+
+    fun getSyncedEncounterCount(): Flow<Result<Int>> {
+        return repository.getSyncedEncountersCount()
     }
 
 
@@ -95,6 +99,10 @@ class SyncUseCase @Inject constructor(
 
     fun markSyncedPatient(patient: PatientEntity): Flow<Unit> {
         return repository.markSyncedPatient(patient)
+    }
+
+    fun getSyncedPatientsCount(): Flow<Result<Int>> {
+        return repository.getSyncedPatientsCount()
     }
 
 
