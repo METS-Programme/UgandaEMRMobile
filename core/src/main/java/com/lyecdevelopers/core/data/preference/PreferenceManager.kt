@@ -35,8 +35,21 @@ interface PreferenceManager {
 
     suspend fun loadSelectedForms(context: Context): Set<String>
 
-    // clear data
 
+    // sync
+    suspend fun saveAutoSyncEnabled(enabled: Boolean)
+
+    suspend fun loadAutoSyncEnabled(): Boolean
+
+    suspend fun saveAutoSyncInterval(hours: Int)
+
+    suspend fun loadAutoSyncInterval(): Int
+
+    suspend fun loadServerUrl(): String
+
+    suspend fun saveServerUrl(url: String)
+
+    // clear data
     suspend fun clear()
 
 }

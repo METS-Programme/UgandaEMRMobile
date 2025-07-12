@@ -13,8 +13,6 @@ import com.lyecdevelopers.form.data.repository.FormRepositoryImpl
 import com.lyecdevelopers.form.data.repository.PatientRepositoryImpl
 import com.lyecdevelopers.form.domain.repository.FormRepository
 import com.lyecdevelopers.form.domain.repository.PatientRepository
-import com.lyecdevelopers.form.domain.usecase.FormsUseCase
-import com.lyecdevelopers.form.domain.usecase.PatientsUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -30,18 +28,6 @@ object FormModule {
     @Singleton
     fun provideFhirEngine(@ApplicationContext context: Context): FhirEngine {
         return FhirEngineProvider.getInstance(context)
-    }
-
-    @Provides
-    @Singleton
-    fun provideFormsUseCase(repository: FormRepository): FormsUseCase {
-        return FormsUseCase(repository)
-    }
-
-    @Provides
-    @Singleton
-    fun providePatientsUseCase(repository: PatientRepository): PatientsUseCase {
-        return PatientsUseCase(repository)
     }
 
     @Provides

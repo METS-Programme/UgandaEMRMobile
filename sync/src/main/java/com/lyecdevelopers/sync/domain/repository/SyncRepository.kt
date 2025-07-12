@@ -11,7 +11,6 @@ import com.lyecdevelopers.core.model.cohort.DataDefinition
 import com.lyecdevelopers.core.model.encounter.EncounterType
 import com.lyecdevelopers.core.model.o3.o3Form
 import com.lyecdevelopers.core.model.order.OrderType
-
 import kotlinx.coroutines.flow.Flow
 
 interface SyncRepository {
@@ -31,13 +30,14 @@ interface SyncRepository {
 
     // sync
     // encounters
-    fun getUnsynced(): Flow<List<EncounterEntity>>
-    fun markSynced(encounter: EncounterEntity): Flow<Unit>
+    fun getUnsyncedEncounters(): Flow<List<EncounterEntity>>
+    fun markSyncedEncounter(encounter: EncounterEntity): Flow<Unit>
+    fun getSyncedEncountersCount(): Flow<Result<Int>>
 
     // patients
     fun getUnsyncedPatients(): Flow<List<PatientEntity>>
-
     fun markSyncedPatient(patient: PatientEntity): Flow<Unit>
+    fun getSyncedPatientsCount(): Flow<Result<Int>>
 
 
     // cohorts
@@ -63,7 +63,8 @@ interface SyncRepository {
     fun loadConditions(): Flow<Result<List<Any>>>
 
     // data definition
-    fun createDataDefinition(payload: DataDefinition): Flow<Result<Any>>
+    fun createDataDefinition(payload: DataDefinition): Flow<Result<List<PatientEntity>>>
+
 
 
 

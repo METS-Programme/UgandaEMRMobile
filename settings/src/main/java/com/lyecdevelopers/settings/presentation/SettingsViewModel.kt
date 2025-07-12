@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.lyecdevelopers.core._base.BaseViewModel
 import com.lyecdevelopers.core.common.scheduler.SchedulerProvider
 import com.lyecdevelopers.core.data.preference.PreferenceManager
+import com.lyecdevelopers.core.data.sync.SyncManager
 import com.lyecdevelopers.core.model.Result
 import com.lyecdevelopers.core_navigation.navigation.Destinations
 import com.lyecdevelopers.settings.domain.usecase.SettingsUseCase
@@ -23,6 +24,7 @@ class SettingsViewModel @Inject constructor(
     private val settingsUseCase: SettingsUseCase,
     private val preferenceManager: PreferenceManager,
     private val schedulerProvider: SchedulerProvider,
+    private val syncManager: SyncManager,
 ) : BaseViewModel() {
 
     // state
@@ -41,7 +43,7 @@ class SettingsViewModel @Inject constructor(
             is SettingsEvent.NavigateToLanguageSelection -> {}
             is SettingsEvent.UpdateUsername -> updateUsername(event.username)
             is SettingsEvent.UpdateServerUrl -> updateServerUrl(event.serverUrl)
-            is SettingsEvent.UpdateSyncInterval -> updateSyncInterval(event.intervalInMinutes)
+            is SettingsEvent.UpdateSyncInterval -> updateSyncInterval(event.intervalInHours)
         }
     }
 
@@ -95,13 +97,29 @@ class SettingsViewModel @Inject constructor(
 
     private fun updateServerUrl(url: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(serverUrl = url) }
+            preferenceManager.saveServerUrl(url)
         }
     }
 
     private fun updateSyncInterval(interval: Int) {
         viewModelScope.launch {
-            _uiState.update { it.copy(syncIntervalInMinutes = interval) }
+            preferenceManager.saveAutoSyncInterval(interval)
+            // If auto-sync is ON, reschedule
+            if (_uiState.value.autoSyncEnabled) {
+//                syncManager.cancelPeriodicSync(
+//                    workers = listOf(
+//                        PatientsSyncWorker::class,
+//                        EncountersSyncWorker::class
+//                    )
+//                )
+//                syncManager.schedulePeriodicSync(
+//                    workers = listOf(
+//                        PatientsSyncWorker::class,
+//                        EncountersSyncWorker::class
+//                    ),
+//                    intervalHours = 12
+//                )
+            }
         }
     }
 

@@ -1,5 +1,6 @@
 package com.lyecdevelopers.form.data.repository
 
+import android.database.sqlite.SQLiteConstraintException
 import android.database.sqlite.SQLiteDatabaseCorruptException
 import android.database.sqlite.SQLiteDatabaseLockedException
 import android.database.sqlite.SQLiteException
@@ -126,9 +127,18 @@ class PatientRepositoryImpl @Inject constructor(
         name: String?, gender: String?, status: String?,
     ): PagingSource<Int, PatientEntity> = patientDao.getPagedPatients(name, gender, status)
 
-    override suspend fun saveVital(vitals: VitalsEntity) {
-        return vitalsDao.insertVitals(vitals)
-    }
+    override suspend fun saveVital(vitals: VitalsEntity): Flow<Result<Boolean>> = flow {
+        try {
+            vitalsDao.insertVitals(vitals)
+            emit(Result.Success(true))
+        } catch (e: SQLiteConstraintException) {
+            emit(Result.Error("Constraint violation: ${e.localizedMessage ?: "Unknown constraint error"}"))
+        } catch (e: SQLiteException) {
+            emit(Result.Error("Database error: ${e.localizedMessage ?: "Unknown SQLite error"}"))
+        } catch (e: Exception) {
+            emit(Result.Error("Unexpected error: ${e.localizedMessage ?: "Unknown error"}"))
+        }
+    }.flowOn(Dispatchers.IO)
 
 
     override suspend fun getVitalsByVisit(visitId: String): Flow<Result<VitalsEntity>> {

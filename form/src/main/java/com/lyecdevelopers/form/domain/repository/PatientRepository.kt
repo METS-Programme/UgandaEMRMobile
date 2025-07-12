@@ -37,7 +37,7 @@ interface PatientRepository {
     ): PagingSource<Int, PatientEntity>
 
     // save vitals
-    suspend fun saveVital(vitals: VitalsEntity)
+    suspend fun saveVital(vitals: VitalsEntity): Flow<Result<Boolean>>
 
     // get vitals by visit
     suspend fun getVitalsByVisit(visitId: String): Flow<Result<VitalsEntity>>

@@ -73,17 +73,22 @@ class SyncUseCase @Inject constructor(
     }
 
     // data definition
-    fun createDataDefinition(payload: DataDefinition): Flow<Result<Any>> {
+    fun createDataDefinition(payload: DataDefinition): Flow<Result<List<PatientEntity>>> {
         return repository.createDataDefinition(payload)
     }
 
+
     // encounters
     fun getUnsynced(): Flow<List<EncounterEntity>> {
-        return repository.getUnsynced()
+        return repository.getUnsyncedEncounters()
     }
 
     fun markSynced(encounter: EncounterEntity): Flow<Unit> {
-        return repository.markSynced(encounter)
+        return repository.markSyncedEncounter(encounter)
+    }
+
+    fun getSyncedEncounterCount(): Flow<Result<Int>> {
+        return repository.getSyncedEncountersCount()
     }
 
 
@@ -94,6 +99,10 @@ class SyncUseCase @Inject constructor(
 
     fun markSyncedPatient(patient: PatientEntity): Flow<Unit> {
         return repository.markSyncedPatient(patient)
+    }
+
+    fun getSyncedPatientsCount(): Flow<Result<Int>> {
+        return repository.getSyncedPatientsCount()
     }
 
 

@@ -49,7 +49,6 @@ interface PatientDao {
     ): Flow<List<PatientEntity>>
 
 
-    // ✅ Return Flow without suspend for reactive observation
     @Transaction
     @Query("SELECT * FROM patients WHERE id = :patientId")
     fun observePatientWithVisits(patientId: String): Flow<PatientWithVisits?>
@@ -58,7 +57,6 @@ interface PatientDao {
     @Query("SELECT * FROM patients")
     fun observeAllPatientsWithVisits(): Flow<List<PatientWithVisits>>
 
-    // ✅ For one-shot fetch (used in UseCase/ViewModel)
     @Transaction
     @Query("SELECT * FROM patients WHERE id = :patientId")
     suspend fun getPatientWithVisits(patientId: String): PatientWithVisits?
@@ -93,6 +91,9 @@ interface PatientDao {
 
     @Query("SELECT COUNT(*) FROM patients")
     fun getPatientsCount(): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM patients WHERE synced = 1")
+    fun getSyncedPatientsCount(): Flow<Int>
 
 }
 

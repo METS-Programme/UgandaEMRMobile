@@ -13,5 +13,5 @@ sealed class SettingsEvent {
 
     data class UpdateUsername(val username: String) : SettingsEvent()
     data class UpdateServerUrl(val serverUrl: String) : SettingsEvent()
-    data class UpdateSyncInterval(val intervalInMinutes: Int) : SettingsEvent()
+    data class UpdateSyncInterval(val intervalInHours: Int) : SettingsEvent()
 }

@@ -33,6 +33,7 @@ open class BaseViewModel : ViewModel() {
     protected fun <T> handleResult(
         result: Result<T>,
         onSuccess: (T) -> Unit = {},
+        onError: (String) -> Unit = {},
         successMessage: String? = null,
         errorMessage: String? = null,
     ) {
@@ -45,6 +46,7 @@ open class BaseViewModel : ViewModel() {
             }
 
             is Result.Error -> {
+                onError(result.message)
                 emitUiEvent(UiEvent.Error(message = errorMessage ?: result.message))
             }
 

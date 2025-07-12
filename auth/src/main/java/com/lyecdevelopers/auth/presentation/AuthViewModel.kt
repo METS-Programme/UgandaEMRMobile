@@ -57,24 +57,18 @@ class AuthViewModel @Inject constructor(
         }
 
         viewModelScope.launch(schedulerProvider.io) {
-            withContext(schedulerProvider.main) {
-                showLoading()
-            }
             loginUseCase(username, password).collect { result ->
                 withContext(schedulerProvider.main) {
-                    _uiState.update { it.copy(isLoading = result is Result.Loading) }
+                    _uiState.update { it.copy(isLoading = true) }
                     handleResult(
                         result = result,
                         onSuccess = {
                             saveLogin(username, password)
+                            _uiState.update { it.copy(isLoading = false) }
                         },
                         successMessage = "Successfully LoggedIn",
                         errorMessage = (result as? Result.Error)?.message
                     )
-
-                    withContext(schedulerProvider.main) {
-                        hideLoading()
-                    }
                 }
             }
 

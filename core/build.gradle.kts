@@ -49,25 +49,31 @@ android {
         kotlinCompilerExtensionVersion = "2.0.20"
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
         isCoreLibraryDesugaringEnabled = true
 
     }
 
     packaging { resources.excludes.addAll(listOf("META-INF/ASL-2.0.txt", "META-INF/LGPL-3.0.txt")) }
 
-    kotlinOptions {
-        jvmTarget = "11"
-        freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
-    }
+
 
     hilt {
         enableAggregatingTask = false
     }
 
     kotlin {
-        jvmToolchain(11)
+        jvmToolchain(17)
+        compilerOptions {
+            freeCompilerArgs.add("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
+        }
+    }
+
+    configurations.all {
+        resolutionStrategy {
+            force("com.google.guava:guava:32.1.3-android")
+        }
     }
 }
 
@@ -128,6 +134,10 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.crashlytics)
 
+    // work
+    implementation(libs.hilt.work)
+    implementation(libs.hilt.work.compiler)
+    implementation(libs.work.runtime.ktx)
 
     // Optional: for previewing Composables
     implementation(libs.androidx.ui.tooling.preview)

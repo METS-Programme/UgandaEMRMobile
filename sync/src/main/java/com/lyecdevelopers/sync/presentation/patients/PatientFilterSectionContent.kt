@@ -2,18 +2,12 @@ package com.lyecdevelopers.sync.presentation.patients
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -46,7 +40,6 @@ fun PatientFilterSectionContent(
     onHighlightSelectedToggle: (Attribute) -> Unit,
     onMoveRight: () -> Unit,
     onMoveLeft: () -> Unit,
-    onFilter: () -> Unit,
 ) {
     var expandedCohort by remember { mutableStateOf(false) }
     var expandedIndicator by remember { mutableStateOf(false) }
@@ -123,13 +116,5 @@ fun PatientFilterSectionContent(
             moveLeft = onMoveLeft,
         )
 
-        // --- Apply Button ---
-        Button(
-            onClick = onFilter, modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(Icons.AutoMirrored.Filled.List, contentDescription = null)
-            Spacer(Modifier.width(8.dp))
-            Text("Apply Filters")
-        }
     }
 }
