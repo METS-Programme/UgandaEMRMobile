@@ -6,7 +6,6 @@ import com.lyecdevelopers.core.data.local.dao.PatientDao
 import com.lyecdevelopers.core.data.remote.FormApi
 import com.lyecdevelopers.sync.data.repository.SyncRepositoryImpl
 import com.lyecdevelopers.sync.domain.repository.SyncRepository
-import com.lyecdevelopers.sync.domain.usecase.SyncUseCase
 import com.squareup.moshi.JsonAdapter
 import dagger.Module
 import dagger.Provides
@@ -35,9 +34,4 @@ class SyncModule {
         )
     }
 
-    @Provides
-    @Singleton
-    fun provideSyncUseCase(repository: SyncRepository): SyncUseCase {
-        return SyncUseCase(repository)
-    }
 }
