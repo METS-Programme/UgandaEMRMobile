@@ -128,6 +128,15 @@ class EncountersSyncWorker @AssistedInject constructor(
                                 syncUseCase.markSynced(entity).catch { markErr ->
                                     AppLogger.e("⚠️ Mark local failed: ${markErr.message}")
                                     shouldRetry = true
+                                    val currentProgressNotification = createForegroundNotification(
+                                        "Syncing Encounter Data",
+                                        "Syncing $syncedEncountersCount of $totalEncountersToSync encounters. Error marking synced: ${markErr.message}",
+                                        syncedEncountersCount,
+                                        totalEncountersToSync
+                                    )
+                                    notificationManager.notify(
+                                        ENCOUNTER_SYNC_NOTIFICATION_ID, currentProgressNotification
+                                    )
                                 }.collect {
                                     AppLogger.d("✅ Encounter ${entity.id} marked synced.")
                                     syncedEncountersCount++
@@ -146,19 +155,34 @@ class EncountersSyncWorker @AssistedInject constructor(
                                     "❌ API rejected encounter ${entity.id}: ${response.code()} ${response.message()}"
                                 )
                                 shouldRetry = true
-                                // Optionally update notification on API rejection
+                                val currentProgressNotification = createForegroundNotification(
+                                    "Syncing Encounter Data (with issues)",
+                                    "Failed to sync encounter ${entity.id}: ${response.message()} ($syncedEncountersCount of $totalEncountersToSync)",
+                                    syncedEncountersCount,
+                                    totalEncountersToSync
+                                )
+                                notificationManager.notify(
+                                    ENCOUNTER_SYNC_NOTIFICATION_ID, currentProgressNotification
+                                )
                             }
 
                         } catch (e: Exception) {
                             AppLogger.e("❌ Error syncing encounter ${entity.id}: ${e.message}")
                             shouldRetry = true
-                            // Optionally update notification on encounter-specific error
+                            val currentProgressNotification = createForegroundNotification(
+                                "Syncing Encounter Data (with errors)", // Slightly change title to indicate errors
+                                "Error syncing encounter ${entity.id}: ${e.message} ($syncedEncountersCount of $totalEncountersToSync)",
+                                syncedEncountersCount,
+                                totalEncountersToSync
+                            )
+                            notificationManager.notify(
+                                ENCOUNTER_SYNC_NOTIFICATION_ID, currentProgressNotification
+                            )
                         }
                     }
                 }
             }
 
-            // Final notification update based on result
             if (shouldRetry) {
                 AppLogger.d("🔁 Retrying EncountersSyncWorker...")
                 val retryNotification = createForegroundNotification(
@@ -174,8 +198,7 @@ class EncountersSyncWorker @AssistedInject constructor(
                 val successNotification = createForegroundNotification(
                     "Encounter Sync Complete",
                     "All $syncedEncountersCount encounters synced successfully.",
-                    syncedEncountersCount,
-                    totalEncountersToSync // Show final progress
+                    syncedEncountersCount, totalEncountersToSync
                 )
                 notificationManager.notify(ENCOUNTER_SYNC_NOTIFICATION_ID, successNotification)
                 Result.success()

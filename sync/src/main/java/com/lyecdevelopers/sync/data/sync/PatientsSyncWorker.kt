@@ -11,6 +11,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import ca.uhn.fhir.context.FhirContext
+import com.lyecdevelopers.core.R
 import com.lyecdevelopers.core.data.remote.FormApi
 import com.lyecdevelopers.core.utils.AppLogger
 import com.lyecdevelopers.core.utils.NotificationConstants.PATIENT_SYNC_NOTIFICATION_ID
@@ -35,35 +36,35 @@ class PatientsSyncWorker @AssistedInject constructor(
     private val api: FormApi,
 ) : CoroutineWorker(appContext, workerParams) {
 
+    private val notificationManager
+        get() = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
     private fun ensureNotificationChannelExists() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                SYNC_NOTIFICATION_CHANNEL_ID,
-                SYNC_NOTIFICATION_CHANNEL_NAME,
+                SYNC_NOTIFICATION_CHANNEL_ID, // Use constant
+                SYNC_NOTIFICATION_CHANNEL_NAME, // Use constant
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = SYNC_NOTIFICATION_CHANNEL_DESCRIPTION
+                description = SYNC_NOTIFICATION_CHANNEL_DESCRIPTION // Use constant
                 setSound(null, null)
                 enableVibration(false)
             }
-            // Create the channel. If it already exists, this call does nothing.
             notificationManager.createNotificationChannel(channel)
         }
     }
 
-    // Helper function to create the foreground notification
     private fun createForegroundNotification(
         title: String,
         content: String,
         progress: Int = 0,
         maxProgress: Int = 0,
     ): Notification {
-
         ensureNotificationChannelExists()
-        val builder = NotificationCompat.Builder(applicationContext, SYNC_NOTIFICATION_CHANNEL_ID)
-            .setContentTitle(title).setContentText(content)
-            .setSmallIcon(com.lyecdevelopers.core.R.drawable.ic_launcher_foreground)
+        val builder = NotificationCompat.Builder(
+            applicationContext, SYNC_NOTIFICATION_CHANNEL_ID // Use constant
+        ).setContentTitle(title).setContentText(content)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setOngoing(true).setCategory(NotificationCompat.CATEGORY_PROGRESS)
             .setPriority(NotificationCompat.PRIORITY_LOW)
 
@@ -72,19 +73,15 @@ class PatientsSyncWorker @AssistedInject constructor(
         } else {
             builder.setProgress(0, 0, true)
         }
-
         return builder.build()
     }
 
     override suspend fun doWork(): Result {
         AppLogger.d("🔄 PatientsSyncWorker started")
 
-        // 1. Create and set the initial foreground notification
         val initialNotification = createForegroundNotification(
-            "Syncing Patient Data", "Starting synchronization...", 0, // progress
-            0  // maxProgress (indeterminate initially)
+            "Syncing Patient Data", "Starting synchronization...", 0, 0 // Indeterminate initially
         )
-        // This promotes the worker to a foreground service
         val foregroundInfo = ForegroundInfo(PATIENT_SYNC_NOTIFICATION_ID, initialNotification)
         setForeground(foregroundInfo)
 
@@ -96,33 +93,35 @@ class PatientsSyncWorker @AssistedInject constructor(
             syncUseCase.getUnsyncedPatients().catch { e ->
                 AppLogger.e("❌ DB read failed: ${e.message}")
                 shouldRetry = true
-                // Update notification on error
                 val errorNotification = createForegroundNotification(
-                    "Sync Failed", "Error reading local data: ${e.message}", 0, 0
+                    "Patient Sync Failed", "Error reading local data: ${e.message}", 0, 0
                 )
-                notificationManager.notify(PATIENT_SYNC_NOTIFICATION_ID, errorNotification)
+                notificationManager.notify(
+                    PATIENT_SYNC_NOTIFICATION_ID, errorNotification
+                )
             }.collect { unsyncedList ->
                 totalPatientsToSync = unsyncedList.size
 
                 if (totalPatientsToSync == 0) {
                     AppLogger.d("✅ No unsynced patients. Nothing to sync.")
-                    // Update notification for completion
                     val completedNotification = createForegroundNotification(
-                        "Sync Complete", "No unsynced patients found.", 1, 1 // Indicate completion
+                        "Patient Sync Complete", "No unsynced patients found.", 1, 1
                     )
-                    notificationManager.notify(PATIENT_SYNC_NOTIFICATION_ID, completedNotification)
+                    notificationManager.notify(
+                        PATIENT_SYNC_NOTIFICATION_ID, completedNotification
+                    )
                 } else {
                     AppLogger.d("🔄 Syncing ${unsyncedList.size} unsynced patients...")
 
-                    // Update notification with initial progress count
                     val progressNotification = createForegroundNotification(
                         "Syncing Patient Data",
                         "Syncing 0 of $totalPatientsToSync patients...",
                         0,
                         totalPatientsToSync
                     )
-                    notificationManager.notify(PATIENT_SYNC_NOTIFICATION_ID, progressNotification)
-
+                    notificationManager.notify(
+                        PATIENT_SYNC_NOTIFICATION_ID, progressNotification
+                    )
 
                     unsyncedList.forEach { entity ->
                         try {
@@ -139,11 +138,18 @@ class PatientsSyncWorker @AssistedInject constructor(
                                 syncUseCase.markSyncedPatient(entity).catch { markErr ->
                                     AppLogger.e("⚠️ Mark local failed: ${markErr.message}")
                                     shouldRetry = true
-                                    // Optionally update notification on inner error
+                                    val currentProgressNotification = createForegroundNotification(
+                                        "Syncing Patient Data (with issues)",
+                                        "Syncing ${syncedPatientsCount} of ${totalPatientsToSync}. Error marking synced: ${markErr.message}",
+                                        syncedPatientsCount,
+                                        totalPatientsToSync
+                                    )
+                                    notificationManager.notify(
+                                        PATIENT_SYNC_NOTIFICATION_ID, currentProgressNotification
+                                    )
                                 }.collect {
                                     AppLogger.d("✅ Patient ${entity.id} marked synced.")
                                     syncedPatientsCount++
-                                    // Update notification with current progress
                                     val currentProgressNotification = createForegroundNotification(
                                         "Syncing Patient Data",
                                         "Syncing $syncedPatientsCount of $totalPatientsToSync patients...",
@@ -157,53 +163,73 @@ class PatientsSyncWorker @AssistedInject constructor(
                             } else {
                                 AppLogger.e("❌ API rejected: ${response.code()} ${response.message()}")
                                 shouldRetry = true
-                                // Optionally update notification on API rejection
+                                val currentProgressNotification = createForegroundNotification(
+                                    "Syncing Patient Data (with errors)",
+                                    "Failed to sync patient ${entity.id}: ${response.message()} (${syncedPatientsCount} of ${totalPatientsToSync})",
+                                    syncedPatientsCount,
+                                    totalPatientsToSync
+                                )
+                                notificationManager.notify(
+                                    PATIENT_SYNC_NOTIFICATION_ID, currentProgressNotification
+                                )
                             }
 
                         } catch (e: Exception) {
                             AppLogger.e("❌ Error syncing patient ${entity.id}: ${e.message}")
                             shouldRetry = true
-                            // Optionally update notification on patient-specific error
+                            val currentProgressNotification = createForegroundNotification(
+                                "Syncing Patient Data (with errors)",
+                                "Error syncing patient ${entity.id}: ${e.message} (${syncedPatientsCount} of ${totalPatientsToSync})",
+                                syncedPatientsCount,
+                                totalPatientsToSync
+                            )
+                            notificationManager.notify(
+                                PATIENT_SYNC_NOTIFICATION_ID, currentProgressNotification
+                            )
                         }
                     }
                 }
             }
 
-            // Final notification update based on result
             if (shouldRetry) {
                 AppLogger.d("🔁 Retrying PatientsSyncWorker...")
                 val retryNotification = createForegroundNotification(
-                    "Sync Needs Retry",
+                    "Patient Sync Needs Retry",
                     "Some patients failed to sync. Retrying...",
                     syncedPatientsCount,
                     totalPatientsToSync
                 )
-                notificationManager.notify(PATIENT_SYNC_NOTIFICATION_ID, retryNotification)
+                notificationManager.notify(
+                    PATIENT_SYNC_NOTIFICATION_ID, retryNotification
+                )
                 Result.retry()
             } else {
                 AppLogger.d("✅ PatientsSyncWorker success")
                 val successNotification = createForegroundNotification(
-                    "Sync Complete",
+                    "Patient Sync Complete",
                     "All $syncedPatientsCount patients synced successfully.",
                     syncedPatientsCount,
-                    totalPatientsToSync // Show final progress
+                    totalPatientsToSync
                 )
-                notificationManager.notify(PATIENT_SYNC_NOTIFICATION_ID, successNotification)
+                notificationManager.notify(
+                    PATIENT_SYNC_NOTIFICATION_ID, successNotification
+                )
                 Result.success()
             }
 
         } catch (e: Exception) {
             AppLogger.e("❌ PatientsSyncWorker failed: ${e.localizedMessage}")
             val failedNotification = createForegroundNotification(
-                "Sync Failed", "Synchronization encountered an error: ${e.localizedMessage}", 0, 0
+                "Patient Sync Failed",
+                "Synchronization encountered an error: ${e.localizedMessage}",
+                0,
+                0
             )
-            notificationManager.notify(PATIENT_SYNC_NOTIFICATION_ID, failedNotification)
+            notificationManager.notify(
+                PATIENT_SYNC_NOTIFICATION_ID, failedNotification
+            )
             Result.retry()
         }
     }
-
-    private val notificationManager
-        get() = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
 }
 
