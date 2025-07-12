@@ -89,8 +89,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
         isCoreLibraryDesugaringEnabled = true
     }
 
@@ -102,7 +102,7 @@ android {
 
 
     kotlin {
-        jvmToolchain(11)
+        jvmToolchain(17)
     }
 
     hilt {
@@ -176,6 +176,8 @@ dependencies {
     // work
     implementation(libs.hilt.work)
     implementation(libs.hilt.work.compiler)
+    implementation(libs.work.runtime)
+    implementation(libs.androidx.startup.runtime)
     implementation(libs.work.runtime.ktx)
 
     testImplementation(libs.junit)

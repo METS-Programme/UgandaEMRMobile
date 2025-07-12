@@ -35,15 +35,16 @@ android {
         kotlinCompilerExtensionVersion = "2.0.20"
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlin {
-        jvmToolchain(11)
+        jvmToolchain(17)
     }
     hilt {
         enableAggregatingTask = false
     }
+
 
     configurations.all {
         resolutionStrategy {
@@ -71,7 +72,7 @@ dependencies {
     implementation(libs.android.fhir.sdc)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
-    // Hilt
+    // ---- Hilt DI Core ----
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
@@ -100,9 +101,13 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.crashlytics)
 
-    // work
+    // ---- Hilt WorkManager ----
     implementation(libs.hilt.work)
-    implementation(libs.hilt.work.compiler)
+    implementation(libs.work.runtime)
+    ksp(libs.hilt.work.compiler)
+
+
+    // ---- WorkManager runtime ----
     implementation(libs.work.runtime.ktx)
 
     // Optional: for previewing Composables
