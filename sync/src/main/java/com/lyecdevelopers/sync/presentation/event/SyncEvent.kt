@@ -3,7 +3,6 @@ package com.lyecdevelopers.sync.presentation.event
 import com.lyecdevelopers.core.model.cohort.Attribute
 import com.lyecdevelopers.core.model.cohort.Cohort
 import com.lyecdevelopers.core.model.cohort.Indicator
-import com.lyecdevelopers.core.model.o3.o3Form
 
 sealed class SyncEvent {
 
@@ -14,7 +13,6 @@ sealed class SyncEvent {
     data class ToggleFormSelection(val uuid: String) : SyncEvent()
     object ClearSelection : SyncEvent()
     object DownloadForms : SyncEvent()
-    data class FormsDownloaded(val selectedForms: List<o3Form>) : SyncEvent()
 
     // --------------------
     // Cohort / Indicator / Filters

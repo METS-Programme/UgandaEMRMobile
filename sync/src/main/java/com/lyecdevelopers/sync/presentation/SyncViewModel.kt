@@ -75,7 +75,6 @@ class SyncViewModel @Inject constructor(
         when (event) {
             is SyncEvent.FilterForms -> filterForms(event.query)
             is SyncEvent.ToggleFormSelection -> toggleFormSelection(event.uuid)
-            is SyncEvent.FormsDownloaded -> TODO()
             SyncEvent.ClearSelection -> clearSelection()
             SyncEvent.DownloadForms -> onDownloadClick()
 
@@ -523,31 +522,6 @@ class SyncViewModel @Inject constructor(
             }
         }
     }
-
-
-    private fun updateAutoSyncInterval(newInterval: Int) {
-        updateUi { copy(autoSyncInterval = newInterval) }
-        viewModelScope.launch {
-            preferenceManager.saveAutoSyncInterval(newInterval)
-
-            // If auto-sync is ON, re-schedule with new interval
-            if (uiState.value.autoSyncEnabled) {
-                syncManager.cancelPeriodicSync(
-                    workers = listOf(
-                        PatientsSyncWorker::class, EncountersSyncWorker::class
-                    )
-                )
-                val intervalHours = newInterval
-                syncManager.schedulePeriodicSync(
-                    workers = listOf(
-                        PatientsSyncWorker::class, EncountersSyncWorker::class
-                    ), intervalHours = intervalHours.toLong()
-                )
-            }
-        }
-    }
-
-
 }
 
 
