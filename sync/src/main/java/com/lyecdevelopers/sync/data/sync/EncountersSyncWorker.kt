@@ -170,7 +170,7 @@ class EncountersSyncWorker @AssistedInject constructor(
                             AppLogger.e("❌ Error syncing encounter ${entity.id}: ${e.message}")
                             shouldRetry = true
                             val currentProgressNotification = createForegroundNotification(
-                                "Syncing Encounter Data (with errors)", // Slightly change title to indicate errors
+                                "Syncing Encounter Data (with errors)",
                                 "Error syncing encounter ${entity.id}: ${e.message} ($syncedEncountersCount of $totalEncountersToSync)",
                                 syncedEncountersCount,
                                 totalEncountersToSync

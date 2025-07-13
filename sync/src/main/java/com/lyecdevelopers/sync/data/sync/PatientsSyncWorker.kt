@@ -42,11 +42,11 @@ class PatientsSyncWorker @AssistedInject constructor(
     private fun ensureNotificationChannelExists() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                SYNC_NOTIFICATION_CHANNEL_ID, // Use constant
-                SYNC_NOTIFICATION_CHANNEL_NAME, // Use constant
+                SYNC_NOTIFICATION_CHANNEL_ID,
+                SYNC_NOTIFICATION_CHANNEL_NAME,
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = SYNC_NOTIFICATION_CHANNEL_DESCRIPTION // Use constant
+                description = SYNC_NOTIFICATION_CHANNEL_DESCRIPTION
                 setSound(null, null)
                 enableVibration(false)
             }
@@ -62,7 +62,7 @@ class PatientsSyncWorker @AssistedInject constructor(
     ): Notification {
         ensureNotificationChannelExists()
         val builder = NotificationCompat.Builder(
-            applicationContext, SYNC_NOTIFICATION_CHANNEL_ID // Use constant
+            applicationContext, SYNC_NOTIFICATION_CHANNEL_ID
         ).setContentTitle(title).setContentText(content)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setOngoing(true).setCategory(NotificationCompat.CATEGORY_PROGRESS)
@@ -80,7 +80,7 @@ class PatientsSyncWorker @AssistedInject constructor(
         AppLogger.d("🔄 PatientsSyncWorker started")
 
         val initialNotification = createForegroundNotification(
-            "Syncing Patient Data", "Starting synchronization...", 0, 0 // Indeterminate initially
+            "Syncing Patient Data", "Starting synchronization...", 0, 0
         )
         val foregroundInfo = ForegroundInfo(PATIENT_SYNC_NOTIFICATION_ID, initialNotification)
         setForeground(foregroundInfo)

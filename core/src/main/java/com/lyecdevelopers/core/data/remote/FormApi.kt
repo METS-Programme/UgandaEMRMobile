@@ -75,7 +75,7 @@ interface FormApi {
     @POST("encounter")
     suspend fun saveEncounter(@Body payload: Any): Response<Any>
 
-    @POST("/fhir/Patient")
+    @POST("fhir2/Patient")
     suspend fun savePatient(
         @Body patient: RequestBody,
     ): Response<Unit>
