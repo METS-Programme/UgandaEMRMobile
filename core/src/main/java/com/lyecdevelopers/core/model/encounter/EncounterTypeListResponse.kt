@@ -23,7 +23,7 @@ data class Links(
 fun EncounterType.toAttribute(): Attribute = Attribute(
     id = uuid,
     label = display,
-    type = "EncounterType",
+    type = "encounterType",
     modifier = 0,
     showModifierPanel = false,
     extras = emptyList(),

@@ -18,7 +18,7 @@ fun Identifier.toAttribute(): Attribute {
     return Attribute(
         id = this.uuid,
         label = this.display,
-        type = "IDN",
+        type = "PatientIdentifier",
         modifier = 0,
         showModifierPanel = false,
         extras = emptyList(),

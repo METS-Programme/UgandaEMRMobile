@@ -19,7 +19,7 @@ fun PersonAttributeType.toAttribute(): Attribute {
     return Attribute(
         id = this.uuid,
         label = this.display,
-        type = "PAT",
+        type = "PersonAttribute",
         modifier = 0,
         showModifierPanel = false,
         extras = emptyList(),
