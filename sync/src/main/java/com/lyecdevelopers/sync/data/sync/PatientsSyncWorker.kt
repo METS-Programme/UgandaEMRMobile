@@ -132,7 +132,8 @@ class PatientsSyncWorker @AssistedInject constructor(
                                 "application/fhir+json".toMediaType()
                             )
 
-                            val response = api.savePatient(requestBody)
+                            val response =
+                                api.savePatient(fhirPatient.idElement.idPart, requestBody)
 
                             if (response.isSuccessful) {
                                 syncUseCase.markSyncedPatient(entity).catch { markErr ->

@@ -4,6 +4,8 @@ package com.lyecdevelopers.form.utils
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
 import com.lyecdevelopers.core.model.VisitStatus
 import org.hl7.fhir.r4.model.Address
+import org.hl7.fhir.r4.model.CodeableConcept
+import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.ContactPoint
 import org.hl7.fhir.r4.model.Enumerations
 import org.hl7.fhir.r4.model.HumanName
@@ -71,6 +73,7 @@ fun Map<String, Any?>.toPatient(existingId: String? = null): Patient {
                 })
         }
 
+
         val address = Address().apply {
             city = this@toPatient["village"] as? String
             district = this@toPatient["parish"] as? String
@@ -103,11 +106,19 @@ fun PatientEntity.toFhirPatient(): Patient = Patient().apply {
     }.getOrNull()
 
     if (patientIdentifier.isNotBlank()) {
-        addIdentifier(
-            Identifier().apply {
-                system = "http://health.go.ug/patient-identifier"
-                value = patientIdentifier
-            })
+        val identifier = Identifier().apply {
+            use = Identifier.IdentifierUse.OFFICIAL
+            type = CodeableConcept().apply {
+                coding = listOf(
+                    Coding().apply {
+                        code = "05a29f94-c0ed-11e2-94be-8c13b969e334"
+                    })
+                text = "OpenMRS ID"
+            }
+            value = patientIdentifier
+        }
+
+        addIdentifier(identifier)
     }
 
     if (!phoneNumber.isNullOrBlank()) {

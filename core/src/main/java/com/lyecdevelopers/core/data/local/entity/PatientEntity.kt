@@ -31,7 +31,7 @@ fun mapToPatientEntity(map: Map<String, Any>): PatientEntity {
     }
 
     return PatientEntity(
-        id = map["id"]?.toString() ?: UUID.randomUUID().toString(),
+        id = map["UUID"]?.toString() ?: UUID.randomUUID().toString(),
         patientIdentifier = safeString("OpenMRS ID"),
         firstName = safeString("Given Name"),
         lastName = safeString("Family Name"),
