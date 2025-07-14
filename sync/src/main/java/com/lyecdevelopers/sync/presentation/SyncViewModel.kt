@@ -315,7 +315,8 @@ class SyncViewModel @Inject constructor(
             }
 
             val reportRequest = buildReportRequest(cohort)
-            val payload = buildDataDefinitionPayload(reportRequest, indicator)
+            val payload = buildDataDefinitionPayload(reportRequest)
+
 
             syncUseCase.createDataDefinition(payload).collect { result ->
                 withContext(schedulerProvider.main) {
@@ -457,6 +458,8 @@ class SyncViewModel @Inject constructor(
         }
     }
     private fun buildReportRequest(cohort: Cohort) =
+
+
         ReportRequest(
             uuid = cohort.uuid, startDate = "", endDate = "",
             type = "Cohort",
@@ -467,7 +470,6 @@ class SyncViewModel @Inject constructor(
         )
     private fun buildDataDefinitionPayload(
         reportRequest: ReportRequest,
-        indicator: Indicator,
     ) = DataDefinition(
         cohort = CohortResponse(
             type = reportRequest.type,
@@ -478,7 +480,7 @@ class SyncViewModel @Inject constructor(
             parameters = listOf(
                 Parameters(startdate = reportRequest.startDate, enddate = reportRequest.endDate)
             )
-        ), columns = formatReportArray(indicator.attributes)
+        ), columns = formatReportArray(reportRequest.reportIndicators)
     )
 
     private fun validateFilters(): String? = when {
