@@ -142,6 +142,8 @@ class WorklistViewModel @Inject constructor(
             WorklistEvent.SaveVitals -> saveVitals()
 
             WorklistEvent.StartVisit -> startPatientVisit()
+            is WorklistEvent.OnMarkPatientEligible -> markPatientEligibleForSync()
+            is WorklistEvent.OnSyncPatientNow -> syncPatientNow()
         }
     }
 
@@ -377,6 +379,15 @@ class WorklistViewModel @Inject constructor(
 
             }
         }
+    }
+
+
+    private fun markPatientEligibleForSync() {
+        TODO("Not yet implemented")
+    }
+
+    private fun syncPatientNow() {
+        TODO("Not yet implemented")
     }
 }
 

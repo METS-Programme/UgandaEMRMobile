@@ -44,4 +44,9 @@ interface PatientRepository {
 
     // get vitals by patient
     fun getVitalsByPatient(patientId: String): Flow<Result<List<VitalsEntity>>>
+
+    suspend fun markPatientEligible(patientId: String, eligible: Boolean)
+
 }
+
+ 

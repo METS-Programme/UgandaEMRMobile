@@ -40,7 +40,7 @@ class PatientsSyncWorker @AssistedInject constructor(
         get() = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
     private fun ensureNotificationChannelExists() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val channel = NotificationChannel(
                 SYNC_NOTIFICATION_CHANNEL_ID,
                 SYNC_NOTIFICATION_CHANNEL_NAME,
@@ -90,7 +90,7 @@ class PatientsSyncWorker @AssistedInject constructor(
             var totalPatientsToSync = 0
             var syncedPatientsCount = 0
 
-            syncUseCase.getUnsyncedPatients().catch { e ->
+            syncUseCase.getEligibleUnsyncedPatients().catch { e ->
                 AppLogger.e("❌ DB read failed: ${e.message}")
                 shouldRetry = true
                 val errorNotification = createForegroundNotification(

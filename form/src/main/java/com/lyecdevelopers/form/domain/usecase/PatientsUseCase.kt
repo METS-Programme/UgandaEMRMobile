@@ -85,5 +85,7 @@ class PatientsUseCase @Inject constructor(
     fun getVitalsByPatient(patientId: String): Flow<Result<List<VitalsEntity>>> {
         return repository.getVitalsByPatient(patientId)
     }
-
+    suspend fun markPatientEligible(patientId: String, eligible: Boolean) {
+        return repository.markPatientEligible(patientId, eligible)
+    }
 }
