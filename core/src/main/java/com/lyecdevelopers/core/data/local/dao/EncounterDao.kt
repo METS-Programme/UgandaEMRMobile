@@ -22,4 +22,7 @@ interface EncounterDao {
 
     @Query("SELECT COUNT(*) FROM encounters")
     fun getEncountersCount(): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM encounters WHERE synced = 1")
+    fun getSyncedEncountersCount(): Flow<Int>
 }

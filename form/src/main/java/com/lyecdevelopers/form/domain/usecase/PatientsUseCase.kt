@@ -72,7 +72,7 @@ class PatientsUseCase @Inject constructor(
     }
 
     // save vitals
-    suspend fun saveVitals(vitals: VitalsEntity) {
+    suspend fun saveVitals(vitals: VitalsEntity): Flow<Result<Boolean>> {
         return repository.saveVital(vitals)
     }
 

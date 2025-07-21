@@ -6,6 +6,7 @@ data class SettingsUiState(
     val username: String = "",
     val serverUrl: String = "",
     val serverVersion: String? = null,
-    val syncIntervalInMinutes: Int = 15,
+    val syncIntervalInHours: Int = 1,
+    val autoSyncEnabled: Boolean = false,
     val versionName: String = "v1.0.0",
 )

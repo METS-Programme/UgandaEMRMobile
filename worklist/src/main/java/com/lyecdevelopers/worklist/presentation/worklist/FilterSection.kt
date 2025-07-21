@@ -26,7 +26,7 @@ fun FilterSection(
         shape = RoundedCornerShape(12.dp),
         tonalElevation = 4.dp,
         modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surface // matches card surface color
+        color = MaterialTheme.colorScheme.surface
     ) {
         Column(
             modifier = Modifier

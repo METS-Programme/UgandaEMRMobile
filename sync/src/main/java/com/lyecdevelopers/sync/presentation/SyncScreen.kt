@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.filled.EventNote
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.HowToReg
 import androidx.compose.material.icons.filled.People
@@ -44,9 +43,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -65,15 +66,7 @@ import com.lyecdevelopers.sync.presentation.patients.PatientFilterSectionContent
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SyncScreen(
-    lastSyncTime: String = "Not synced yet",
-    lastSyncStatus: String = "Never Synced",
-    lastSyncBy: String = "N/A",
-    lastSyncError: String? = null,
-    autoSyncEnabled: Boolean = false,
-    autoSyncInterval: String = "15 minutes",
-    onToggleAutoSync: (Boolean) -> Unit = {},
     onBack: () -> Unit = {},
-    onSyncNow: () -> Unit = {},
 ) {
     val viewModel: SyncViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
@@ -81,7 +74,7 @@ fun SyncScreen(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var isSheetVisible by rememberSaveable { mutableStateOf(false) }
     var showPatientFilterDialog by rememberSaveable { mutableStateOf(false) }
-
+    var isLoading by remember { mutableStateOf(false) }
 
     if (isSheetVisible) {
         ModalBottomSheet(
@@ -91,11 +84,15 @@ fun SyncScreen(
                 viewModel = viewModel, onDownloadSelected = { isSheetVisible = false })
         }
     }
+    LaunchedEffect(uiState.isLoading) {
+        isLoading = uiState.isLoading
+    }
 
     BaseScreen(
         uiEventFlow = viewModel.uiEvent,
-        isLoading = uiState.isLoading,
-        showLoading = { /* handled by uiState */ }) {
+        showLoading = { loading -> isLoading = loading },
+        isLoading = isLoading,
+    ) {
         Scaffold { padding ->
             LazyColumn(
                 contentPadding = padding,
@@ -115,22 +112,22 @@ fun SyncScreen(
                                 StatusRow(
                                     icon = Icons.Filled.Schedule,
                                     label = "Last Sync:",
-                                    value = lastSyncTime
+                                    value = uiState.lastSyncTime
                                 )
 
                                 StatusRow(
                                     icon = Icons.Filled.CheckCircle,
                                     label = "Status:",
-                                    value = lastSyncStatus
+                                    value = uiState.lastSyncStatus
                                 )
 
                                 StatusRow(
                                     icon = Icons.Filled.Person,
                                     label = "Synced By:",
-                                    value = lastSyncBy
+                                    value = uiState.lastSyncBy
                                 )
 
-                                lastSyncError?.let {
+                                uiState.lastSyncError?.let {
                                     Spacer(Modifier.height(12.dp))
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(
@@ -150,7 +147,8 @@ fun SyncScreen(
                                 Spacer(Modifier.height(16.dp))
 
                                 Button(
-                                    onClick = onSyncNow, modifier = Modifier.fillMaxWidth()
+                                    onClick = { viewModel.onEvent(SyncEvent.SyncNow) },
+                                    modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Icon(Icons.Filled.Sync, contentDescription = null)
                                     Spacer(Modifier.width(8.dp))
@@ -180,16 +178,19 @@ fun SyncScreen(
                                 )
 
                                 SummaryRow(
-                                    icon = Icons.Default.Description, // Document icon for forms
-                                    label = "Forms Saved:", count = uiState.formCount
+                                    icon = Icons.Default.Description,
+                                    label = "Available Forms:",
+                                    count = uiState.formCount
                                 )
                                 SummaryRow(
-                                    icon = Icons.Default.HowToReg, // Person add icon for patients
-                                    label = "Patients Saved:", count = uiState.patientCount
+                                    icon = Icons.Default.HowToReg,
+                                    label = "Patients Saved:",
+                                    count = uiState.patientCount
                                 )
                                 SummaryRow(
-                                    icon = Icons.Default.EventNote, // Calendar/note icon for visits
-                                    label = "Visits Saved:", count = 0
+                                    icon = Icons.Default.CheckCircle,
+                                    label = "Encounters Saved:",
+                                    count = uiState.encounterCount
                                 )
 
                                 HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
@@ -202,21 +203,21 @@ fun SyncScreen(
                                 )
 
                                 SummaryRow(
-                                    icon = Icons.Default.Groups, // Group icon for patients synced
-                                    label = "Patients Synced:", count = uiState.patientCount
+                                    icon = Icons.Default.Groups,
+                                    label = "Patients Synced:",
+                                    count = uiState.syncedPatientCount
                                 )
                                 SummaryRow(
-                                    icon = Icons.Default.EventNote, // Reuse for visits synced
-                                    label = "Visits Synced:", count = 0
-                                )
-                                SummaryRow(
-                                    icon = Icons.Default.CheckCircle, // Check for encounters synced
-                                    label = "Encounters Synced:", count = uiState.encounterCount
+                                    icon = Icons.Default.CheckCircle,
+                                    label = "Encounters Synced:",
+                                    count = uiState.syncedEncounterCount
                                 )
                             }
                         }
                     }
                 }
+
+
 
                 item {
                     SyncSection(title = "Auto Sync") {
@@ -242,15 +243,16 @@ fun SyncScreen(
                                     )
                                     Spacer(Modifier.weight(1f))
                                     Switch(
-                                        checked = autoSyncEnabled,
-                                        onCheckedChange = onToggleAutoSync
-                                    )
+                                        checked = uiState.autoSyncEnabled,
+                                        onCheckedChange = { isChecked ->
+                                            viewModel.onEvent(SyncEvent.ToggleAutoSync(isChecked))
+                                        })
                                 }
 
-                                if (autoSyncEnabled) {
+                                if (uiState.autoSyncEnabled) {
                                     Spacer(Modifier.height(8.dp))
                                     Text(
-                                        "Interval: $autoSyncInterval",
+                                        "Interval: ${uiState.autoSyncInterval} hours",
                                         style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     )
                                 }
@@ -258,8 +260,6 @@ fun SyncScreen(
                         }
                     }
                 }
-
-
 
                 item {
                     SyncSection(title = "Manual Download") {
@@ -269,10 +269,7 @@ fun SyncScreen(
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
 
-                                // Download Forms Section
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
                                         imageVector = Icons.Default.Description,
                                         contentDescription = null,
@@ -298,10 +295,7 @@ fun SyncScreen(
 
                                 HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
 
-                                // Download Patients Section
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
                                         imageVector = Icons.Default.People,
                                         contentDescription = null,
@@ -351,7 +345,12 @@ fun SyncScreen(
                 onSelectedCohortChanged = {
                     viewModel.onEvent(SyncEvent.SelectedCohortChanged(it))
                 },
-                indicatorOptions = IndicatorRepository.reportIndicators,
+                indicatorOptions = buildList {
+                    addAll(IndicatorRepository.reportIndicators)
+                    addAll(uiState.encounterTypes)
+                    addAll(uiState.orderTypes)
+
+                },
                 selectedIndicator = uiState.selectedIndicator,
                 onIndicatorSelected = {
                     viewModel.onEvent(SyncEvent.IndicatorSelected(it))
@@ -368,10 +367,8 @@ fun SyncScreen(
                 },
                 onMoveRight = { viewModel.onEvent(SyncEvent.MoveRight) },
                 onMoveLeft = { viewModel.onEvent(SyncEvent.MoveLeft) },
-                onFilter = {
-                    viewModel.onEvent(SyncEvent.ApplyFilters)
-                    showPatientFilterDialog = false
-                })
+            )
+
         })
     }
 }

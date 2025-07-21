@@ -1,7 +1,11 @@
 package com.lyecdevelopers.ugandaemrmobile
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -9,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.core.content.ContextCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -17,6 +22,7 @@ import com.lyecdevelopers.core.data.preference.PreferenceManager
 import com.lyecdevelopers.core.data.remote.interceptor.AuthInterceptor
 import com.lyecdevelopers.core.ui.components.SplashScreen
 import com.lyecdevelopers.core.ui.theme.UgandaEMRMobileTheme
+import com.lyecdevelopers.core.utils.AppLogger
 import com.lyecdevelopers.core_navigation.navigation.Destinations
 import com.lyecdevelopers.main.MainScreen
 import dagger.hilt.android.AndroidEntryPoint
@@ -33,9 +39,21 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var authInterceptor: AuthInterceptor
 
+    private val requestNotificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            AppLogger.d("Notifications permission granted!")
+        } else {
+            AppLogger.w("Notifications permission denied. Sync status may not be visible.")
+        }
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        askNotificationPermission()
 
         setContent {
             UgandaEMRMobileTheme {
@@ -61,7 +79,6 @@ class MainActivity : AppCompatActivity() {
                         },
                     )
                 } else {
-                    // Navigate reactively on login status changes
                     LaunchedEffect(isLoggedIn) {
                         if (isLoggedIn) {
                             navController.navigate(Destinations.MAIN) {
@@ -101,6 +118,27 @@ class MainActivity : AppCompatActivity() {
                             )
                         }
                     }
+                }
+            }
+        }
+    }
+
+    private fun askNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            when {
+                ContextCompat.checkSelfPermission(
+                    this, Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED -> {
+                    AppLogger.d("Notifications permission already granted.")
+                }
+
+                shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS) -> {
+                    AppLogger.i("Showing rationale for notifications permission (not implemented in UI).")
+                    requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+
+                else -> {
+                    requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 }
             }
         }

@@ -3,6 +3,7 @@ package com.lyecdevelopers.core.data.preference
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -25,6 +26,8 @@ class PreferenceManagerImpl(
         private val USERNAME = stringPreferencesKey("username")
         private val PASSWORD = stringPreferencesKey("password")
         private val SELECTED_FORM_IDS = stringSetPreferencesKey("selected_form_ids")
+        private val AUTO_SYNC_ENABLED = booleanPreferencesKey("auto_sync_enabled")
+        private val AUTO_SYNC_INTERVAL_HOURS = intPreferencesKey("auto_sync_interval_hours")
 
     }
 
@@ -107,6 +110,39 @@ class PreferenceManagerImpl(
     override suspend fun loadSelectedForms(context: Context): Set<String> {
         val prefs = context.dataStore.data.first()
         return prefs[SELECTED_FORM_IDS] ?: emptySet()
+    }
+
+    override suspend fun saveAutoSyncEnabled(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[AUTO_SYNC_ENABLED] = enabled
+        }
+    }
+
+    override suspend fun loadAutoSyncEnabled(): Boolean {
+        return context.dataStore.data.map { prefs ->
+            prefs[AUTO_SYNC_ENABLED] ?: false
+        }.first()
+    }
+
+    override suspend fun saveAutoSyncInterval(hours: Int) {
+        context.dataStore.edit { prefs ->
+            prefs[AUTO_SYNC_INTERVAL_HOURS] = hours
+        }
+    }
+
+    override suspend fun loadAutoSyncInterval(): Int {
+        return context.dataStore.data.map { prefs ->
+            prefs[AUTO_SYNC_INTERVAL_HOURS] ?: 12
+        }.first()
+    }
+
+
+    override suspend fun loadServerUrl(): String {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun saveServerUrl(url: String) {
+        TODO("Not yet implemented")
     }
 
     override suspend fun clear() {

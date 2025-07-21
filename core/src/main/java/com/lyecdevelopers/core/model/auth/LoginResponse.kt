@@ -47,8 +47,7 @@ data class User (
     val userproperties: Userproperties,
     @Json(name = "person")
     val person: Person,
-    @Json(name = "privileges")
-    val privileges:List<String>,
+    @Json(name = "privileges") val privileges: List<Privilege>,
     @Json(name = "roles")
     val roles:List<Roles>,
     @Json(name = "links")
@@ -70,6 +69,12 @@ data class Roles (
     val display:String,
     @Json(name = "name")
     val name:String,
+)
+
+data class Privilege(
+    @Json(name = "uuid") val uuid: String,
+    @Json(name = "display") val display: String,
+    @Json(name = "name") val name: String,
 )
 
 

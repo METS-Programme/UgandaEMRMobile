@@ -10,6 +10,7 @@ object IndicatorRepository {
     )
 
     private val demographicsAttributes = listOf(
+        Attribute("uuid", "UUID", "Demographics", 1, false),
         Attribute("gender", "Gender", "Demographics", 1, false),
         Attribute("birthdate", "Birthdate", "Demographics", 1, false),
         Attribute("Age", "Age", "Demographics", 1, false),

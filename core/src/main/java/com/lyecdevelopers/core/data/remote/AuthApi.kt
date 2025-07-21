@@ -8,12 +8,12 @@ import retrofit2.http.Header
 
 interface AuthApi {
 
-    @GET("session")
+    @GET("rest/v1/session")
     suspend fun loginWithAuthHeader(
         @Header("Authorization") authHeader: String
     ): Response<LoginResponse>
 
-    @DELETE("session")
+    @DELETE("rest/v1/session")
     suspend fun logoutWithAuthHeader(@Header("Authorization") authHeader: String): Response<LogoutResponse>
 }
 

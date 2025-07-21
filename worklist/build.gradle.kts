@@ -35,18 +35,25 @@ android {
         kotlinCompilerExtensionVersion = "2.0.20"
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
         isCoreLibraryDesugaringEnabled = true
     }
 
     packaging { resources.excludes.addAll(listOf("META-INF/ASL-2.0.txt", "META-INF/LGPL-3.0.txt")) }
 
     kotlin {
-        jvmToolchain(11)
+        jvmToolchain(17)
     }
     hilt {
         enableAggregatingTask = false
+    }
+
+
+    configurations.all {
+        resolutionStrategy {
+            force("com.google.guava:guava:32.1.3-android")
+        }
     }
 }
 
@@ -68,6 +75,7 @@ dependencies {
     implementation(libs.android.fhir.engine)
     implementation(libs.android.fhir.sdc)
     implementation(libs.androidx.paging.common.android)
+    implementation(libs.androidx.paging.compose)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     // Hilt

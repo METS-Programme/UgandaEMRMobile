@@ -47,6 +47,10 @@ fun QuestionnaireScreen(
     LaunchedEffect(key1 = formId) {
         viewModel.loadQuestionnaireByUuid(formId)
     }
+    LaunchedEffect(state.isLoading) {
+        isLoading = state.isLoading
+    }
+
 
     // Handle result from QuestionnaireFragment
     DisposableEffect(fragmentManager, lifecycleOwner) {

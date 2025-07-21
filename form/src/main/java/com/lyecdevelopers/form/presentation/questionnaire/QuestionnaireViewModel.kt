@@ -67,11 +67,7 @@ class QuestionnaireViewModel @Inject constructor(
         viewModelScope.launch(schedulerProvider.io) {
             formsUseCase.getLocalFormById(uuid).collect { result ->
                 withContext(schedulerProvider.main) {
-                    _state.update {
-                        it.copy(
-                            isLoading = true,
-                        )
-                    }
+                    _state.value = _state.value.copy(isLoading = true)
                     handleResult(
                         result = result,
                         onSuccess = { formEntity ->
@@ -105,8 +101,6 @@ class QuestionnaireViewModel @Inject constructor(
                         successMessage = "Successfully loaded form",
                         errorMessage = (result as? Result.Error)?.message
                     )
-
-                    hideLoading()
                 }
             }
         }
@@ -230,7 +224,7 @@ class QuestionnaireViewModel @Inject constructor(
                                     isLoading = false, visitId = visit.visit.id, error = null
                                 )
                             }
-                        }, successMessage = "", errorMessage = (result as? Result.Error)?.message
+                        }, errorMessage = (result as? Result.Error)?.message
                     )
                 }
             }

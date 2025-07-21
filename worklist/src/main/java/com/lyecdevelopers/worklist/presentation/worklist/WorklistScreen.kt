@@ -1,6 +1,7 @@
 package com.lyecdevelopers.worklist.presentation.worklist
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,6 +14,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
 import com.lyecdevelopers.core.ui.components.BaseScreen
+import com.lyecdevelopers.core.ui.components.EmptyStateView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,10 +40,15 @@ fun WorklistScreen(
 
     var isLoading by remember { mutableStateOf(false) }
 
-
+    LaunchedEffect(uiState.isLoading) {
+        isLoading = uiState.isLoading
+    }
 
     BaseScreen(
-        uiEventFlow = viewModel.uiEvent, isLoading = isLoading, showLoading = { isLoading = it }) {
+        uiEventFlow = viewModel.uiEvent,
+        showLoading = { loading -> isLoading = loading },
+        isLoading = isLoading,
+    ) {
         Scaffold(
             floatingActionButton = {
                 FloatingActionButton(
@@ -60,21 +68,34 @@ fun WorklistScreen(
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-
+                // Static header
                 item {
                     WorklistSummary(patients = uiState.patients)
                 }
 
-                items(uiState.patients, key = { it.id }) { patient ->
-                    PatientCard(
-                        allVisits = uiState.visits!!,
-                        patient = patient,
-                        onStartVisit = {
-                        isStartVisitDialogVisible = true
-                        }, onViewDetails = { onPatientClick(patient) })
-
+                if (uiState.patients.isEmpty()) {
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp)
+                        ) {
+                            EmptyStateView(message = "No patients found.")
+                        }
+                    }
+                } else {
+                    items(uiState.patients, key = { it.id }) { patient ->
+                        PatientCard(
+                            allVisits = uiState.visits!!,
+                            patient = patient,
+                            onStartVisit = {
+                                isStartVisitDialogVisible = true
+                            },
+                            onViewDetails = { onPatientClick(patient) })
+                    }
                 }
             }
+
 
         }
 

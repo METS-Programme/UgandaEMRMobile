@@ -5,6 +5,7 @@ import com.lyecdevelopers.core.common.scheduler.DefaultSchedulerProvider
 import com.lyecdevelopers.core.common.scheduler.SchedulerProvider
 import com.lyecdevelopers.core.data.preference.PreferenceManager
 import com.lyecdevelopers.core.data.preference.PreferenceManagerImpl
+import com.lyecdevelopers.core.data.sync.SyncManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,4 +26,12 @@ object CoreModule {
     fun providePreferenceManager(
         @ApplicationContext context: Context
     ): PreferenceManager = PreferenceManagerImpl(context)
+
+    @Provides
+    @Singleton
+    fun provideSyncManager(
+        @ApplicationContext context: Context,
+    ): SyncManager {
+        return SyncManager(context)
+    }
 }

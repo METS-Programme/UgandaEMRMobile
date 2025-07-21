@@ -39,8 +39,8 @@ android {
         kotlinCompilerExtensionVersion = "2.0.20"
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
         isCoreLibraryDesugaringEnabled = true
 
     }
@@ -49,11 +49,17 @@ android {
 
 
 
-    kotlin { jvmToolchain(11) }
+    kotlin { jvmToolchain(17) }
 
 
     hilt {
         enableAggregatingTask = false
+    }
+
+    configurations.all {
+        resolutionStrategy {
+            force("com.google.guava:guava:32.1.3-android")
+        }
     }
 
 

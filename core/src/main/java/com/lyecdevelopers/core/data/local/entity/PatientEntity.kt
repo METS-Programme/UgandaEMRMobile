@@ -20,3 +20,26 @@ data class PatientEntity(
 )
 
 
+fun mapToPatientEntity(map: Map<String, Any>): PatientEntity {
+    fun safeString(key: String): String = map[key]?.toString() ?: ""
+
+    val statusStr = safeString("status")
+    val status = try {
+        VisitStatus.valueOf(statusStr.uppercase())
+    } catch (e: Exception) {
+        VisitStatus.PENDING
+    }
+
+    return PatientEntity(
+        id = map["UUID"]?.toString() ?: UUID.randomUUID().toString(),
+        patientIdentifier = safeString("OpenMRS ID"),
+        firstName = safeString("Given Name"),
+        lastName = safeString("Family Name"),
+        gender = safeString("Gender"),
+        dateOfBirth = safeString("Birthdate"),
+        phoneNumber = map["Telephone Number"]?.toString(),
+        address = map["Village"]?.toString(),
+        status = status,
+        synced = map["synced"] as? Boolean ?: false
+    )
+}

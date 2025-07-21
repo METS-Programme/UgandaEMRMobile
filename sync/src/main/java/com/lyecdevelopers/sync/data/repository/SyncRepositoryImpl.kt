@@ -5,6 +5,7 @@ import com.lyecdevelopers.core.data.local.dao.FormDao
 import com.lyecdevelopers.core.data.local.dao.PatientDao
 import com.lyecdevelopers.core.data.local.entity.EncounterEntity
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
+import com.lyecdevelopers.core.data.local.entity.mapToPatientEntity
 import com.lyecdevelopers.core.data.remote.FormApi
 import com.lyecdevelopers.core.model.Form
 import com.lyecdevelopers.core.model.Identifier
@@ -18,12 +19,14 @@ import com.lyecdevelopers.core.model.order.OrderType
 import com.lyecdevelopers.core.utils.AppLogger
 import com.lyecdevelopers.form.domain.mapper.toEntity
 import com.lyecdevelopers.sync.domain.repository.SyncRepository
+import com.squareup.moshi.JsonAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import retrofit2.HttpException
 import javax.inject.Inject
 
 
@@ -32,87 +35,84 @@ class SyncRepositoryImpl @Inject constructor(
     private val formDao: FormDao,
     private val encounterDao: EncounterDao,
     private val patientDao: PatientDao,
-) : SyncRepository {
+    private val listOfMapAdapter: JsonAdapter<List<Map<String, Any>>>,
+
+    ) : SyncRepository {
 
     override fun loadForms(): Flow<Result<List<Form>>> = flow {
         emit(Result.Loading)
-        try {
-            val response = formApi.getForms()
-            if (response.isSuccessful) {
-                val forms = response.body()?.results?.filter { it.published } ?: emptyList()
-                emit(Result.Success(forms))
-            } else {
-                emit(Result.Error("Error ${response.code()}: ${response.message()}"))
-                AppLogger.d("Error Code" + response.code(), "Error Message" + response.message())
-            }
-        } catch (e: Exception) {
-            emit(Result.Error("Error ${e.localizedMessage}"))
-            AppLogger.e("Error" + e.localizedMessage)
+
+        val response = formApi.getForms()
+
+        if (response.isSuccessful) {
+            val forms = response.body()?.results?.filter { it.published } ?: emptyList()
+            emit(Result.Success(forms))
+        } else {
+            throw HttpException(response)
         }
+    }.catch { e ->
+        AppLogger.e(e.message ?: "Failed to load forms")
+        emit(Result.Error(e.message ?: "Failed to load forms"))
     }.flowOn(Dispatchers.IO)
+
 
     override fun loadFormByUuid(uuid: String): Flow<Result<o3Form>> = flow {
         emit(Result.Loading)
-        try {
-            val response = formApi.loadFormByUuid(uuid)
-            if (response.isSuccessful) {
-                val form = response.body()
-                if (form != null) {
-                    emit(Result.Success(form))
-                } else {
-                    emit(Result.Error("Form with uuid $uuid not found"))
-                    AppLogger.d("Form with uuid $uuid not found")
-                }
+        val response = formApi.loadFormByUuid(uuid)
+        if (response.isSuccessful) {
+            val form = response.body()
+            if (form != null) {
+                emit(Result.Success(form))
             } else {
-                emit(Result.Error("Error ${response.code()}: ${response.message()}"))
-                AppLogger.d("Error Code" + response.code(), "Error Message" + response.message())
+                throw IllegalStateException("Form with uuid $uuid not found")
             }
-        } catch (e: Exception) {
-            emit(Result.Error("Error ${e.localizedMessage}"))
-            AppLogger.e("Error" + e.localizedMessage)
+        } else {
+            throw HttpException(response)
         }
+    }.catch { e ->
+        AppLogger.e("Error ${e.localizedMessage}")
+        emit(Result.Error("Error ${e.localizedMessage}"))
     }.flowOn(Dispatchers.IO)
+
 
     override fun filterForms(query: String): Flow<Result<List<Form>>> = flow {
         emit(Result.Loading)
-        try {
-            val response = formApi.filterForms(query)
-            if (response.isSuccessful) {
-                val forms = response.body()?.results
-                if (forms != null) {
-                    emit(Result.Success(forms))
-                } else {
-                    emit(Result.Error("Empty form list received."))
-                    AppLogger.d("Empty form list received.")
-                }
+
+        val response = formApi.filterForms(query)
+
+        if (response.isSuccessful) {
+            val forms = response.body()?.results
+            if (forms != null) {
+                emit(Result.Success(forms))
             } else {
-                emit(Result.Error("Error ${response.code()}: ${response.message()}"))
-                AppLogger.d("Error Code" + response.code(), "Error Message" + response.message())
+                throw IllegalStateException("Empty form list received.")
             }
-        } catch (e: Exception) {
-            emit(Result.Error("Error ${e.localizedMessage}"))
-            AppLogger.e("Error" + e.localizedMessage)
+        } else {
+            throw HttpException(response)
         }
+    }.catch { e ->
+        AppLogger.e("Error ${e.localizedMessage}")
+            emit(Result.Error("Error ${e.localizedMessage}"))
     }.flowOn(Dispatchers.IO)
+
 
 
     override fun saveFormsLocally(forms: List<o3Form>): Flow<Result<List<o3Form>>> = flow {
         emit(Result.Loading)
-        try {
-            val entities = forms.map { it.toEntity() }
-            if (entities.isNotEmpty()) {
-                formDao.insertForms(entities)
-                emit(Result.Success(forms))
-            } else {
-                emit(Result.Error("Empty form list received."))
-                AppLogger.d("An Error Occurred while saving the ")
-            }
-        } catch (e: Exception) {
-            emit(Result.Error(e.message ?: "Failed to save forms locally"))
-            AppLogger.e(e.message ?: "Failed to save forms locally")
 
+        val entities = forms.map { it.toEntity() }
+
+        if (entities.isNotEmpty()) {
+            formDao.insertForms(entities)
+            emit(Result.Success(forms))
+        } else {
+            throw IllegalStateException("Empty form list received.")
         }
+    }.catch { e ->
+            AppLogger.e(e.message ?: "Failed to save forms locally")
+        emit(Result.Error(e.message ?: "Failed to save forms locally"))
     }.flowOn(Dispatchers.IO)
+
 
     override fun getFormCount(): Flow<Result<Int>> =
         formDao.getFormCount().map { Result.Success(it) }.catch { e ->
@@ -140,27 +140,23 @@ class SyncRepositoryImpl @Inject constructor(
 
     override fun loadCohorts(): Flow<Result<List<Cohort>>> = flow {
         emit(Result.Loading)
-        try {
-            val response = formApi.getCohorts()
-            if (response.isSuccessful) {
-                val cohorts = response.body()?.results
 
-                if (cohorts != null) {
-                    emit(Result.Success(cohorts))
-                } else {
-                    emit(Result.Error(message = "No cohorts available"))
-                    AppLogger.d(message = "No cohorts available")
-                }
+        val response = formApi.getCohorts()
+        if (response.isSuccessful) {
+            val cohorts = response.body()?.results
+            if (cohorts != null) {
+                emit(Result.Success(cohorts))
             } else {
-                emit(Result.Error("Error ${response.code()}: ${response.message()}"))
-                AppLogger.d("Error Code" + response.code(), "Error Message" + response.message())
+                throw IllegalStateException("No cohorts available")
             }
-        } catch (e: Exception) {
-            emit(Result.Error(e.message ?: "Failed to load cohorts"))
-            AppLogger.e("Error" + e.localizedMessage)
-
+        } else {
+            throw HttpException(response)
         }
+    }.catch { e ->
+        AppLogger.e("Error ${e.localizedMessage}")
+            emit(Result.Error(e.message ?: "Failed to load cohorts"))
     }.flowOn(Dispatchers.IO)
+
 
     override fun loadIndicators(): Flow<Result<List<Any>>> {
         TODO("Not yet implemented")
@@ -172,133 +168,122 @@ class SyncRepositoryImpl @Inject constructor(
 
     override fun loadOrderTypes(): Flow<Result<List<OrderType>>> = flow {
         emit(Result.Loading)
-        try {
-            val response = formApi.getOrderTypes()
 
-            if (response.isSuccessful) {
-                val ordertypes = response.body()?.results
-                if (ordertypes != null) {
-                    emit(Result.Success(ordertypes))
-                } else {
-                    emit(Result.Error(message = "No orderTypes available"))
-                    AppLogger.d(message = "No orderTypes available")
-                }
+        val response = formApi.getOrderTypes()
+
+        if (response.isSuccessful) {
+            val ordertypes = response.body()?.results
+            if (ordertypes != null) {
+                emit(Result.Success(ordertypes))
             } else {
-                emit(Result.Error("Error ${response.code()}: ${response.message()}"))
-                AppLogger.d("Error Code" + response.code(), "Error Message" + response.message())
+                throw IllegalStateException("No orderTypes available")
             }
-        } catch (e: Exception) {
-            emit(Result.Error(e.message ?: "Failed to load orderTypes"))
-            AppLogger.e(e.message ?: "Failed to load orderTypes")
+        } else {
+            throw HttpException(response)
         }
-
+    }.catch { e ->
+            AppLogger.e(e.message ?: "Failed to load orderTypes")
+        emit(Result.Error(e.message ?: "Failed to load orderTypes"))
     }.flowOn(Dispatchers.IO)
+
 
     override fun loadEncounterTypes(): Flow<Result<List<EncounterType>>> = flow {
         emit(Result.Loading)
-        try {
-            val response = formApi.getEncounterTypes()
-            if (response.isSuccessful) {
-                val encountertypes = response.body()?.results
-                if (encountertypes != null) {
-                    emit(Result.Success(encountertypes))
-                } else {
-                    emit(Result.Error(message = "No encounterTypes available"))
-                    AppLogger.d(message = "No encounterTypes available")
-                }
+
+        val response = formApi.getEncounterTypes()
+
+        if (response.isSuccessful) {
+            val encountertypes = response.body()?.results
+            if (encountertypes != null) {
+                emit(Result.Success(encountertypes))
             } else {
-                emit(Result.Error("Error ${response.code()}: ${response.message()}"))
-                AppLogger.d(
-                    "Error Code" + response.code(), "Error Message" + response.message()
-                )
+                throw IllegalStateException("No encounterTypes available")
             }
-        } catch (e: Exception) {
-            emit(Result.Error(e.message ?: "Failed to load encounterTypes"))
-            AppLogger.e(e.message ?: "Failed to load encounterTypes")
+        } else {
+            throw HttpException(response)
         }
+    }.catch { e ->
+            AppLogger.e(e.message ?: "Failed to load encounterTypes")
+        emit(Result.Error(e.message ?: "Failed to load encounterTypes"))
     }.flowOn(Dispatchers.IO)
+
 
     override fun loadPatientIndentifiers(): Flow<Result<List<Identifier>>> = flow {
         emit(Result.Loading)
-        try {
-            val response = formApi.getPatientIdentifiers()
-            if (response.isSuccessful) {
-                val identifiers = response.body()?.results
-                if (identifiers != null) {
-                    emit(Result.Success(identifiers))
-                } else {
-                    emit(Result.Error(message = "No patient identifiers available"))
-                    AppLogger.d(message = "No patient identifiers available")
-                }
-            } else {
-                emit(Result.Error("Error ${response.code()}: ${response.message()}"))
-                AppLogger.d(
-                    "Error Code" + response.code(), "Error Message" + response.message()
-                )
-            }
-        } catch (e: Exception) {
-            emit(Result.Error(e.message ?: "Failed to load patient identifiers types"))
-            AppLogger.e(e.message ?: "Failed to load patient identifiers types")
-        }
 
+        val response = formApi.getPatientIdentifiers()
+
+        if (response.isSuccessful) {
+            val identifiers = response.body()?.results
+            if (identifiers != null) {
+                emit(Result.Success(identifiers))
+            } else {
+                throw IllegalStateException("No patient identifiers available")
+            }
+        } else {
+            throw HttpException(response)
+        }
+    }.catch { e ->
+            AppLogger.e(e.message ?: "Failed to load patient identifiers types")
+        emit(Result.Error(e.message ?: "Failed to load patient identifiers types"))
     }.flowOn(Dispatchers.IO)
+
 
     override fun loadPersonAttributeTypes(): Flow<Result<List<PersonAttributeType>>> = flow {
         emit(Result.Loading)
-        try {
-            val response = formApi.getPersonAttributeTypes()
-            if (response.isSuccessful) {
-                val personAttributeTypes = response.body()?.results
-                if (personAttributeTypes != null) {
-                    emit(Result.Success(personAttributeTypes))
-                } else {
-                    emit(Result.Error(message = "No person attributes available"))
-                    AppLogger.d(message = "No person attributes available")
-                }
+
+        val response = formApi.getPersonAttributeTypes()
+
+        if (response.isSuccessful) {
+            val personAttributeTypes = response.body()?.results
+            if (personAttributeTypes != null) {
+                emit(Result.Success(personAttributeTypes))
             } else {
-                emit(Result.Error("Error ${response.code()}: ${response.message()}"))
-                AppLogger.d(
-                    "Error Code" + response.code(), "Error Message" + response.message()
-                )
+                throw IllegalStateException("No person attributes available")
             }
-        } catch (e: Exception) {
-            emit(Result.Error(e.message ?: "Failed to load person attribute types"))
-            AppLogger.e(e.message ?: "Failed to load attribute types")
+        } else {
+            throw HttpException(response)
         }
+    }.catch { e ->
+            AppLogger.e(e.message ?: "Failed to load attribute types")
+        emit(Result.Error(e.message ?: "Failed to load person attribute types"))
     }.flowOn(Dispatchers.IO)
+
 
     override fun loadConditions(): Flow<Result<List<Any>>> {
         TODO("Not yet implemented")
     }
 
-    override fun createDataDefinition(payload: DataDefinition): Flow<Result<Any>> = flow {
-        emit(Result.Loading)
-        try {
-
-            AppLogger.d("payload--->" + payload)
+    override fun createDataDefinition(payload: DataDefinition): Flow<Result<List<PatientEntity>>> =
+        flow {
+            emit(Result.Loading)
 
             val response = formApi.generateDataDefinition(payload)
+
             if (response.isSuccessful) {
-                val definitions = response.body()
-                if (definitions != null) {
-                    emit(Result.Success(definitions))
+                val body = response.body()
+                if (body != null) {
+                    val listOfMaps = body.use { listOfMapAdapter.fromJson(it.source()) }
+                    if (!listOfMaps.isNullOrEmpty()) {
+                        val patients = listOfMaps.map { mapToPatientEntity(it) }
+                        patientDao.insertAll(patients)  // save to DB
+                        emit(Result.Success(patients))
+                    } else {
+                        throw IllegalStateException("No data definitions returned")
+                    }
                 } else {
-                    emit(Result.Error(message = "No data definitions created "))
-                    AppLogger.d(message = "No data definitions created")
+                    throw IllegalStateException("Response body was null")
                 }
             } else {
-                emit(Result.Error("Error ${response.code()}: ${response.message()}"))
-                AppLogger.d(
-                    "Error Code" + response.code(), "Error Message" + response.message()
-                )
+                throw HttpException(response)
             }
-        } catch (e: Exception) {
-            emit(Result.Error(e.message ?: "Failed to create  data definition"))
-            AppLogger.e(e.message ?: "Failed to create  data definition")
-        }
-    }.flowOn(Dispatchers.IO)
+        }.catch { e ->
+            AppLogger.e(e.message ?: "Failed to create data definition")
+            emit(Result.Error(e.message ?: "Failed to create data definition"))
+        }.flowOn(Dispatchers.IO)
 
-    override fun getUnsynced(): Flow<List<EncounterEntity>> = flow {
+
+    override fun getUnsyncedEncounters(): Flow<List<EncounterEntity>> = flow {
         try {
             val unsynced = encounterDao.getUnsynced()
             emit(unsynced)
@@ -308,7 +293,7 @@ class SyncRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun markSynced(encounter: EncounterEntity): Flow<Unit> = flow {
+    override fun markSyncedEncounter(encounter: EncounterEntity): Flow<Unit> = flow {
         try {
             val rows = encounterDao.update(encounter.copy(synced = true))
             if (rows > 0) {
@@ -322,6 +307,17 @@ class SyncRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun getSyncedEncountersCount(): Flow<Result<Int>> =
+        encounterDao.getSyncedEncountersCount().map {
+            Result.Success(it)
+        }.catch { e ->
+            val errorMsg =
+                "Error getting synced encounter count: ${e.localizedMessage ?: "Unknown error"}"
+            AppLogger.e("SyncedEncounterCountFlowCatch", errorMsg, e)
+        }.flowOn(Dispatchers.IO)
+
+
+
     override fun getUnsyncedPatients(): Flow<List<PatientEntity>> = flow {
         try {
             val unsynced = patientDao.getUnsyncedPatients()
@@ -331,6 +327,7 @@ class SyncRepositoryImpl @Inject constructor(
             throw e // ⚡ Let the caller handle it!
         }
     }
+
 
 
     override fun markSyncedPatient(patient: PatientEntity): Flow<Unit> = flow {
@@ -346,6 +343,15 @@ class SyncRepositoryImpl @Inject constructor(
             throw e // ⚡ Let the caller handle it!
         }
     }
+
+    override fun getSyncedPatientsCount(): Flow<Result<Int>> =
+        patientDao.getSyncedPatientsCount().map { it ->
+            Result.Success(it)
+        }.catch { e ->
+            val errorMsg =
+                "Error getting synced patient count: ${e.localizedMessage ?: "Unknown error"}"
+            AppLogger.e("SyncedPatientCountFlowCatch", errorMsg, e)
+        }.flowOn(Dispatchers.IO)
 
 }
 

@@ -17,6 +17,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,13 +43,18 @@ fun AuthScreen(
     onLoginSuccess: () -> Unit
 ) {
     val viewModel: AuthViewModel = hiltViewModel()
-    var isLoading by remember { mutableStateOf(false) }
+    val uiState by viewModel.uiState.collectAsState()
 
+    var isLoading by remember { mutableStateOf(false) }
+    LaunchedEffect(uiState.isLoading) {
+        isLoading = uiState.isLoading
+    }
 
     UgandaEMRMobileTheme {
         BaseScreen(
             uiEventFlow = viewModel.uiEvent,
-            isLoading = isLoading, showLoading = { isLoading = it },
+            showLoading = { loading -> isLoading = loading },
+            isLoading = isLoading,
         ) {
             Scaffold { paddingValues ->
                 Box(
