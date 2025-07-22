@@ -8,6 +8,8 @@ import com.lyecdevelopers.core._base.BaseViewModel
 import com.lyecdevelopers.core.common.scheduler.SchedulerProvider
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
 import com.lyecdevelopers.core.data.local.entity.VisitEntity
+import com.lyecdevelopers.core.data.preference.PreferenceManager
+import com.lyecdevelopers.core.data.sync.SyncManager
 import com.lyecdevelopers.core.model.Result
 import com.lyecdevelopers.core.model.VisitStatus
 import com.lyecdevelopers.core.ui.event.UiEvent.Navigate
@@ -37,6 +39,8 @@ class WorklistViewModel @Inject constructor(
     private val patientsUseCase: PatientsUseCase,
     private val visitUseCases: VisitUseCases,
     private val schedulerProvider: SchedulerProvider,
+    private val preferenceManager: PreferenceManager,
+    private val syncManager: SyncManager,
     savedStateHandle: SavedStateHandle,
 ) : BaseViewModel() {
 
@@ -383,11 +387,21 @@ class WorklistViewModel @Inject constructor(
 
 
     private fun markPatientEligibleForSync() {
-        TODO("Not yet implemented")
+        val patient = _uiState.value.selectedPatient
+        if (patient != null) {
+            viewModelScope.launch(schedulerProvider.io) {
+                patientsUseCase.markPatientEligible(patient.id, eligible = true)
+            }
+        }
+
     }
 
     private fun syncPatientNow() {
-        TODO("Not yet implemented")
+        viewModelScope.launch {
+            preferenceManager.saveAutoSyncEnabled(true)
+            val interval = preferenceManager.loadAutoSyncInterval()
+            interval
+        }
     }
 }
 

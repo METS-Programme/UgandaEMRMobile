@@ -35,7 +35,7 @@ class EncountersSyncWorker @AssistedInject constructor(
         get() = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
     private fun ensureNotificationChannelExists() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val channel = android.app.NotificationChannel(
                 SYNC_NOTIFICATION_CHANNEL_ID,
                 SYNC_NOTIFICATION_CHANNEL_NAME,

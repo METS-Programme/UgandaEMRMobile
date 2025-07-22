@@ -18,12 +18,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.MonitorHeart
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -72,6 +76,9 @@ fun PatientDetailsScreen(
     var isStartVisitDialogVisible by remember { mutableStateOf(false) }
     var showRecordDialog by remember { mutableStateOf(false) }
 
+    var optionsExpanded by remember { mutableStateOf(false) }
+    val eligibleOptions = listOf("Eligible")
+
 
     LaunchedEffect(state.mostRecentVisit, state.isLoading) {
         state.mostRecentVisit?.visit?.id?.let { visitId ->
@@ -107,8 +114,37 @@ fun PatientDetailsScreen(
         isLoading = isLoading,
     ) {
         Scaffold(topBar = {
-            TopAppBar(
-                title = { Text("Patient Details") })
+            TopAppBar(title = { Text("Patient Details") }, actions = {
+                IconButton(onClick = { optionsExpanded = true }) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "More Options"
+                    )
+                }
+                DropdownMenu(
+                    expanded = optionsExpanded, onDismissRequest = { optionsExpanded = false }) {
+                    eligibleOptions.forEach { option ->
+                        DropdownMenuItem(text = { Text(option) }, onClick = {
+                            optionsExpanded = false
+                            viewModel.onEvent(
+                                WorklistEvent.OnMarkPatientEligible(state.selectedPatient?.id)
+                            )
+                        })
+                    }
+
+                    HorizontalDivider()
+
+                    DropdownMenuItem(text = { Text("Sync Now") }, onClick = {
+                        optionsExpanded = false
+                        viewModel.onEvent(
+                            WorklistEvent.OnSyncPatientNow(state.selectedPatient?.id)
+                        )
+                    })
+                }
+            })
+
+
+
         }, floatingActionButton = {
             Box(contentAlignment = Alignment.BottomEnd) {
                 Column(

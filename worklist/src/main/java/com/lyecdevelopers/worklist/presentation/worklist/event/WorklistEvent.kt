@@ -14,9 +14,9 @@ sealed class WorklistEvent {
     // ──────────────── Patient ────────────────
     data class OnPatientSelected(val patientId: String) : WorklistEvent()
 
-    data class OnMarkPatientEligible(val patientId: String) : WorklistEvent()
+    data class OnMarkPatientEligible(val patientId: String?) : WorklistEvent()
 
-    data class OnSyncPatientNow(val patientId: String) : WorklistEvent()
+    data class OnSyncPatientNow(val patientId: String?) : WorklistEvent()
 
     // ──────────────── Start Visit ────────────────
     data class OnVisitTypeChanged(val type: String) : WorklistEvent()
