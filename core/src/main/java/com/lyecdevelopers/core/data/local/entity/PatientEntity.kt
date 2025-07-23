@@ -45,4 +45,5 @@ fun mapToPatientEntity(map: Map<String, Any>): PatientEntity {
         status = status,
         synced = map["synced"] as? Boolean ?: false
     )
+
 }

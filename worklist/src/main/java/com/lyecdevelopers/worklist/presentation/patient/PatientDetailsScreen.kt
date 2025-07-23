@@ -80,15 +80,15 @@ fun PatientDetailsScreen(
     val eligibleOptions = listOf("Eligible")
 
 
-    LaunchedEffect(state.mostRecentVisit, state.isLoading) {
+    LaunchedEffect(state.mostRecentVisit) {
         state.mostRecentVisit?.visit?.id?.let { visitId ->
             viewModel.getVitalsByVisit(visitId)
         }
-
-        isLoading = state.isLoading
-
     }
 
+    LaunchedEffect(state.isLoading) {
+        isLoading = state.isLoading
+    }
 
     val patientVisits = remember(state.visits, state.selectedPatient?.id) {
         state.visits?.filter { it.visit.patientId == state.selectedPatient?.id }
