@@ -39,6 +39,16 @@ android {
     namespace = "com.lyecdevelopers.ugandaemrmobile"
     compileSdk = 36
 
+    android {
+        splits {
+            abi {
+                reset()
+                include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+            }
+        }
+    }
+
+
     defaultConfig {
         applicationId = "com.lyecdevelopers.ugandaemrmobile"
         minSdk = 28
@@ -71,7 +81,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
