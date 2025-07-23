@@ -4,14 +4,19 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.work.ListenableWorker
 import com.lyecdevelopers.core._base.BaseViewModel
 import com.lyecdevelopers.core.common.scheduler.SchedulerProvider
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
 import com.lyecdevelopers.core.data.local.entity.VisitEntity
+import com.lyecdevelopers.core.data.preference.PreferenceManager
+import com.lyecdevelopers.core.data.sync.SyncManager
 import com.lyecdevelopers.core.model.Result
 import com.lyecdevelopers.core.model.VisitStatus
 import com.lyecdevelopers.core.ui.event.UiEvent.Navigate
 import com.lyecdevelopers.form.domain.usecase.PatientsUseCase
+import com.lyecdevelopers.sync.data.sync.EncountersSyncWorker
+import com.lyecdevelopers.sync.data.sync.PatientsSyncWorker
 import com.lyecdevelopers.worklist.domain.mapper.toDomain
 import com.lyecdevelopers.worklist.domain.mapper.toEntity
 import com.lyecdevelopers.worklist.domain.model.Vitals
@@ -30,6 +35,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.UUID
 import javax.inject.Inject
+import kotlin.reflect.KClass
 
 
 @HiltViewModel
@@ -37,6 +43,8 @@ class WorklistViewModel @Inject constructor(
     private val patientsUseCase: PatientsUseCase,
     private val visitUseCases: VisitUseCases,
     private val schedulerProvider: SchedulerProvider,
+    private val preferenceManager: PreferenceManager,
+    private val syncManager: SyncManager,
     savedStateHandle: SavedStateHandle,
 ) : BaseViewModel() {
 
@@ -142,6 +150,8 @@ class WorklistViewModel @Inject constructor(
             WorklistEvent.SaveVitals -> saveVitals()
 
             WorklistEvent.StartVisit -> startPatientVisit()
+            is WorklistEvent.OnMarkPatientEligible -> markPatientEligibleForSync()
+            is WorklistEvent.OnSyncPatientNow -> syncPatientNow()
         }
     }
 
@@ -376,6 +386,28 @@ class WorklistViewModel @Inject constructor(
                 }
 
             }
+        }
+    }
+
+
+    private fun markPatientEligibleForSync() {
+        val patient = _uiState.value.selectedPatient
+        if (patient != null) {
+            viewModelScope.launch(schedulerProvider.io) {
+                patientsUseCase.markPatientEligible(patient.id, eligible = true)
+            }
+        }
+
+    }
+
+    private fun syncPatientNow() {
+        viewModelScope.launch {
+            syncManager.syncNow(
+                workers = listOf<KClass<out ListenableWorker>>(
+                    PatientsSyncWorker::class, EncountersSyncWorker::class
+                )
+            )
+
         }
     }
 }

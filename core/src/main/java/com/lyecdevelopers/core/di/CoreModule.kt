@@ -3,6 +3,7 @@ package com.lyecdevelopers.core.di
 import android.content.Context
 import com.lyecdevelopers.core.common.scheduler.DefaultSchedulerProvider
 import com.lyecdevelopers.core.common.scheduler.SchedulerProvider
+import com.lyecdevelopers.core.data.notifications.SyncNotificationHelper
 import com.lyecdevelopers.core.data.preference.PreferenceManager
 import com.lyecdevelopers.core.data.preference.PreferenceManagerImpl
 import com.lyecdevelopers.core.data.sync.SyncManager
@@ -33,5 +34,13 @@ object CoreModule {
         @ApplicationContext context: Context,
     ): SyncManager {
         return SyncManager(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSyncNotificationsHelper(
+        @ApplicationContext context: Context,
+    ): SyncNotificationHelper {
+        return SyncNotificationHelper(context)
     }
 }

@@ -93,6 +93,10 @@ class SyncUseCase @Inject constructor(
 
 
     // patients
+    fun getEligibleUnsyncedPatients(): Flow<List<PatientEntity>> {
+        return repository.getEligibleUnsyncedPatients()
+    }
+
     fun getUnsyncedPatients(): Flow<List<PatientEntity>> {
         return repository.getUnsyncedPatients()
     }

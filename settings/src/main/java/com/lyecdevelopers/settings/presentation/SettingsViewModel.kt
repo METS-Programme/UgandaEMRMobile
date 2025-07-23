@@ -10,6 +10,8 @@ import com.lyecdevelopers.core_navigation.navigation.Destinations
 import com.lyecdevelopers.settings.domain.usecase.SettingsUseCase
 import com.lyecdevelopers.settings.presentation.event.SettingsEvent
 import com.lyecdevelopers.settings.presentation.state.SettingsUiState
+import com.lyecdevelopers.sync.data.sync.EncountersSyncWorker
+import com.lyecdevelopers.sync.data.sync.PatientsSyncWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -106,19 +108,19 @@ class SettingsViewModel @Inject constructor(
             preferenceManager.saveAutoSyncInterval(interval)
             // If auto-sync is ON, reschedule
             if (_uiState.value.autoSyncEnabled) {
-//                syncManager.cancelPeriodicSync(
-//                    workers = listOf(
-//                        PatientsSyncWorker::class,
-//                        EncountersSyncWorker::class
-//                    )
-//                )
-//                syncManager.schedulePeriodicSync(
-//                    workers = listOf(
-//                        PatientsSyncWorker::class,
-//                        EncountersSyncWorker::class
-//                    ),
-//                    intervalHours = 12
-//                )
+                syncManager.cancelPeriodicSync(
+                    workers = listOf(
+                        PatientsSyncWorker::class,
+                        EncountersSyncWorker::class
+                    )
+                )
+                syncManager.schedulePeriodicSync(
+                    workers = listOf(
+                        PatientsSyncWorker::class,
+                        EncountersSyncWorker::class
+                    ),
+                    intervalHours = interval.toLong()
+                )
             }
         }
     }

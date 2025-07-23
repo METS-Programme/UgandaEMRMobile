@@ -60,7 +60,7 @@ android {
 dependencies {
     implementation (project(":core"))
     implementation(project(":form"))
-
+    implementation(project(":sync"))
     // Compose UI essentials
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
@@ -106,6 +106,15 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.crashlytics)
+
+
+    // ---- Hilt WorkManager ----
+    implementation(libs.hilt.work)
+    implementation(libs.work.runtime)
+    ksp(libs.hilt.work.compiler)
+
+    // ---- WorkManager runtime ----
+    implementation(libs.work.runtime.ktx)
 
     // Optional: for previewing Composables
     implementation(libs.androidx.ui.tooling.preview)

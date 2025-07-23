@@ -23,7 +23,6 @@ import androidx.compose.material.icons.filled.MonitorWeight
 import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material.icons.filled.Thermostat
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -47,9 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import com.lyecdevelopers.core.data.local.entity.PatientEntity
-import com.lyecdevelopers.core.ui.components.SubmitButton
 import com.lyecdevelopers.worklist.domain.model.Vitals
 import com.lyecdevelopers.worklist.presentation.worklist.WorklistViewModel
 
@@ -272,43 +269,6 @@ fun MuacRow(muac: String, onValueChange: (String) -> Unit) {
                 )
             }
         }
-    }
-}
-
-@Composable
-fun ActionButtons(
-    navController: NavController,
-    onValidateAndSave: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        SubmitButton(
-            text = "Discard",
-            onClick = { navController.popBackStack() },
-            iconContentDescription = "Discard",
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.secondary,
-                contentColor = MaterialTheme.colorScheme.onSecondary
-            ),
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.weight(1f)
-        )
-
-        SubmitButton(
-            text = "Save",
-            onClick = { onValidateAndSave() },
-            iconContentDescription = "Save",
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ),
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.weight(1f)
-        )
     }
 }
 

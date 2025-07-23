@@ -317,6 +317,17 @@ class SyncRepositoryImpl @Inject constructor(
         }.flowOn(Dispatchers.IO)
 
 
+    override fun getEligibleUnsyncedPatients(): Flow<List<PatientEntity>> = flow {
+        try {
+            val unsynced = patientDao.getEligibleUnsyncedPatients()
+            emit(unsynced)
+        } catch (e: Exception) {
+            AppLogger.e("DB error when fetching unsynced patients: ${e.message}")
+            throw e // ⚡ Let the caller handle it!
+        }
+
+    }
+
 
     override fun getUnsyncedPatients(): Flow<List<PatientEntity>> = flow {
         try {
