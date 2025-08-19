@@ -55,6 +55,7 @@ android {
 dependencies {
     implementation (project(":core"))
     implementation(project(":core-navigation"))
+    implementation(project(":sync"))
 
     // Compose UI essentials
     implementation(libs.androidx.activity.compose)
@@ -94,6 +95,14 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.crashlytics)
+
+    // ---- Hilt WorkManager ----
+    implementation(libs.hilt.work)
+    implementation(libs.work.runtime)
+    ksp(libs.hilt.work.compiler)
+
+    // ---- WorkManager runtime ----
+    implementation(libs.work.runtime.ktx)
 
     // Optional: for previewing Composables
     implementation(libs.androidx.ui.tooling.preview)

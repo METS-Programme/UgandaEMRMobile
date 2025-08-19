@@ -35,6 +35,7 @@ interface SyncRepository {
     fun getSyncedEncountersCount(): Flow<Result<Int>>
 
     // patients
+    fun getEligibleUnsyncedPatients(): Flow<List<PatientEntity>>
     fun getUnsyncedPatients(): Flow<List<PatientEntity>>
     fun markSyncedPatient(patient: PatientEntity): Flow<Unit>
     fun getSyncedPatientsCount(): Flow<Result<Int>>

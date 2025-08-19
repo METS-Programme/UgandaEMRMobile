@@ -14,6 +14,10 @@ sealed class WorklistEvent {
     // ──────────────── Patient ────────────────
     data class OnPatientSelected(val patientId: String) : WorklistEvent()
 
+    data class OnMarkPatientEligible(val patientId: String?) : WorklistEvent()
+
+    data class OnSyncPatientNow(val patientId: String?) : WorklistEvent()
+
     // ──────────────── Start Visit ────────────────
     data class OnVisitTypeChanged(val type: String) : WorklistEvent()
     data class OnVisitLocationChanged(val location: String) : WorklistEvent()
@@ -31,5 +35,3 @@ sealed class WorklistEvent {
     data class OnVitalsChanged(val vitals: Vitals) : WorklistEvent()
     object SaveVitals : WorklistEvent()
 }
-
-

@@ -17,6 +17,9 @@ data class PatientEntity(
     val address: String? = null,
     val status: VisitStatus,
     val synced: Boolean = false,
+    val isEligibleForSync: Boolean = false,
+    val isVoided: Boolean = false,
+    val lastModified: Long = System.currentTimeMillis(),
 )
 
 
@@ -42,4 +45,5 @@ fun mapToPatientEntity(map: Map<String, Any>): PatientEntity {
         status = status,
         synced = map["synced"] as? Boolean ?: false
     )
+
 }

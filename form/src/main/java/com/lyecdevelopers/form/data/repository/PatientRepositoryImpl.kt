@@ -169,4 +169,21 @@ class PatientRepositoryImpl @Inject constructor(
             emit(Result.Error("Error: ${e.localizedMessage}"))
         }.distinctUntilChanged().flowOn(Dispatchers.IO)
 
+    override suspend fun markPatientEligible(patientId: String, eligible: Boolean) {
+        try {
+            patientDao.updateEligibilityForSync(
+                patientId = patientId,
+                isEligible = eligible,
+                lastModified = System.currentTimeMillis()
+            )
+        } catch (e: Exception) {
+            AppLogger.e(
+                "DB error marking patient eligible for sync",
+                "Unable to update synced: ${e.message}"
+            )
+            throw e
+        }
+
+    }
+
 }

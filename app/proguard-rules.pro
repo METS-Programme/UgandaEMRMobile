@@ -1,21 +1,61 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# ───────────── Compose ─────────────
+-keep class androidx.compose.** { *; }
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# ───────────── Your app package ─────────────
+-keep class com.lyecdevelopers.core.** { *; }
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# ───────────── Hilt & DI ─────────────
+-keep class dagger.hilt.** { *; }
+-keep class javax.inject.** { *; }
+-keep class dagger.internal.** { *; }
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# ───────────── WorkManager + Hilt Worker ─────────────
+-keep class androidx.work.Worker { *; }
+-keep class androidx.hilt.work.HiltWorkerFactory { *; }
+-keep class androidx.hilt.work.** { *; }
+
+# ───────────── Room ─────────────
+-keep class androidx.room.** { *; }
+-keep @androidx.room.* class * { *; }
+
+# ───────────── Moshi JSON ─────────────
+-keep class com.squareup.moshi.** { *; }
+-keep @com.squareup.moshi.JsonClass class * { *; }
+
+# ───────────── Retrofit interfaces ─────────────
+-keep interface retrofit2.** { *; }
+
+# ───────────── Coil ─────────────
+-keep class coil.** { *; }
+
+# ───────────── Firebase ─────────────
+# Firebase Crashlytics needs mapping file upload — no keep needed for basic config.
+# If you have custom analytics events with reflection, keep them here.
+
+# ───────────── Android FHIR ─────────────
+-keep class com.google.android.fhir.** { *; }
+
+# ───────────── Google Play Startup ─────────────
+-keep class androidx.startup.** { *; }
+
+# ───────────── DataStore ─────────────
+-keep class androidx.datastore.** { *; }
+
+# ───────────── Security Crypto ─────────────
+-keep class androidx.security.crypto.** { *; }
+
+# ───────────── Your Application class ─────────────
+-keep class com.lyecdevelopers.ugandaemrmobile.**Application { *; }
+
+# ───────────── Keep ViewModels ─────────────
+-keep class *ViewModel
+
+# ───────────── Activities & Fragments ─────────────
+-keep class * extends android.app.Activity
+-keep class * extends androidx.fragment.app.Fragment
+
+# ───────────── Keep Kotlin metadata & annotations ─────────────
+-keepattributes *Annotation*, Signature, InnerClasses
+
+# ───────────── Keep enums (sealed classes safety) ─────────────
+-keepclassmembers enum * { *; }

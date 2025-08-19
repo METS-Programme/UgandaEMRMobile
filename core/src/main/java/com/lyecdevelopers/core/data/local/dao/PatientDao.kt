@@ -77,14 +77,44 @@ interface PatientDao {
     @Delete
     suspend fun deletePatient(patient: PatientEntity)
 
+    @Transaction
     @Query("SELECT * FROM patients WHERE id = :id")
     fun getPatientById(id: String): Flow<PatientEntity?>
 
+    @Transaction
     @Query("SELECT * FROM patients ORDER BY lastName ASC")
     suspend fun getAllPatients(): List<PatientEntity>
 
+    @Transaction
     @Query("DELETE FROM patients")
     suspend fun clearAll()
+
+    @Transaction
+    @Query(
+        """
+    UPDATE patients
+    SET isEligibleForSync = :isEligible, lastModified = :lastModified
+    WHERE id = :patientId
+"""
+    )
+    suspend fun updateEligibilityForSync(
+        patientId: String,
+        isEligible: Boolean,
+        lastModified: Long = System.currentTimeMillis(),
+    )
+
+
+    @Transaction
+    @Query(
+        """
+    SELECT * FROM patients
+    WHERE synced = 0
+    AND isEligibleForSync = 1
+    AND isVoided = 0
+"""
+    )
+    suspend fun getEligibleUnsyncedPatients(): List<PatientEntity>
+
 
     @Query("SELECT * FROM patients WHERE synced = 0")
     suspend fun getUnsyncedPatients(): List<PatientEntity>

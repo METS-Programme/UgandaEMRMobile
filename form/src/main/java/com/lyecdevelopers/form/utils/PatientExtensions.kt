@@ -93,11 +93,12 @@ fun PatientEntity.toFhirPatient(): Patient = Patient().apply {
             family = lastName
             addGiven(firstName)
             use = HumanName.NameUse.OFFICIAL
-        })
+        }
+    )
 
-    gender = this@toFhirPatient.gender.let {
-        runCatching { Enumerations.AdministrativeGender.fromCode(it) }.getOrElse { Enumerations.AdministrativeGender.UNKNOWN }
-    }
+    gender = runCatching {
+        Enumerations.AdministrativeGender.fromCode(this@toFhirPatient.gender)
+    }.getOrElse { Enumerations.AdministrativeGender.UNKNOWN }
 
     birthDate = runCatching {
         if (dateOfBirth.isNotBlank()) {
@@ -112,12 +113,12 @@ fun PatientEntity.toFhirPatient(): Patient = Patient().apply {
                 coding = listOf(
                     Coding().apply {
                         code = "05a29f94-c0ed-11e2-94be-8c13b969e334"
-                    })
+                    }
+                )
                 text = "OpenMRS ID"
             }
             value = patientIdentifier
         }
-
         addIdentifier(identifier)
     }
 
@@ -127,7 +128,8 @@ fun PatientEntity.toFhirPatient(): Patient = Patient().apply {
                 system = ContactPoint.ContactPointSystem.PHONE
                 value = phoneNumber
                 use = ContactPoint.ContactPointUse.MOBILE
-            })
+            }
+        )
     }
 
     if (!address.isNotEmpty()) {
@@ -140,8 +142,8 @@ fun PatientEntity.toFhirPatient(): Patient = Patient().apply {
         }
         addAddress(fhirAddress)
     }
-
 }
+
 
 /** ✅ FHIR ➜ Local PatientEntity */
 fun Patient.toPatientEntity(): PatientEntity {
@@ -181,6 +183,7 @@ fun Patient.toPatientEntity(): PatientEntity {
         status = VisitStatus.PENDING,
         synced = false
     )
+
 }
 
 /** ✅ Small FHIR helpers */
