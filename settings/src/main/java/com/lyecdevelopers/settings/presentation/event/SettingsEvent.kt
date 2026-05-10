@@ -10,6 +10,7 @@ sealed class SettingsEvent {
     object NavigateToProfile : SettingsEvent()
     object NavigateToAbout : SettingsEvent()
     object NavigateToLanguageSelection : SettingsEvent()
+    object ScanQRCode : SettingsEvent()
 
     data class UpdateUsername(val username: String) : SettingsEvent()
     data class UpdateServerUrl(val serverUrl: String) : SettingsEvent()

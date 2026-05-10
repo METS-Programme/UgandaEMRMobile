@@ -8,6 +8,7 @@ import com.lyecdevelopers.core.data.local.dao.PatientDao
 import com.lyecdevelopers.core.data.local.dao.VisitDao
 import com.lyecdevelopers.core.data.local.dao.VitalsDao
 import com.lyecdevelopers.core.data.local.db.AppDatabase
+import com.lyecdevelopers.core.data.local.db.MIGRATION_1_2
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,7 +26,9 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "uganda_emr_mobile.db"
-        ).build()
+        )
+            .addMigrations(MIGRATION_1_2)
+            .build()
     }
 
 

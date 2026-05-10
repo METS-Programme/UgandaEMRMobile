@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -41,6 +42,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -55,7 +57,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.lyecdevelopers.core.ui.components.BaseScreen
+import android.util.Log
 import com.lyecdevelopers.settings.presentation.event.SettingsEvent
+
+private const val TAG = "SettingsScreen"
 
 @Composable
 fun SettingsScreen(
@@ -65,6 +70,27 @@ fun SettingsScreen(
     var showServerDialog by remember { mutableStateOf(false) }
     val state by viewModel.uiState.collectAsState()
     var isLoading by remember { mutableStateOf(false) }
+
+    // Handle QR scan result
+    LaunchedEffect(Unit) {
+        Log.d(TAG, "[QR_SCAN] Checking for scanned URL in savedStateHandle")
+        navController.currentBackStackEntry
+            ?.savedStateHandle
+            ?.get<String>("scanned_url")?.let { url ->
+                Log.d(TAG, "[QR_SCAN] Found scanned URL: $url")
+                if (url.isNotEmpty()) {
+                    Log.d(TAG, "[QR_SCAN] Sending UpdateServerUrl event to ViewModel")
+                    viewModel.onEvent(SettingsEvent.UpdateServerUrl(url))
+                    // Clear the result
+                    navController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.remove<String>("scanned_url")
+                    Log.d(TAG, "[QR_SCAN] Cleared scanned_url from savedStateHandle")
+                } else {
+                    Log.w(TAG, "[QR_SCAN] Scanned URL is empty, ignoring")
+                }
+            } ?: Log.d(TAG, "[QR_SCAN] No scanned_url found in savedStateHandle")
+    }
 
     BaseScreen(
         uiEventFlow = viewModel.uiEvent,
@@ -150,6 +176,15 @@ fun SettingsScreen(
                                 icon = Icons.Default.Cloud,
                                 title = "Server URL",
                                 subtitle = state.serverUrl, onClick = { showServerDialog = true })
+                            HorizontalDivider(Modifier.padding(horizontal = 16.dp))
+
+                            SettingsItem(
+                                icon = Icons.Default.QrCodeScanner,
+                                title = "Scan QR Code",
+                                subtitle = "Configure server URL by scanning QR code",
+                                onClick = { viewModel.onEvent(SettingsEvent.ScanQRCode) }
+                            )
+
                             HorizontalDivider(Modifier.padding(horizontal = 16.dp))
 
                             SettingsItem(

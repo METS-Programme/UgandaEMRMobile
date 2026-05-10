@@ -56,6 +56,7 @@ dependencies {
     implementation (project(":core"))
     implementation(project(":core-navigation"))
     implementation(project(":sync"))
+    implementation(project(":scanner"))
 
     // Compose UI essentials
     implementation(libs.androidx.activity.compose)

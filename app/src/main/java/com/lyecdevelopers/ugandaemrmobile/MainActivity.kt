@@ -7,6 +7,7 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -25,8 +26,10 @@ import com.lyecdevelopers.core.ui.theme.UgandaEMRMobileTheme
 import com.lyecdevelopers.core.utils.AppLogger
 import com.lyecdevelopers.core_navigation.navigation.Destinations
 import com.lyecdevelopers.main.MainScreen
+import com.lyecdevelopers.scanner.navigation.qrScannerGraph
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
@@ -104,12 +107,32 @@ class MainActivity : AppCompatActivity() {
                         }
 
                         composable(Destinations.AUTH) {
-                            AuthScreen(onLoginSuccess = {
-                                navController.navigate(Destinations.MAIN) {
-                                    popUpTo(Destinations.AUTH) { inclusive = true }
+                            AuthScreen(
+                                onLoginSuccess = {
+                                    navController.navigate(Destinations.MAIN) {
+                                        popUpTo(Destinations.AUTH) { inclusive = true }
+                                    }
+                                },
+                                onScanQRCode = {
+                                    navController.navigate(Destinations.QR_SCANNER)
                                 }
-                            })
+                            )
                         }
+
+                        qrScannerGraph(
+                            onUrlScanned = { url ->
+                                // Normalize URL: ensure it ends with /openmrs/
+                                val normalizedUrl = normalizeOpenMrsUrl(url)
+                                lifecycleScope.launch {
+                                    preferenceManager.saveServerUrl(normalizedUrl)
+                                }
+                                // Navigate back to auth
+                                navController.popBackStack()
+                            },
+                            onNavigateBack = {
+                                navController.popBackStack()
+                            }
+                        )
 
                         composable(Destinations.MAIN) {
                             MainScreen(
@@ -120,6 +143,34 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Normalizes OpenMRS server URL to ensure it ends with /openmrs/
+     * Examples:
+     * - http://192.168.100.8:9098 -> http://192.168.100.8:9098/openmrs/
+     * - http://192.168.100.8:9098/openmrs -> http://192.168.100.8:9098/openmrs/
+     * - http://192.168.100.8:9098/openmrs/ -> http://192.168.100.8:9098/openmrs/
+     */
+    private fun normalizeOpenMrsUrl(url: String): String {
+        // Remove trailing whitespace
+        var normalized = url.trim()
+
+        // Remove trailing slash if present (we'll add it back with /openmrs/)
+        if (normalized.endsWith("/")) {
+            normalized = normalized.dropLast(1)
+        }
+
+        // If already ends with /openmrs, keep it and add trailing slash
+        return if (normalized.endsWith("/openmrs")) {
+            "$normalized/"
+        } else if (normalized.contains("/openmrs/")) {
+            // Already has /openmrs/ somewhere in the path, ensure trailing slash
+            if (normalized.endsWith("/")) normalized else "$normalized/"
+        } else {
+            // No /openmrs path, append it
+            "$normalized/openmrs/"
         }
     }
 

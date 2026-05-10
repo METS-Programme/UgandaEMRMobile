@@ -7,14 +7,19 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.lyecdevelopers.core.security.EncryptedPreferenceManager
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
 private val Context.dataStore by preferencesDataStore(name = "app_preferences")
 
-class PreferenceManagerImpl(
-    private val context: Context
+class PreferenceManagerImpl @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val encryptedPreferenceManager: EncryptedPreferenceManager
 ) : PreferenceManager {
 
     companion object {
@@ -24,11 +29,10 @@ class PreferenceManagerImpl(
         private val DARK_MODE = booleanPreferencesKey("dark_mode")
         private val IS_LOGGED_IN = booleanPreferencesKey("is_logged_in")
         private val USERNAME = stringPreferencesKey("username")
-        private val PASSWORD = stringPreferencesKey("password")
         private val SELECTED_FORM_IDS = stringSetPreferencesKey("selected_form_ids")
         private val AUTO_SYNC_ENABLED = booleanPreferencesKey("auto_sync_enabled")
         private val AUTO_SYNC_INTERVAL_HOURS = intPreferencesKey("auto_sync_interval_hours")
-
+        private val SERVER_URL = stringPreferencesKey("server_url")
     }
 
     override suspend fun saveAuthToken(token: String) {
@@ -73,13 +77,14 @@ class PreferenceManagerImpl(
         context.dataStore.data.map { it[USERNAME] }
 
     override suspend fun savePassword(password: String) {
-        context.dataStore.edit { prefs ->
-            prefs[PASSWORD] = password
-        }
+        encryptedPreferenceManager.savePassword(password)
     }
 
-    override fun getPassword(): Flow<String?> =
-        context.dataStore.data.map { it[PASSWORD] }
+    override fun getPassword(): Flow<String?> {
+        return flow {
+            emit(encryptedPreferenceManager.getPassword())
+        }
+    }
 
     override suspend fun setRememberMe(enabled: Boolean) {
         context.dataStore.edit { prefs ->
@@ -137,12 +142,22 @@ class PreferenceManagerImpl(
     }
 
 
+    override fun getServerUrl(): Flow<String> {
+        return context.dataStore.data.map { prefs ->
+            prefs[SERVER_URL] ?: ""
+        }
+    }
+
     override suspend fun loadServerUrl(): String {
-        TODO("Not yet implemented")
+        return context.dataStore.data.map { prefs ->
+            prefs[SERVER_URL]
+        }.first() ?: ""
     }
 
     override suspend fun saveServerUrl(url: String) {
-        TODO("Not yet implemented")
+        context.dataStore.edit { prefs ->
+            prefs[SERVER_URL] = url
+        }
     }
 
     override suspend fun clear() {

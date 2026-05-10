@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">192.168.1.188</domain>
+    <!-- Allow cleartext traffic for private networks and development -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+    <!-- Require HTTPS for public domains (security best practice) -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">google.com</domain>
+        <domain includeSubdomains="true">github.com</domain>
+        <domain includeSubdomains="true">example.com</domain>
     </domain-config>
 </network-security-config>

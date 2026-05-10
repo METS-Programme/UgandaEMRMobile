@@ -1,6 +1,7 @@
 package com.lyecdevelopers.core.di
 
 import com.lyecdevelopers.core.BuildConfig
+import com.lyecdevelopers.core.data.preference.PreferenceManager
 import com.lyecdevelopers.core.data.remote.AuthApi
 import com.lyecdevelopers.core.data.remote.FormApi
 import com.lyecdevelopers.core.data.remote.interceptor.AuthInterceptor
@@ -12,6 +13,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
@@ -25,8 +27,11 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideConfig(): Config = Config(
-        baseUrl = BuildConfig.API_BASE_URL,
+    fun provideConfig(preferenceManager: PreferenceManager): Config = Config(
+        baseUrl = runBlocking {
+            val savedUrl = preferenceManager.loadServerUrl()
+            if (savedUrl.isNotEmpty()) savedUrl else BuildConfig.API_BASE_URL
+        }
     )
 
     @Provides
@@ -37,9 +42,11 @@ object NetworkModule {
     @Singleton
     fun provideOkHttpClient(
         authInterceptor: AuthInterceptor,
-    ): OkHttpClient = OkHttpClient.Builder().connectTimeout(120, TimeUnit.SECONDS)
-        .readTimeout(120, TimeUnit.SECONDS).writeTimeout(120, TimeUnit.SECONDS)
-        .addInterceptor(RetryInterceptor())
+    ): OkHttpClient = OkHttpClient.Builder()
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
+        .addInterceptor(RetryInterceptor(maxRetry = 2))
         .addInterceptor(authInterceptor)
         .addInterceptor(provideLoggingInterceptor())
         .build()

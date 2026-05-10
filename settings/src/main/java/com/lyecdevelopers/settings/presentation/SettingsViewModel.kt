@@ -1,5 +1,6 @@
 package com.lyecdevelopers.settings.presentation
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.lyecdevelopers.core._base.BaseViewModel
 import com.lyecdevelopers.core.common.scheduler.SchedulerProvider
@@ -29,12 +30,17 @@ class SettingsViewModel @Inject constructor(
     private val syncManager: SyncManager,
 ) : BaseViewModel() {
 
+    companion object {
+        private const val TAG = "SettingsViewModel"
+    }
+
     // state
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState
 
     // handle events
     fun onEvent(event: SettingsEvent) {
+        Log.d(TAG, "[EVENT] Received event: ${event::class.simpleName}")
         when (event) {
             is SettingsEvent.LoadSettings -> loadSettings()
             is SettingsEvent.ToggleDarkMode -> toggleDarkMode(event.enabled)
@@ -43,6 +49,7 @@ class SettingsViewModel @Inject constructor(
             is SettingsEvent.NavigateToProfile -> {}
             is SettingsEvent.NavigateToAbout -> {}
             is SettingsEvent.NavigateToLanguageSelection -> {}
+            is SettingsEvent.ScanQRCode -> navigateToQrScanner()
             is SettingsEvent.UpdateUsername -> updateUsername(event.username)
             is SettingsEvent.UpdateServerUrl -> updateServerUrl(event.serverUrl)
             is SettingsEvent.UpdateSyncInterval -> updateSyncInterval(event.intervalInHours)
@@ -98,9 +105,17 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun updateServerUrl(url: String) {
+        Log.d(TAG, "[SERVER_URL] Updating server URL to: $url")
         viewModelScope.launch {
+            Log.d(TAG, "[SERVER_URL] Saving URL to preference manager")
             preferenceManager.saveServerUrl(url)
+            Log.d(TAG, "[SERVER_URL] Server URL saved successfully")
         }
+    }
+
+    private fun navigateToQrScanner() {
+        Log.d(TAG, "[NAV] Navigating to QR scanner")
+        navigate(Destinations.QR_SCANNER)
     }
 
     private fun updateSyncInterval(interval: Int) {

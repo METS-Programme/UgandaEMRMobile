@@ -21,62 +21,62 @@ import retrofit2.http.Query
 
 interface FormApi {
     // form
-    @GET("rest/v1/form")
+    @GET("ws/rest/v1/form")
     suspend fun getForms(
         @Query("v") view: String = "full",
     ): Response<FormsListResponse>
 
-    @GET("rest/v1/o3/forms/{formId}")
+    @GET("ws/rest/v1/o3/forms/{formId}")
     suspend fun loadFormByUuid(
         @Path("formId") formId: String,
         @Query("v") view: String = "full",
     ): Response<o3Form>
 
-    @GET("rest/v1/form")
+    @GET("ws/rest/v1/form")
     suspend fun filterForms(
         @Query("q") query: String,
         @Query("v") view: String = "full",
     ): Response<FormsListResponse>
 
-    @GET("rest/v1/o3/forms/{formId}")
+    @GET("ws/rest/v1/o3/forms/{formId}")
     suspend fun getFormByUuid(@Path("formId") formId: String): Response<o3Form>
 
     // cohort
-    @GET("rest/v1/cohort")
+    @GET("ws/rest/v1/cohort")
     suspend fun getCohorts(@Query("v") view: String = "full"): Response<CohortListResponse>
 
     // orders
-    @GET("rest/v1/ordertype")
+    @GET("ws/rest/v1/ordertype")
     suspend fun getOrderTypes(): Response<OrderTypeListResponse>
 
     // encounters
-    @GET("rest/v1/encountertype")
+    @GET("ws/rest/v1/encountertype")
     suspend fun getEncounterTypes(): Response<EncounterTypeListResponse>
 
     // patientIdentifiers
-    @GET("rest/v1/patientidentifiertype")
+    @GET("ws/rest/v1/patientidentifiertype")
     suspend fun getPatientIdentifiers(): Response<IdentifierListResponse>
 
     // personattributetype
-    @GET("rest/v1/personattributetype")
+    @GET("ws/rest/v1/personattributetype")
     suspend fun getPersonAttributeTypes(): Response<PersonAttributeTypeListResponse>
 
     // conditions
-    @GET("rest/v1/ugandaemrreports/concepts/conditions")
+    @GET("ws/rest/v1/ugandaemrreports/concepts/conditions")
     suspend fun getConditions(): Response<Any>
 
     // data definition
-    @POST("rest/v1/ugandaemrreports/dataDefinition")
+    @POST("ws/rest/v1/ugandaemrreports/dataDefinition")
     suspend fun generateDataDefinition(
         @Body payload: DataDefinition,
     ): Response<ResponseBody>
 
 
     // save encounter
-    @POST("rest/v1/encounter")
+    @POST("ws/rest/v1/encounter")
     suspend fun saveEncounter(@Body payload: Any): Response<Any>
 
-    @PUT("fhir2/R4/Patient/{uuid}")
+    @PUT("ws/fhir2/R4/Patient/{uuid}")
     suspend fun savePatient(
         @Path("uuid") patientId: String,
         @Body patient: RequestBody,

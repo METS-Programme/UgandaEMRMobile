@@ -147,6 +147,7 @@ dependencies {
     implementation(project(":core-navigation"))
     implementation(project(":main"))
     implementation(project(":form"))
+    implementation(project(":scanner"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

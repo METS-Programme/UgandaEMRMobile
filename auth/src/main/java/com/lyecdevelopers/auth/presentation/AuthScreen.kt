@@ -40,7 +40,8 @@ import com.lyecdevelopers.core.ui.theme.UgandaEMRMobileTheme
 
 @Composable
 fun AuthScreen(
-    onLoginSuccess: () -> Unit
+    onLoginSuccess: () -> Unit,
+    onScanQRCode: () -> Unit = {}
 ) {
     val viewModel: AuthViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
@@ -48,6 +49,13 @@ fun AuthScreen(
     var isLoading by remember { mutableStateOf(false) }
     LaunchedEffect(uiState.isLoading) {
         isLoading = uiState.isLoading
+    }
+
+    // Handle QR scan result (from MainActivity navigation)
+    LaunchedEffect(Unit) {
+        // Check for scanned URL in navigation result
+        // This would be handled via a more sophisticated navigation setup
+        // For now, the URL is saved directly in the scanner navigation callback
     }
 
     UgandaEMRMobileTheme {
@@ -98,7 +106,7 @@ fun AuthScreen(
                             shape = RoundedCornerShape(16.dp),
                             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                         ) {
-                            LoginScreen()
+                            LoginScreen(onScanQRCode = onScanQRCode)
                         }
 
                         Spacer(modifier = Modifier.height(32.dp))

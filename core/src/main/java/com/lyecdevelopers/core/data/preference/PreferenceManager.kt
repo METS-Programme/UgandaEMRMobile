@@ -45,6 +45,8 @@ interface PreferenceManager {
 
     suspend fun loadAutoSyncInterval(): Int
 
+    fun getServerUrl(): Flow<String>
+
     suspend fun loadServerUrl(): String
 
     suspend fun saveServerUrl(url: String)

@@ -1,19 +1,28 @@
 package com.lyecdevelopers.auth.presentation.login
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -37,6 +46,7 @@ import com.lyecdevelopers.core.ui.components.TextInputField
 
 @Composable
 fun LoginScreen(
+    onScanQRCode: () -> Unit = {}
 ) {
     val viewModel: AuthViewModel = hiltViewModel()
     val state by viewModel.uiState.collectAsState()
@@ -57,7 +67,37 @@ fun LoginScreen(
             color = MaterialTheme.colorScheme.onPrimary
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Display server URL if scanned
+        state.serverUrl?.let { url ->
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Connecting to:",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                    )
+                    Text(
+                        text = url,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         TextInputField(
             value = state.username,
@@ -100,16 +140,35 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        SubmitButton(
-            text = "Submit",
-            onClick = { viewModel.onEvent(LoginEvent.Submit) },
-            iconContentDescription = "Login icon",
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ),
-            shape = RoundedCornerShape(12.dp)
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OutlinedButton(
+                onClick = onScanQRCode,
+                modifier = Modifier.size(56.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.QrCodeScanner,
+                    contentDescription = "Scan QR Code",
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            SubmitButton(
+                text = "Submit",
+                onClick = { viewModel.onEvent(LoginEvent.Submit) },
+                iconContentDescription = "Login icon",
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.weight(1f)
+            )
+        }
 
     }
 }

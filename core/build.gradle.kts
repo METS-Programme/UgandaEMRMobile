@@ -29,9 +29,19 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
 
-
         // url config
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+
+        // Room schema export
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += mapOf(
+                    "room.schemaLocation" to "$projectDir/schemas".toString(),
+                    "room.incremental" to "true",
+                    "room.expandProjection" to "true"
+                )
+            }
+        }
     }
 
     buildTypes {

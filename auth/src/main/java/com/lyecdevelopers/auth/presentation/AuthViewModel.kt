@@ -1,6 +1,8 @@
 package com.lyecdevelopers.auth.presentation
 
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 import com.lyecdevelopers.auth.domain.usecase.LoginUseCase
 import com.lyecdevelopers.auth.presentation.event.LoginEvent
 import com.lyecdevelopers.auth.presentation.state.LoginUIState
@@ -29,6 +31,16 @@ class AuthViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(LoginUIState())
     val uiState: StateFlow<LoginUIState> = _uiState
 
+    init {
+        // Load server URL from preferences
+        viewModelScope.launch(schedulerProvider.io) {
+            val serverUrl = preferenceManager.loadServerUrl()
+            if (serverUrl.isNotEmpty()) {
+                _uiState.update { it.copy(serverUrl = serverUrl) }
+            }
+        }
+    }
+
     fun onEvent(event: LoginEvent) {
         when (event) {
             is LoginEvent.Login -> {
@@ -38,7 +50,9 @@ class AuthViewModel @Inject constructor(
                     )
                 }
             }
-
+            is LoginEvent.SetServerUrl -> {
+                _uiState.update { it.copy(serverUrl = event.url) }
+            }
             LoginEvent.Submit -> {
                 validateAndLogin()
             }

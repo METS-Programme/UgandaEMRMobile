@@ -7,6 +7,7 @@ import com.lyecdevelopers.core.data.notifications.SyncNotificationHelper
 import com.lyecdevelopers.core.data.preference.PreferenceManager
 import com.lyecdevelopers.core.data.preference.PreferenceManagerImpl
 import com.lyecdevelopers.core.data.sync.SyncManager
+import com.lyecdevelopers.core.security.EncryptedPreferenceManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,8 +26,9 @@ object CoreModule {
     @Provides
     @Singleton
     fun providePreferenceManager(
-        @ApplicationContext context: Context
-    ): PreferenceManager = PreferenceManagerImpl(context)
+        @ApplicationContext context: Context,
+        encryptedPreferenceManager: EncryptedPreferenceManager
+    ): PreferenceManager = PreferenceManagerImpl(context, encryptedPreferenceManager)
 
     @Provides
     @Singleton

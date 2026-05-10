@@ -17,7 +17,7 @@ import com.lyecdevelopers.core.data.local.entity.VitalsEntity
 @Database(
     entities = [FormEntity::class, PatientEntity::class, VisitEntity::class, VitalsEntity::class, EncounterEntity::class],
     version = 1,
-    exportSchema = false
+    exportSchema = true
 )
 @TypeConverters(
     FormTypeConverters::class, DateTimeTypeConverters::class, VisitStatusConverter::class,
