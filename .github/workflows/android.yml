@@ -73,8 +73,10 @@ jobs:
         if: github.event_name == 'push'
         run: |
           echo "Starting release build at $(date)" && \
-          ./gradlew assembleRelease --no-daemon --stacktrace && \
+          ./gradlew assembleRelease --no-daemon --stacktrace -Dorg.gradle.jvmargs="-Xmx3072m -XX:MaxMetaspaceSize=512m" && \
           echo "Completed release build at $(date)"
+        env:
+          JAVA_TOOL_OPTIONS: "-Xmx3g"
 
       - name: Debug Show APK files
         run: ls -R app/build/outputs/apk

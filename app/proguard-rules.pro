@@ -59,3 +59,8 @@
 
 # ───────────── Keep enums (sealed classes safety) ─────────────
 -keepclassmembers enum * { *; }
+
+# ───────────── Suppress R8 warnings for missing service classes ─────────────
+# These are from Woodstox/StAX XML parser dependencies
+-dontwarn org.codehaus.stax2.**
+-dontwarn javax.xml.stream.**
