@@ -8,7 +8,8 @@
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
 .DS_Store
-/build
+# Build outputs
+build/
 /captures
 .externalNativeBuild
 .cxx
@@ -17,3 +18,13 @@ local.properties
 /.idea/AndroidProjectSystem.xml
 keystore/
 *.jks
+
+# Claude Code
+.claude/
+
+# Java/Kotlin tooling
+.java-version
+.kotlin/
+
+# Local build logs
+*.log
