@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       JAVA_TOOL_OPTIONS: "-Xmx2g"
+      GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=1"
 
     steps:
       - name: Checkout repository
@@ -47,9 +48,6 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-
       - name: Cache Gradle packages
         uses: actions/cache@v4
         with:
@@ -68,15 +66,18 @@ jobs:
           echo "Starting build at $(date)" && \
           ./gradlew assembleDebug testDebugUnitTest --no-daemon --stacktrace && \
           echo "Completed build at $(date)"
+        env:
+          GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
       - name: Build Release
         if: github.event_name == 'push'
         run: |
           echo "Starting release build at $(date)" && \
-          ./gradlew assembleRelease --no-daemon --stacktrace -Dorg.gradle.jvmargs="-Xmx3072m -XX:MaxMetaspaceSize=512m" && \
+          ./gradlew assembleRelease --no-daemon --stacktrace && \
           echo "Completed release build at $(date)"
         env:
-          JAVA_TOOL_OPTIONS: "-Xmx3g"
+          JAVA_TOOL_OPTIONS: "-Xmx4g"
+          GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=1"
 
       - name: Debug Show APK files
         run: ls -R app/build/outputs/apk
