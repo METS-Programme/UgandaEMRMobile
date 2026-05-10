@@ -64,11 +64,17 @@ jobs:
         run: echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > app/google-services.json
 
       - name: Build Debug and run tests
-        run: ./gradlew assembleDebug testDebugUnitTest --no-daemon --stacktrace
+        run: |
+          echo "Starting build at $(date)" && \
+          ./gradlew assembleDebug testDebugUnitTest --no-daemon --stacktrace && \
+          echo "Completed build at $(date)"
 
       - name: Build Release
         if: github.event_name == 'push'
-        run: ./gradlew assembleRelease --no-daemon --stacktrace
+        run: |
+          echo "Starting release build at $(date)" && \
+          ./gradlew assembleRelease --no-daemon --stacktrace && \
+          echo "Completed release build at $(date)"
 
       - name: Debug Show APK files
         run: ls -R app/build/outputs/apk
@@ -85,6 +91,15 @@ jobs:
         with:
           name: UgandaEMR-Mobile-release-apk
           path: app/build/outputs/apk/release/app-release.apk
+
+      - name: Report build times
+        if: always()
+        run: |
+          echo "## ⏱️ Build Timing Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Step | Duration |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|----------|" >> $GITHUB_STEP_SUMMARY
+          gh run view ${{ github.run_id }} --json jobs --jq '.jobs[0].steps[] | "| \(.name) | \(.completedAt - .startedAt) |"' >> $GITHUB_STEP_SUMMARY || echo "Timing data unavailable"
 
   release:
     needs: build
@@ -172,10 +187,13 @@ jobs:
       - name: Notify Slack on Success
         if: success()
         run: |
+          BUILD_TIME=$(gh run view ${{ github.run_id }} --json updatedAt,createdAt --jq '(.updatedAt - .createdAt) + " seconds"')
           curl -X POST -H 'Content-type: application/json' \
-            --data '{
-              "text": "✅ *Build and Release Successful* for `${{ github.repository }}` on `${{ github.ref_name }}`. Version: `${{ steps.auto_tag.outputs.tag }}`"
-            }' ${{ secrets.SLACK_WEBHOOK_URL }}
+            --data "{
+              \"text\": \"✅ *Build and Release Successful* for \`${{ github.repository }}\` on \`${{ github.ref_name }}\`\n*Version:* \`${{ steps.auto_tag.outputs.tag }}\`\n*Duration:* $BUILD_TIME\"
+            }" ${{ secrets.SLACK_WEBHOOK_URL }}
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Notify Slack on Failure
         if: failure()
